@@ -18,6 +18,17 @@
 ## Work packages
 
 ### WP 3.1 — Spike (1–2 days): can classic `ProfileActivity` host the self-settings layout?
+> **Findings (2026-11-07, code reading only) and a first implementation, not run on a device:**
+> - 12.1.1's drawer "Settings" was `ProfileActivity` with `user_id` = self (`LaunchActivity.openSettings`); `SettingsActivity` did not exist (added whole, +2156 lines, in 12.4).
+> - 13.1.1's `ProfileActivity` **still contains the whole self-settings page** (Chat, Privacy, Notifications, Data, Lite mode, Folders, Devices, Language, Premium, Stars,
+>   TON, NagramX rows, `nekoRow`, `idDcRow`): it is built when `isUserSelf && !myProfile`. It is dead code only because `onFragmentCreate` forces `myProfile = true` for the own user.
+>   (NagramXF keeps extending that branch, so it is probably still maintained.) So option (b) "route self to `ProfileActivity`" is mostly a routing change.
+> - Implemented as an **opt-in** switch, off by default: Settings → Retrogram → "Classic settings page". `app.retrogram.RetroNav.settingsFragment()` returns
+>   `ProfileActivity(user_id=self)` instead of `SettingsActivity` at the drawer, deep links (`LinkManager`, 2 sites), `LaunchActivity` open_settings and the profile's settings
+>   button; `ProfileActivity` skips the `myProfile` override for the own user in that mode. `my_profile=true` callers (chat header, Stars sheets, drawer "My profile") are unchanged.
+>   Left alone: the saved-state restore of `SettingsActivity` ("settings2" in `LaunchActivity`).
+> - To check on a device: the page renders (header, avatar, phone/username/bio rows, every row of `docs/settings-rows.md`), back/transition animations, stories row, account switcher,
+>   and that "My profile" is unchanged. If it works, flip the default and move on to the header re-skin; if not, the switch can stay off.
 Diff `ProfileActivity` 12.1.1 vs the current file and list what 12.4 changed
 (`git diff --stat 9cbf0333 3de37c8c -- TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java`). Decide:
 - **(a) Re-skin `SettingsActivity`**: keep it, replace its floating header and glass sections with the

@@ -24,7 +24,14 @@ object RetroConfig {
     @JvmField
     val remoteMetadata = ConfigItem("RetroRemoteMetadata", ConfigItem.configTypeBool, false)
 
-    private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata)
+    /**
+     * Experimental: open "Settings" as the classic profile-in-self-mode page of 12.1.1 instead of
+     * `SettingsActivity`. Off by default; read live (no restart). Only has an effect in retro mode.
+     */
+    @JvmField
+    val classicSettings = ConfigItem("RetroClassicSettings", ConfigItem.configTypeBool, false)
+
+    private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings)
 
     // Snapshot taken once per process. Until init() runs, behave like the defaults.
     @Volatile
@@ -33,6 +40,10 @@ object RetroConfig {
     /** Whether the old UI is active in this process. Hook point for Phases 1-4. */
     @JvmStatic
     fun isRetroUi(): Boolean = retroUiAtStart
+
+    /** Whether Settings should open the classic self-mode profile page. */
+    @JvmStatic
+    fun isClassicSettings(): Boolean = retroUiAtStart && classicSettings.Bool()
 
     /** Called once from `ApplicationLoader.onCreate`, after `NaConfig.init()`. */
     @JvmStatic

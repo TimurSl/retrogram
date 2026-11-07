@@ -43,6 +43,8 @@
     <string name="RetroUi">Classic interface</string>
     <string name="RetroUiInfo">Use the classic Telegram layout. Applied after restart.</string>
     <string name="RetroRemoteMetadata">Remote update checks</string>
+    <string name="RetroClassicSettings">Classic settings page</string>
+    <string name="RetroClassicSettingsInfo">Experimental: open Settings as the classic profile page of Telegram 12.1.1. Takes effect the next time you open Settings.</string>
     <string name="RetroRemoteMetadataInfo">Fetch update info and extra data from channels not owned by Retrogram. Off by default.</string>
     <string name="UnlimitedFavoredStickers">Unlimited Favored Stickers</string>
     <string name="UnlimitedFavoredStickersAbout">Add unlimited stickers to favorites. Stickers may not be synchronized to other devices.</string>

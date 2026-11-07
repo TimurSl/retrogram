@@ -29,6 +29,7 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
     private final AbstractConfigCell headerInterface = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.RetrogramInterface)));
     private final AbstractConfigCell retroUiRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.retroUi, getString(R.string.RetroUiInfo)));
     private final AbstractConfigCell remoteMetadataRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.remoteMetadata, getString(R.string.RetroRemoteMetadataInfo)));
+    private final AbstractConfigCell classicSettingsRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.classicSettings, getString(R.string.RetroClassicSettingsInfo)));
     private final AbstractConfigCell dividerInterface = cellGroup.appendCell(new ConfigCellDivider());
 
     public RetrogramSettingsActivity() {
@@ -44,9 +45,12 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
 
         setupDefaultListeners();
 
-        // Both switches are read once per process start.
-        cellGroup.callBackSettingsChanged = (key, newValue) ->
+        // The UI and metadata switches are read once per process start; the classic-settings switch is live.
+        cellGroup.callBackSettingsChanged = (key, newValue) -> {
+            if (!RetroConfig.classicSettings.getKey().equals(key)) {
                 tooltip.showWithAction(0, UndoView.ACTION_NEED_RESTART, null, null);
+            }
+        };
 
         return superView;
     }

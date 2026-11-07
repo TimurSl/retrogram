@@ -1850,7 +1850,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             presentFragment(new ContactsActivity(args));
             drawerLayoutContainer.closeDrawer(false);
         } else if (id == 8) {
-            presentFragment(new SettingsActivity());
+            presentFragment(app.retrogram.RetroNav.settingsFragment());
             drawerLayoutContainer.closeDrawer(false);
         } else if (id == 10) {
             presentFragment(new CallLogActivity());
@@ -3979,7 +3979,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                 BaseFragment fragment;
                 boolean closePrevious = false;
                 if (open_settings == 1) {
-                    fragment = new SettingsActivity();
+                    fragment = app.retrogram.RetroNav.settingsFragment();
                 } else if (open_settings == 2) {
                     fragment = new ThemeActivity(ThemeActivity.THEME_TYPE_BASIC);
                 } else if (open_settings == 3) {
