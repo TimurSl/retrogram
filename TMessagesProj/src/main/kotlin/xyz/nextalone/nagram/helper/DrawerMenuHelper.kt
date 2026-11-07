@@ -58,6 +58,7 @@ object DrawerMenuHelper {
         Entry(DrawerLayoutAdapter.nkbtnSessions, R.string.Devices, R.drawable.msg2_devices),
         Entry(DrawerLayoutAdapter.nkbtnMainTabsCustomize, R.string.MainTabsCustomize, R.drawable.tabs_reorder),
         Entry(DrawerLayoutAdapter.nkbtnFeed, R.string.Feed, R.drawable.ic_feed),
+        Entry(DrawerLayoutAdapter.nkbtnWallet, R.string.WalletAttachMoney, R.drawable.ic_gram),
         Entry(DrawerLayoutAdapter.nkbtnRestartApp, R.string.RestartApp, R.drawable.msg_retry)
     )
 
@@ -72,6 +73,7 @@ object DrawerMenuHelper {
     fun defaultLayout(): MutableList<Int> = mutableListOf(
         DrawerLayoutAdapter.nkbtnGhostMode, DIVIDER,
         ID_MY_PROFILE, ID_EMOJI_STATUS, ID_NEW_GROUP, ID_CONTACTS, ID_CALLS,
+        DrawerLayoutAdapter.nkbtnWallet,
         DrawerLayoutAdapter.nkbtnRecentChats, ID_SAVED, ID_SETTINGS, DIVIDER,
         DrawerLayoutAdapter.nkbtnSettings
     )

@@ -93,6 +93,8 @@ object MainMenuActions {
                 fragment.presentFragment(MainTabsCustomizeActivity())
             id == DrawerLayoutAdapter.nkbtnFeed ->
                 com.exteragram.messenger.feed.ui.FeedActivity.presentFeed(fragment)
+            id == DrawerLayoutAdapter.nkbtnWallet ->
+                fragment.presentFragment(org.telegram.ui.Wallet.WalletActivity())
             id == DrawerLayoutAdapter.nkbtnRestartApp -> AppRestartHelper.triggerRebirth(
                 ApplicationLoader.applicationContext,
                 Intent(ApplicationLoader.applicationContext, LaunchActivity::class.java)

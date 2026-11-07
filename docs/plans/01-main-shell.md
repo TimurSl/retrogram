@@ -88,6 +88,12 @@ class exists in either tree), built with `Theme.createSimpleSelectorCircleDrawab
 circle in retro mode — check its API first and pick whichever touches fewer `DialogsActivity` lines.
 
 ### WP 1.4 — Drawer content (M)
+> **Status: Wallet added, rest open; not build-verified.** The drawer is already a configurable list (`DrawerMenuHelper` entries + stored layout,
+> `DrawerLayoutAdapter.buildItemForId`, click handled in `LaunchActivity` and `MainMenuActions`). Already present: My Profile, New Group/Channel,
+> Contacts, Calls, Saved, Settings, Archived chats, Feed, N-settings, ghost mode. Added: `nkbtnWallet` (opens `WalletActivity`, skipped while
+> `config.walletAvailable` is false; in the stock layout after Calls; existing installs get it in the hidden list via `sanitize`).
+> Still open: **Invite friends**, **Telegram Features**, **QR share**, **Communities** (no drawer entry point yet; find each one's launch code
+> first: `grep` for the 13.1.1 menu/tab that opens it). Note the retro default layout has not been chosen separately from NagramXF's.
 `DrawerLayoutAdapter` already lists NagramXF items (ghost mode, browser, restart, N-settings: ids
 `nkbtn*`; `NaConfig.drawerItem*`). Required entries: accounts, My Profile/Stories, New Group/Secret/Channel,
 Contacts, Calls, Saved Messages, Settings, Invite, Telegram Features, plus the post-12.1 items that used to
