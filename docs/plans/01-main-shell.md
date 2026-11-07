@@ -63,6 +63,16 @@ Compare against `git show 9cbf0333:…/DialogsActivity.java` (13,524 lines vs 14
    (archive hint, proxy/connection banner, birthdays, etc.) as solid panels.
 
 ### WP 1.3 — FAB (S)
+> **Status: restyle written, not build-verified.** Finding: the 13.1.1 main FAB is already a plain round `FrameLayout` background
+> (`FragmentFloatingButton`, 48dp, `featuredStickers_addButton`); only the stories sub-button uses a glass-styled blur3 drawable.
+> So the re-skin is done inside `FragmentFloatingButton` (small diff, and it applies to every screen's FAB):
+> in retro mode `createDefaultLayoutParams()` is 56dp with 14dp margins, colors are `chats_actionBackground` / `chats_actionPressedBackground`,
+> elevation 3dp; the sub-button is a 36dp solid circle (no blur3 drawable) centered above the main one (`getSubButtonOffsetDp()` = 68,
+> used by `DialogsActivity.updateFloatingButtonOffset`).
+> Not done yet: in 12.1.1 with stories enabled the **main** FAB was the camera and the small one the pencil (13.1.1 has them the other way round).
+> Swapping the roles needs `R.raw.write_contacts_fab_icon_camera` and `fab_compose_small`, which no longer exist: revive them from
+> `9cbf0333` (`git -C upstream/telegram show 9cbf0333:TMessagesProj/src/main/res/raw/write_contacts_fab_icon_camera.json`), then branch the click
+> listeners and `updateStoriesPosting()` on `RetroConfig.isRetroUi()`. (`upstream/telegram` must be initialised: `git submodule update --init upstream/telegram`.)
 Round pencil FAB plus the camera mini-FAB for stories, replacing `floatingButton3` / `floatingButtonStories`.
 In 12.1.1 this was a plain `FrameLayout floatingButtonContainer` (`DialogsActivity:419`, no `FloatingActionButton`
 class exists in either tree), built with `Theme.createSimpleSelectorCircleDrawable` and animated by
