@@ -216,6 +216,26 @@ jobs:
           type=$([ "$IS_TAG" = "true" ] && echo Release || echo Debug)
           ./gradlew ":TMessagesProj:assemble${flavor}${type}" -Pretrogram.plugins="$PLUGINS"
 
+      # WP 0.3 acceptance: with the plugin switch off nothing of the Python / hooking runtime may be present.
+      - name: Verify plugin isolation (plugins off)
+        if: ${{ !matrix.plugins && env.IS_TAG != 'true' }}
+        run: |
+          fail=0
+          apk=$(ls TMessagesProj/build/outputs/apk/normal/debug/*.apk | head -n1)
+          echo "APK: $apk"
+          if unzip -l "$apk" | grep -Ei 'chaquopy|lsplant|shadowhook'; then
+            echo "::error::plugin runtime files found in the normal APK"; fail=1
+          fi
+          if ./gradlew :TMessagesProj:tasks --all -q | grep -i 'chaquopy'; then
+            echo "::error::chaquopy tasks are registered with retrogram.plugins=false"; fail=1
+          fi
+          if ./gradlew :TMessagesProj:assemblePluginDebug -q > plugin-variant.log 2>&1; then
+            echo "::error::assemblePluginDebug succeeded with retrogram.plugins=false"; fail=1
+          else
+            echo "assemblePluginDebug fails with the flag off, as intended:"; grep -m3 -i "not found\|wasn't found\|What went wrong" -A2 plugin-variant.log || tail -n 5 plugin-variant.log
+          fi
+          exit $fail
+
       - name: Locate APKs
         id: apk
         run: |
