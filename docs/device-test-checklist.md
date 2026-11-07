@@ -13,6 +13,7 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 | Remote update checks | off | after restart |
 | Classic settings page | on | next time Settings opens |
 | Classic input bar (experimental) | off | chats opened afterwards |
+| Classic chat header (experimental) | off | chats opened afterwards |
 | Classic theme colors (experimental) | off | after restart |
 
 ## Checks
@@ -39,6 +40,11 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 - [ ] Attach button, AI and rich-text buttons, send / voice, hold-to-record overlay
 - [ ] Bot keyboard, scheduled/silent long-press sheet, search-in-chat bar, "join/mute" bottom bar
 - [ ] Turn it off: the floating island returns (new chats)
+
+**Chat header (classic chat header on)**
+- [ ] Solid bar with back arrow, avatar, name and subtitle, menu; no floating pills
+- [ ] First/last messages are not hidden under the bar; no fade/dim band over the list
+- [ ] Pinned / translate panels under the bar, forum topics, search in chat, selection mode bar
 
 **Classic theme colors (switch on, restart, theme "Blue" / default)**
 - [ ] Chat list: blue action bar with white icons and title, white status text; search icon; folder tabs

@@ -5246,10 +5246,15 @@ public class ChatActivity extends BaseFragment implements
 
         contentView.setOccupyStatusBar(!inBubbleMode && !isInsideContainer && !inPreviewMode);
 
-        actionBar.setupGlass(
-            glassBackgroundDrawableFactory,
-            BlurredBackgroundProviderImpl.topPanelChatActivity(themeDelegate),
-            ChatObject.isForum(currentChat));
+        if (app.retrogram.RetroConfig.isClassicChatHeader()) {
+            // Retrogram: classic solid action bar instead of the floating glass pills (no setupGlass).
+            actionBar.setBackgroundColor(getThemedColor(Theme.key_actionBarDefault));
+        } else {
+            actionBar.setupGlass(
+                glassBackgroundDrawableFactory,
+                BlurredBackgroundProviderImpl.topPanelChatActivity(themeDelegate),
+                ChatObject.isForum(currentChat));
+        }
         actionBar.setChatAvatarContainer(avatarContainer);
 
         if (chatMode == MODE_PINNED) {
@@ -7687,6 +7692,9 @@ public class ChatActivity extends BaseFragment implements
         chatActivityFadeView.setFadeHeightTop(dp(48));
         chatActivityFadeView.setFadeHeightBottom(dp(48));
         contentView.addView(chatActivityFadeView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+        if (app.retrogram.RetroConfig.isClassicChatHeader()) {
+            chatActivityFadeView.setVisibility(View.GONE); // Retrogram: no top/bottom fade over the message list
+        }
 
         if (false/* && getDialogId() != getUserConfig().getClientUserId()*/) {
             selectionReactionsOverlay = new ChatSelectionReactionMenuOverlay(this, context);

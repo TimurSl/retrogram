@@ -39,6 +39,13 @@ object RetroConfig {
     val classicInput = ConfigItem("RetroClassicInput", ConfigItem.configTypeBool, false)
 
     /**
+     * Experimental: the chat screen's top bar as the classic solid action bar (12.1.1) instead of the 12.4 floating glass pills,
+     * and without the top/bottom fade overlay. Off by default; read when a chat is created.
+     */
+    @JvmField
+    val classicChatHeader = ConfigItem("RetroClassicChatHeader", ConfigItem.configTypeBool, false)
+
+    /**
      * Experimental: the 12.1.1 default-theme palette (blue action bar, white icons, ...) for the keys whose default
      * changed in 13.1.1 (see [RetroThemeColors]). Off by default; applied at process start, so it needs a restart.
      * `RetroThemeColors.enabled()` reads the stored value itself because `Theme` can load before [init].
@@ -46,7 +53,7 @@ object RetroConfig {
     @JvmField
     val classicColors = ConfigItem("RetroClassicColors", ConfigItem.configTypeBool, false)
 
-    private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings, classicInput, classicColors)
+    private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings, classicInput, classicChatHeader, classicColors)
 
     // Snapshot taken once per process. Until init() runs, behave like the defaults.
     @Volatile
@@ -55,6 +62,10 @@ object RetroConfig {
     /** Whether the old UI is active in this process. Hook point for Phases 1-4. */
     @JvmStatic
     fun isRetroUi(): Boolean = retroUiAtStart
+
+    /** Whether the chat screen uses the classic solid action bar. */
+    @JvmStatic
+    fun isClassicChatHeader(): Boolean = retroUiAtStart && classicChatHeader.Bool()
 
     /** Whether the chat input bar uses the flat full-width geometry. */
     @JvmStatic

@@ -44,3 +44,14 @@ the 12.4 inner layout of `ChatActivityEnterView` (attach/emoji/send pills), `Ric
 What to look at on a device: bar edges against the screen edges, gap above the navigation bar (3-button and gesture nav), keyboard open/close animation,
 reply/edit bars, voice/video record overlay, attach button and AI/rich-text buttons, bot keyboard, scheduled/silent long-press sheet.
 
+## Device test notes (2026-11-07, project owner's screenshots) and next step: opt-in "Classic chat header" (WP 2.4a, not yet run on a device)
+
+- **Input bar:** the screenshot of a chat shows the flat, full-width bar flush with the bottom (emoji left, attach and menu right): the classic-input geometry works.
+- **Chat list header:** hamburger + title (with status emoji) + search icon + folder pill: classic.
+- **Not classic yet:** the chat's top bar is the 12.4 glass look: a round back button, a rounded name pill and a round menu button, with message text visible behind them.
+- **Change:** Settings → Retrogram → "Classic chat header (experimental)", off by default, applies to chats opened afterwards. When on, `ChatActivity` does not call
+  `actionBar.setupGlass(...)` (so `ActionBar.glassMode` stays false and the normal solid bar draws, colored with `key_actionBarDefault`) and hides `ChatActivityFadeView`
+  (the 48dp top/bottom fade). The message list already pads for `actionBar.getMeasuredHeight()` (`updateChatListViewTopPadding`), so content should start below the bar.
+  Not handled: theme change while a chat is open (the bar color is set once), forum/topic chats and the `MODE_*` chats (pinned, welcome, comments) which take other glass branches
+  at ~5259, the top panels (pinned/translate) which keep their own backgrounds.
+
