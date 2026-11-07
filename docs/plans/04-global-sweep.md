@@ -74,6 +74,10 @@ Compare `Theme` color keys 12.1.1 vs 13.1.1 (`git diff 9cbf0333 3de37c8c -- …/
 `key_chats_menu*` values for built-in themes; make sure the default theme set and wallpapers equal 12.1.1.
 
 ### WP 4.4 — `tools/glass-guard.sh` (S)
+> **Status: written (2026-11-07).** `tools/glass-guard.sh` (no args = baseline summary, exit 0; `--strict` or a git range = exit 1 on unallowed hits).
+> Allowed: files under `app/retrogram/`, lines mentioning `RetroConfig` or carrying a `glass-guard:ok` comment, files matching `tools/glass-guard.allow`.
+> Baseline today: 2280 hits (2018 not allowed) over the tree, which is why CI runs it in baseline mode only. Wire it as a strict range check
+> for `sync/*` branches and PRs once the sweep has shrunk the baseline (CI's "Glass guard" step already runs it when the file exists).
 Input: a git range (e.g. the diff of an upstream merge). Greps added lines for
 `blur3`, `GlassTab`, `MainTabs`, `FragmentFloatingButton`, `FragmentSearchField`, `BlurredBackground`,
 `LiquidGlass`, `ProfileActivity2`, `FLAG_LIQUID_GLASS`. Fails unless each hit is either under an `app/retrogram`
