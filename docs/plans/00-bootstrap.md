@@ -177,6 +177,9 @@ Also check that nothing in `src/main` imports a class that exists only in `src/p
 >   So `assemblePluginDebug` with the flag on works, and `assembleNormalDebug` with it off works (run 14): WP 0.3's two build paths are verified.
 >   Not yet checked from the WP 0.3 acceptance table: `unzip -l` on both APKs (no `libchaquopy_java.so`/`liblsplant`/`libshadowhook` in the normal one),
 >   `tasks --all` without `chaquopy*`, and `assemblePluginDebug` with the flag off failing fast. Unit tests are skipped for plugin builds by design.
+> - **Run 16 (commit `c6e9560a`): WP 0.3 acceptance now runs in CI and passes.** Step "Verify plugin isolation (plugins off)" checks that the normal APK has no
+>   `chaquopy|lsplant|shadowhook` entries (`unzip -l`), that `tasks --all` lists no chaquopy task, and that `assemblePluginDebug` fails with the flag off.
+>   It stays in the workflow as a regression guard (skipped on tags).
 > - Unverified assumptions: `--depth=1` submodule updates work for the pinned commits; `testNormalDebugUnitTest` exists
 >   under the `normal` flavor; `NATIVE_TARGET` alone is enough for a one-ABI build.
 
