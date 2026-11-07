@@ -95,7 +95,8 @@ circle in retro mode — check its API first and pick whichever touches fewer `D
 > `config.walletAvailable` is false; in the stock layout after Calls; existing installs get it in the hidden list via `sanitize`).
 > Also added, as in the 12.1.1 drawer: **Invite Friends** (`nkbtnInvite` → `InviteContactsActivity`) and **Telegram Features** (`nkbtnFeatures` → `TelegramFeaturesUrl`,
 > frozen accounts get `AccountFrozenAlert`), in the stock layout after Settings (fresh installs only; existing installs find them in the hidden list).
-> Still open: **QR share**, **Communities** (no drawer entry point yet; find each one's launch code first, see `docs/feature-matrix.md`).
+> Also added: **QR Code** (`nkbtnQrCode` → `QrShareActivity` for the own account; hidden by default, enable it in the sidebar manager). **Communities** need no entry:
+> they are per-community (opened from linked communities in the chat list / chat, see `docs/feature-matrix.md`); 13.1.1 has no global Communities screen.
 > The retro default layout has not been chosen separately from NagramXF's.
 `DrawerLayoutAdapter` already lists NagramXF items (ghost mode, browser, restart, N-settings: ids
 `nkbtn*`; `NaConfig.drawerItem*`). Required entries: accounts, My Profile/Stories, New Group/Secret/Channel,
