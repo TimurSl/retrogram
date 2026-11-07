@@ -63,3 +63,12 @@ reply/edit bars, voice/video record overlay, attach button and AI/rich-text butt
   pads it flush (0 instead of 7dp; only the side-menu offset remains). The panel's background drawable gets radius/padding 0 too. The list padding still reserves the extra 7dp above the first
   message (harmless). The pinned message bar (`pinnedMessageView`), the top chat panel (`topChatPanelView`: translate/report/add-contact), the pending-requests bar and the restart-topic button are all children of this layout with only selector backgrounds, so they sit on the flat strip too (read from the code, not seen on a device). Not covered: the group-call capsule (`CapsuleBlobDrawable`) which draws its own rounded shape.
 
+### Device feedback (2026-11-07, owner's screenshots of run 24-ish builds) and the emoji panel (WP 2.2a, not yet run)
+- **Works (seen):** classic solid chat header, flat full-width pinned message strip under it (blue line, thumbnail, list icon), flat input bar with send-as avatar / emoji / "/" / attach / menu,
+  the pinned-messages screen with a solid bar and a flat full-width "Unpin all Messages" bar.
+- **Still 12.4 (seen):** the emoji / GIF / sticker panel: rounded search pill with reaction icons at the top and a floating rounded "Emoji | GIFs | Stickers" tab pill with a round backspace
+  button at the bottom (12.1.1 had a full-width solid bottom tab bar).
+- **Change:** Settings → Retrogram → "Classic emoji panel (experimental)", off by default, applies to chats opened afterwards. `EmojiView.setBlurredBackgroundDrawableFactory` (which gave the type tabs,
+  search, backspace and sticker-settings buttons their glass pill backgrounds) returns early and makes sure the full-width solid `bottomTabContainerBackground` is colored with
+  `key_chat_emojiPanelBackground`. Not touched: the inline search field at the top of the panel, the animated tab sizes, the emoji-category strip.
+

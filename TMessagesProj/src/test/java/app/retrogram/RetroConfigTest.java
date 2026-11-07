@@ -36,6 +36,7 @@ public class RetroConfigTest {
         assertFalse(RetroConfig.classicColors.Bool());
         assertFalse(RetroConfig.classicChatHeader.Bool());
         assertFalse(RetroConfig.isClassicChatHeader());
+        assertFalse(RetroConfig.classicEmojiPanel.Bool());
         assertTrue(RetroConfig.isRetroUi());
     }
 

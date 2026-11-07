@@ -46,6 +46,13 @@ object RetroConfig {
     val classicChatHeader = ConfigItem("RetroClassicChatHeader", ConfigItem.configTypeBool, false)
 
     /**
+     * Experimental: the emoji / GIF / sticker panel with its bottom tab strip as a full-width solid bar (12.1.1) instead of the
+     * floating glass pills for the tabs, search and backspace buttons. Off by default; read when the panel is created.
+     */
+    @JvmField
+    val classicEmojiPanel = ConfigItem("RetroClassicEmojiPanel", ConfigItem.configTypeBool, false)
+
+    /**
      * Experimental: the 12.1.1 default-theme palette (blue action bar, white icons, ...) for the keys whose default
      * changed in 13.1.1 (see [RetroThemeColors]). Off by default; applied at process start, so it needs a restart.
      * `RetroThemeColors.enabled()` reads the stored value itself because `Theme` can load before [init].
@@ -53,7 +60,7 @@ object RetroConfig {
     @JvmField
     val classicColors = ConfigItem("RetroClassicColors", ConfigItem.configTypeBool, false)
 
-    private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings, classicInput, classicChatHeader, classicColors)
+    private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings, classicInput, classicChatHeader, classicEmojiPanel, classicColors)
 
     // Snapshot taken once per process. Until init() runs, behave like the defaults.
     @Volatile
@@ -62,6 +69,10 @@ object RetroConfig {
     /** Whether the old UI is active in this process. Hook point for Phases 1-4. */
     @JvmStatic
     fun isRetroUi(): Boolean = retroUiAtStart
+
+    /** Whether the emoji panel uses the classic full-width bottom tab bar. */
+    @JvmStatic
+    fun isClassicEmojiPanel(): Boolean = retroUiAtStart && classicEmojiPanel.Bool()
 
     /** Whether the chat screen uses the classic solid action bar. */
     @JvmStatic

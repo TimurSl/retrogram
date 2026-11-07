@@ -19,6 +19,7 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 | Classic settings page | on | next time Settings opens |
 | Classic input bar (experimental) | off | chats opened afterwards |
 | Classic chat header (experimental) | off | chats opened afterwards |
+| Classic emoji panel (experimental) | off | chats opened afterwards |
 | Classic theme colors (experimental) | off | after restart |
 
 ## Checks
@@ -50,6 +51,10 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 - [ ] Solid bar with back arrow, avatar, name and subtitle, menu; no floating pills
 - [ ] First/last messages are not hidden under the bar; no fade/dim band over the list
 - [ ] Pinned / translate panels under the bar, forum topics, search in chat, selection mode bar
+
+**Emoji panel (classic emoji panel on)**
+- [ ] Open emoji, GIFs, stickers: a full-width bottom bar with tab icons, search and backspace; no floating pill
+- [ ] Tab switching, scrolling under the bar, backspace repeat, sticker settings button
 
 **Classic theme colors (switch on, restart, theme "Blue" / default)**
 - [ ] Chat list: blue action bar with white icons and title, white status text; search icon; folder tabs

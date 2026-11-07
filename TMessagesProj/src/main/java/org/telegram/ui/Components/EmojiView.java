@@ -2936,6 +2936,13 @@ public class EmojiView extends FrameLayout implements
     }
 
     public void setBlurredBackgroundDrawableFactory(BlurredBackgroundDrawableViewFactory factory) {
+        if (app.retrogram.RetroConfig.isClassicEmojiPanel()) {
+            // Retrogram: no glass pills; the bottom tab bar is the full-width solid bar of 12.1.1.
+            if (bottomTabContainerBackground != null && bottomTabContainerBackground.getVisibility() != View.GONE) {
+                bottomTabContainerBackground.setBackgroundColor(getThemedColor(Theme.key_chat_emojiPanelBackground));
+            }
+            return;
+        }
         if (backspaceButton != null) {
             backspaceButton.setBackground(factory.create(backspaceButton)
                 .setColorProvider(BlurredBackgroundProviderImpl.emojiViewButton(resourcesProvider))
