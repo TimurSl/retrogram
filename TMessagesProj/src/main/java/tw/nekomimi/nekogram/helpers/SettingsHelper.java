@@ -32,6 +32,7 @@ import tw.nekomimi.nekogram.settings.NekoAyuSpySettingsActivity;
 import tw.nekomimi.nekogram.settings.NekoChatSettingsActivity;
 import tw.nekomimi.nekogram.settings.NekoEmojiSettingsActivity;
 import tw.nekomimi.nekogram.settings.NekoExperimentalSettingsActivity;
+import tw.nekomimi.nekogram.settings.RetrogramSettingsActivity;
 import tw.nekomimi.nekogram.settings.NekoGeneralSettingsActivity;
 import tw.nekomimi.nekogram.settings.NekoPasscodeSettingsActivity;
 import tw.nekomimi.nekogram.settings.NekoSettingsActivity;
@@ -84,6 +85,9 @@ public class SettingsHelper {
                 case "experimental":
                 case "e":
                     fragment = nekox_fragment = new NekoExperimentalSettingsActivity();
+                    break;
+                case "retrogram":
+                    fragment = nekox_fragment = new RetrogramSettingsActivity();
                     break;
                 case "emoji":
                     fragment = neko_fragment = new NekoEmojiSettingsActivity();

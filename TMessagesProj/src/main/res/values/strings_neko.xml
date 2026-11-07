@@ -38,6 +38,12 @@
     <string name="StickerSizeDialogMessageReplyTo">Meow</string>
     <string name="StickerSizeDialogName">Duang</string>
     <string name="Experimental">Experimental</string>
+    <string name="Retrogram">Retrogram</string>
+    <string name="RetrogramInterface">Interface</string>
+    <string name="RetroUi">Classic interface</string>
+    <string name="RetroUiInfo">Use the classic Telegram layout. Applied after restart.</string>
+    <string name="RetroRemoteMetadata">Remote update checks</string>
+    <string name="RetroRemoteMetadataInfo">Fetch update info and extra data from channels not owned by Retrogram. Off by default.</string>
     <string name="UnlimitedFavoredStickers">Unlimited Favored Stickers</string>
     <string name="UnlimitedFavoredStickersAbout">Add unlimited stickers to favorites. Stickers may not be synchronized to other devices.</string>
     <string name="MessageDetails">Details</string>

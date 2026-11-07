@@ -1,0 +1,245 @@
+name: Build
+
+# Retrogram CI (WP 0.4). Plugins (the Python runtime) are opt-in, so the default
+# build is "plugins off". Release tags and sync/* branches build both.
+
+on:
+  push:
+    branches: ['**']
+    tags: ['v*']
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  workflow_dispatch:
+    inputs:
+      plugins:
+        description: 'Build the plugin variant (Python runtime) instead of the normal one'
+        type: boolean
+        default: false
+      upload:
+        description: 'Upload the APKs as workflow artifacts'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+jobs:
+  matrix:
+    name: Plan matrix
+    runs-on: ubuntu-24.04
+    outputs:
+      plugins: ${{ steps.m.outputs.plugins }}
+    steps:
+      - id: m
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* || "${GITHUB_REF}" == refs/heads/sync/* ]]; then
+            echo 'plugins=[false,true]' >> "$GITHUB_OUTPUT"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "plugins=[${{ inputs.plugins }}]" >> "$GITHUB_OUTPUT"
+          else
+            echo 'plugins=[false]' >> "$GITHUB_OUTPUT"
+          fi
+
+  build:
+    name: Gradle build (plugins=${{ matrix.plugins }})
+    needs: matrix
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        plugins: ${{ fromJSON(needs.matrix.outputs.plugins) }}
+    env:
+      CCACHE_COMPILERCHECK: "%compiler% -dumpmachine; %compiler% -dumpversion"
+      CCACHE_HARDLINK: "true"
+      CCACHE_NOHASHDIR: "true"
+      CCACHE_MAXSIZE: "10G"
+      IS_TAG: ${{ startsWith(github.ref, 'refs/tags/') }}
+      PLUGINS: ${{ matrix.plugins }}
+      # Pull requests only need a compile check: one ABI keeps the NDK build short.
+      NATIVE_TARGET: ${{ github.event_name == 'pull_request' && 'arm64-v8a' || '' }}
+      TELEGRAM_APP_ID: ${{ secrets.TELEGRAM_APP_ID }}
+      TELEGRAM_APP_HASH: ${{ secrets.TELEGRAM_APP_HASH }}
+    steps:
+      - name: Check secrets (tags only)
+        if: env.IS_TAG == 'true'
+        env:
+          S_KEYSTORE: ${{ secrets.KEYSTORE_B64 }}
+          S_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          S_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          S_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          S_GOOGLE: ${{ secrets.GOOGLE_SERVICES_JSON_B64 }}
+        run: |
+          missing=0
+          for v in TELEGRAM_APP_ID TELEGRAM_APP_HASH S_KEYSTORE S_KEYSTORE_PASSWORD S_KEY_ALIAS S_KEY_PASSWORD S_GOOGLE; do
+            if [ -z "${!v}" ]; then echo "::error::Missing secret for $v"; missing=1; fi
+          done
+          exit $missing
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Not recursive: that would also pull upstream/* (read-only references, ~GBs).
+          submodules: false
+
+      - name: Initialise submodules
+        run: |
+          paths=$(git config -f .gitmodules --get-regexp '\.path$' | awk '{print $2}' | grep -v '^upstream/')
+          if [ "$PLUGINS" != "true" ]; then
+            paths=$(echo "$paths" | grep -v -e 'third_party/lsplant' -e 'third_party/shadowhook')
+          fi
+          git submodule sync --recursive
+          git submodule update --init --recursive --depth=1 -- $paths
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Set up Ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          append-timestamp: false
+          key: ccache-${{ matrix.plugins }}-${{ github.event_name == 'pull_request' && 'arm64' || 'all' }}
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-disabled: true
+      - name: Set up Gradle cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle
+          key: gradle-${{ matrix.plugins }}-${{ hashFiles('**/*.gradle', 'gradle/wrapper/gradle-wrapper.properties') }}
+      - name: Set up Android SDK Tools
+        uses: android-actions/setup-android@v3
+        with:
+          # ndk must match ndkVersion in the root build.gradle
+          packages: "build-tools;36.0.0 ndk;27.2.12479018 platforms;android-36"
+
+      # Only the Chaquopy bridge (plugins=true) needs Python and Cython.
+      - name: Set up Python (plugins only)
+        if: matrix.plugins
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.9'
+      - name: Install Cython (plugins only)
+        if: matrix.plugins
+        run: pip install Cython==3.0.11
+
+      - name: Configure Android SDK path
+        run: echo "sdk.dir=${ANDROID_HOME}" >> local.properties
+
+      - name: Modify Gradle JVM args
+        run: |
+          MEMORY_GB=$(( $(awk '/MemTotal/ {print $2}' /proc/meminfo) / 1024 / 1024 ))
+          echo "Detected memory size: ${MEMORY_GB}GB"
+          if [ $MEMORY_GB -ge 12 ]; then
+            sed -i '/^org\.gradle\.jvmargs=/d' gradle.properties
+            echo "org.gradle.jvmargs=-Xmx8G -XX:MaxMetaspaceSize=2G -XX:+UseParallelGC -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> gradle.properties
+          fi
+
+      # --- Signing --------------------------------------------------------
+      # build.gradle always signs with TMessagesProj/release.keystore and reads
+      # KEYSTORE_PASS / ALIAS_NAME / ALIAS_PASS. Without secrets (forks, PRs) the
+      # committed upstream keystore is replaced by a throwaway one.
+      - name: Prepare signing key
+        env:
+          S_KEYSTORE: ${{ secrets.KEYSTORE_B64 }}
+          S_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          S_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          S_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [ -n "$S_KEYSTORE" ]; then
+            echo "$S_KEYSTORE" | base64 -d > TMessagesProj/release.keystore
+            echo "KEYSTORE_PASS=$S_KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
+            echo "ALIAS_NAME=$S_KEY_ALIAS" >> "$GITHUB_ENV"
+            echo "ALIAS_PASS=$S_KEY_PASSWORD" >> "$GITHUB_ENV"
+          else
+            echo "::warning::No KEYSTORE_B64 secret: signing with a throwaway key (not installable over a real build)."
+            rm -f TMessagesProj/release.keystore
+            keytool -genkeypair -keystore TMessagesProj/release.keystore -storetype PKCS12 \
+              -storepass retrogram-ci -keypass retrogram-ci -alias retrogram-ci \
+              -keyalg RSA -keysize 2048 -validity 3650 -dname "CN=Retrogram CI"
+            echo "KEYSTORE_PASS=retrogram-ci" >> "$GITHUB_ENV"
+            echo "ALIAS_NAME=retrogram-ci" >> "$GITHUB_ENV"
+            echo "ALIAS_PASS=retrogram-ci" >> "$GITHUB_ENV"
+          fi
+
+      # --- Firebase -------------------------------------------------------
+      # The committed google-services.json still belongs to NagramXF's package.
+      # The google-services plugin fails when the package id has no client entry.
+      - name: Prepare google-services.json
+        env:
+          S_GOOGLE: ${{ secrets.GOOGLE_SERVICES_JSON_B64 }}
+        run: |
+          if [ -n "$S_GOOGLE" ]; then
+            echo "$S_GOOGLE" | base64 -d > TMessagesProj/google-services.json
+          else
+            echo "::warning::No GOOGLE_SERVICES_JSON_B64 secret: using a placeholder, push notifications will not work."
+            pkg=$(sed -n 's/^APP_PACKAGE=//p' gradle.properties)
+            jq -n --arg pkg "$pkg" '{
+              project_info: {project_number: "000000000000", project_id: "retrogram-ci-placeholder"},
+              client: [{
+                client_info: {mobilesdk_app_id: "1:000000000000:android:0000000000000000",
+                              android_client_info: {package_name: $pkg}},
+                api_key: [{current_key: "PLACEHOLDER"}]
+              }],
+              configuration_version: "1"
+            }' > TMessagesProj/google-services.json
+          fi
+
+      - name: Unit tests
+        if: ${{ !matrix.plugins }}
+        run: ./gradlew :TMessagesProj:testNormalDebugUnitTest
+
+      # glass-guard.sh arrives with Phase 4; run it as soon as it exists.
+      - name: Glass guard
+        if: ${{ !matrix.plugins && hashFiles('tools/glass-guard.sh') != '' }}
+        run: bash tools/glass-guard.sh
+
+      - name: Build APKs
+        env:
+          COMMIT_ID: ${{ github.sha }}
+        run: |
+          export BUILD_TIMESTAMP=$(date +%s)
+          flavor=$([ "$PLUGINS" = "true" ] && echo Plugin || echo Normal)
+          type=$([ "$IS_TAG" = "true" ] && echo Release || echo Debug)
+          ./gradlew ":TMessagesProj:assemble${flavor}${type}" -Pretrogram.plugins="$PLUGINS"
+
+      - name: Locate APKs
+        id: apk
+        run: |
+          dir=$(ls -d TMessagesProj/build/outputs/apk/*/* | head -n1)
+          echo "dir=$dir" >> "$GITHUB_OUTPUT"
+          ls -l "$dir"
+
+      - uses: actions/upload-artifact@v4
+        if: github.event_name != 'workflow_dispatch' || inputs.upload
+        with:
+          name: retrogram-${{ matrix.plugins && 'plugins' || 'normal' }}
+          path: ${{ steps.apk.outputs.dir }}/*.apk
+          if-no-files-found: error
+
+  release:
+    name: GitHub release
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/**/*.apk
+          generate_release_notes: true
