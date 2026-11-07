@@ -191,13 +191,21 @@ android {
         versionName verName
         versionCode verCode
 
-        // obtain your own keys at https://core.telegram.org/api/obtaining_api_id
-        def appId = '6'
-        def appHash = 'eb06d4abfb49dc3eeb1aeb98ae0f581e'
-
-        if (properties != null) {
-            appId = properties.getProperty('TELEGRAM_APP_ID') ?: System.getenv('TELEGRAM_APP_ID') ?: appId
-            appHash = properties.getProperty('TELEGRAM_APP_HASH') ?: System.getenv('TELEGRAM_APP_HASH') ?: appHash
+        // Retrogram: no official-app credentials. Obtain your own at https://my.telegram.org/apps
+        // (Telegram's API terms do not allow reusing another app's api_id/api_hash).
+        def appId = properties?.getProperty('TELEGRAM_APP_ID') ?: System.getenv('TELEGRAM_APP_ID')
+        def appHash = properties?.getProperty('TELEGRAM_APP_HASH') ?: System.getenv('TELEGRAM_APP_HASH')
+        if (!appId || !appHash) {
+            // Release/staging/bundle tasks must not silently ship without credentials.
+            def requestedTasks = gradle.startParameter.taskNames.collect { it.toLowerCase() }
+            if (requestedTasks.any { it.contains('release') || it.contains('staging') || it.contains('bundle') }) {
+                throw new GradleException('TELEGRAM_APP_ID and TELEGRAM_APP_HASH are required for release builds ' +
+                        '(set them in local.properties or the environment).')
+            }
+            // Debug / CI compile-only builds: a placeholder that compiles but cannot log in.
+            logger.warn('WARNING: TELEGRAM_APP_ID/TELEGRAM_APP_HASH not set; using a placeholder, login will not work.')
+            appId = '0'
+            appHash = 'RETROGRAM_DEV_PLACEHOLDER_NO_LOGIN'
         }
 
         buildConfigField 'String', 'BUILD_VERSION_STRING', '"' + verName + '"'
@@ -306,8 +314,7 @@ androidComponents {
                 def abi = output.filters.find { it.filterType.name() == 'ABI' }?.identifier
                 output.enabled.set(pluginAbis.contains(abi))
             }
-            String gramName = 'NagramXF'
-            String first = String.format('%s-v%s(%s)', gramName, verName, verCode)
+            String first = "retrogram-${verName}"
             output.outputFileName.set(
                 output.outputFileName.get()
                     .replace('TMessagesProj', first)

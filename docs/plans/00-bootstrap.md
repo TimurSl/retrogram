@@ -40,6 +40,20 @@ The repo already has 3 commits of its own (`PLAN.md`, README, submodule pins).
 
 ## WP 0.2 — Rebrand (M)
 
+> **Status: partly done, not build-verified.**
+> Done: `APP_PACKAGE=app.retrogram.messenger` (placeholder, open decision 1) and the matching account type,
+> contact MIME types, `auth_menu` target package and `:retrogram` process in manifest/`res/xml`; output file name is
+> `retrogram-<ver>-<abi>.apk`; official-app API credentials removed (`build.gradle` now fails release/staging/bundle
+> tasks without `TELEGRAM_APP_ID/HASH`, and uses a no-login placeholder for debug); hard-coded pair removed from `BuildVars`.
+> Open:
+> - The debug fallback is a placeholder, not a working dev pair: needs the project's own `api_id` (open decision 2).
+> - `applicationIdSuffix` for `.debug`/`.beta` is **deferred**: the account type and contact MIME types in
+>   `res/xml/{auth,contacts,sync_contacts,auth_menu}.xml` are static strings while `ContactsController:2313` builds the MIME type from
+>   `BuildConfig.APPLICATION_ID`; template them with manifest placeholders first, otherwise contact sync breaks on suffixed builds.
+> - App name/strings (`NagramX` string resource used in ~10 places), launcher icons, `RETROGRAM_REV`,
+>   remote update/metadata switch (`RetroConfig.remoteMetadata`, needs WP 0.5), `google-services.json`.
+> - `.github/workflows/*` still use the NagramXF artifact names (handled in WP 0.4).
+
 Only identity changes; keep `org.telegram.*` and `tw.nekomimi.*` Java packages untouched
 (renaming them would make every future merge conflict).
 
