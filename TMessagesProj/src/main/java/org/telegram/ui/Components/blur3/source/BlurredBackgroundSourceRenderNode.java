@@ -10,10 +10,14 @@ import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 
+import app.retrogram.RetroConfig;
+
+import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.blur3.DownscaleScrollableNoiseSuppressor;
 import org.telegram.ui.Components.blur3.RenderNodeWithHash;
 import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
 import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawableRenderNode;
+import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawableSource;
 
 import java.util.List;
 
@@ -43,6 +47,10 @@ public class BlurredBackgroundSourceRenderNode implements BlurredBackgroundSourc
     }
 
     public void updateDisplayListIfNeeded() {
+        // Retrogram: nothing reads the captured content, so do not render it.
+        if (RetroConfig.isRetroUi()) {
+            return;
+        }
         renderNodeWithHash.updateDisplayListIfNeeded();
     }
 
@@ -114,6 +122,10 @@ public class BlurredBackgroundSourceRenderNode implements BlurredBackgroundSourc
 
     @Override
     public void draw(Canvas canvas, float left, float top, float right, float bottom) {
+        if (RetroConfig.isRetroUi()) {
+            RETRO_FLAT_SOURCE.draw(canvas, left, top, right, bottom);
+            return;
+        }
         if (!canvas.isHardwareAccelerated()) {
             if (fallbackSource != null) {
                 fallbackSource.draw(canvas, left, top, right, bottom);
@@ -188,8 +200,30 @@ public class BlurredBackgroundSourceRenderNode implements BlurredBackgroundSourc
         }
     }
 
+    /**
+     * Retrogram: a solid stand-in for the blurred content. The color providers still tint it, so a
+     * panel ends up as its (almost opaque) theme color over the window background.
+     */
+    private static final BlurredBackgroundSourceColor RETRO_FLAT_SOURCE = new BlurredBackgroundSourceColor() {
+        @Override
+        public int getColor() {
+            return Theme.getColor(Theme.key_windowBackgroundWhite);
+        }
+
+        @Override
+        public void draw(Canvas canvas, float left, float top, float right, float bottom) {
+            final int color = getColor();
+            setColor(color);
+            super.draw(canvas, left, top, right, bottom);
+        }
+    };
+
     @Override
     public BlurredBackgroundDrawable createDrawable() {
+        if (RetroConfig.isRetroUi()) {
+            // Not registered in `drawables`: no display-list work, no liquid glass, no blur.
+            return new BlurredBackgroundDrawableSource(RETRO_FLAT_SOURCE);
+        }
         BlurredBackgroundDrawableRenderNode d = new BlurredBackgroundDrawableRenderNode(this);
         drawables.add(d);
         return d;

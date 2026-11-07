@@ -37,6 +37,17 @@ Two caveats the PLAN did not mention:
 ## Work packages
 
 ### WP 4.1 — Choke point (M) — **can start right after WP 0.1**
+> **Status: first cut written, not build-verified (2026-11-07).** In retro mode (`RetroConfig.isRetroUi()`, no separate `noBlur` flag):
+> - `BlurredBackgroundSourceRenderNode.createDrawable()` returns a `BlurredBackgroundDrawableSource` over a flat source whose color is the live
+>   `key_windowBackgroundWhite`; it is not registered in `drawables`. `draw()` paints that flat color; `updateDisplayListIfNeeded()` is a no-op.
+>   The color providers' ~0.76-alpha tints composite over it, so panels come out almost opaque (step 5 "opaque variants" is **not** done; check visually).
+> - `LiteMode.isEnabled(FLAG_LIQUID_GLASS)` is `false` (toggle in `LiteModeSettingsActivity` still shown).
+> - `RichMediaCell.glass` is off: it cast `createDrawable()` to `BlurredBackgroundDrawableRenderNode`, the only unguarded cast in the tree.
+> - **Not done: stopping the capture.** Content is recorded into render nodes at ~15 sites that call `beginRecording` themselves
+>   (`ProfileActivity`, `SettingsActivity`, `StatisticActivity`, `StarGiftPreviewSheet`, `GroupCreateActivity`, `TopicsFragment`, `InviteContactsActivity`,
+>   `CallLogActivity`, `CommunityPendingRequestCell`, plus `DownscaleScrollableNoiseSuppressor`, `ProfileGalleryBlurView`, `QrShareView`).
+>   Sites that go through `updateDisplayListIfNeeded()` (`ShareAlert`, `MainTabsActivity`) are already skipped. The rest need a per-site gate or a
+>   dummy canvas from `beginRecording`; decide after a GPU profile on the POCO. Steps 1, 4 and 7 (`GlassEngine`) also remain.
 1. Add `RetroConfig.noBlur` (= `retroUi`).
 2. `BlurredBackgroundSourceRenderNode.createDrawable()`: when `noBlur`, return a flat drawable (reuse
    `BlurredBackgroundDrawableSource` with a `BlurredBackgroundSourceColor` fed by the provider's opaque colour),
