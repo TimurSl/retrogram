@@ -54,6 +54,8 @@ plugins) then have to be re-applied by hand — keep a list in `docs/nagram-delt
 NagramXF-only code (start it in Phase 0, it is cheap to maintain then and costly to reconstruct later).
 
 ### Health signals to watch
+- **2026-11-07 check:** `git fetch --filter=blob:none --tags nagramxf dev` works (the first half of `tools/sync-upstream.sh`); `nagramxf/dev` is still at `49ae647f`,
+  our import base, i.e. 0 commits ahead, so there is nothing to merge yet. The merge/report half of the script is still untested.
 Days between DrKLO release and NagramXF merge (NagramXF's latest commit here is 2026-11-06, 13.1.1 landed on
 the DrKLO release day); open `glass-guard` hits; size of the Retrogram diff vs NagramXF
 (`git diff --stat nagramxf/dev -- TMessagesProj | tail -1`) — if it grows past what a person can re-review in a day,
