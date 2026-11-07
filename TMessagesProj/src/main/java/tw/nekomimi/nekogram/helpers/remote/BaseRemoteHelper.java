@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.SharedPreferences;
 import android.text.TextUtils;
 
+import app.retrogram.RetroConfig;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.telegram.messenger.ApplicationLoader;
@@ -103,6 +105,13 @@ public abstract class BaseRemoteHelper {
     }
 
     private void load(boolean forceRefreshAccessHash, Delegate delegate) {
+        // Retrogram: no requests to the NagramXF metadata channel unless explicitly enabled (WP 0.2).
+        if (!RetroConfig.remoteMetadata.Bool()) {
+            if (delegate != null) {
+                onError("remote metadata disabled", delegate);
+            }
+            return;
+        }
         var tag = "#" + getTag();
         TLRPC.TL_messages_search req = new TLRPC.TL_messages_search();
         req.limit = 10;

@@ -50,8 +50,12 @@ The repo already has 3 commits of its own (`PLAN.md`, README, submodule pins).
 > - `applicationIdSuffix` for `.debug`/`.beta` is **deferred**: the account type and contact MIME types in
 >   `res/xml/{auth,contacts,sync_contacts,auth_menu}.xml` are static strings while `ContactsController:2313` builds the MIME type from
 >   `BuildConfig.APPLICATION_ID`; template them with manifest placeholders first, otherwise contact sync breaks on suffixed builds.
-> - App name/strings (`NagramX` string resource used in ~10 places), launcher icons, `RETROGRAM_REV`,
->   remote update/metadata switch (`RetroConfig.remoteMetadata`, needs WP 0.5), `google-services.json`.
+> - Done (not build-verified): remote update/metadata switch. `BaseRemoteHelper.load()` returns early (calling `onError` for a
+>   non-null delegate) unless `RetroConfig.remoteMetadata` is on, so `UpdateHelper`, `EmojiHelper`, trusted-plugins and
+>   page-preview rules make no requests to the NagramXF metadata channel by default. Consequence: remote emoji packs and
+>   update prompts are off until a Retrogram channel exists (decide per feature, see risks below).
+> - Still open: app name/strings (`NagramX` string resource used in ~10 places), launcher icons, `RETROGRAM_REV`,
+>   `google-services.json`.
 > - `.github/workflows/*` still use the NagramXF artifact names (handled in WP 0.4).
 
 Only identity changes; keep `org.telegram.*` and `tw.nekomimi.*` Java packages untouched
