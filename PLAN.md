@@ -131,7 +131,7 @@ retrogram/                      (this repo)
 ## 4. Licensing and compliance
 
 - The combined work is **GPL‑3.0**, because NagramXF is GPL‑3.0. Telegram and
-  Telegraher are GPL‑2.0‑or‑later per the Telegram README, so they are compatible.
+  Telegraher are "GPL v. 2 or later" per the Telegram source file headers, so they are compatible.
   Keep all copyright headers and add a `NOTICE`.
 - NagramXF says it **contains reverse‑engineered code from closed‑source
   forks**. Record which modules these are and treat them as a legal risk.
