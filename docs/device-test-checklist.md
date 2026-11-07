@@ -1,5 +1,10 @@
 # Device test checklist (manual script, WP 5.4 first version)
 
+**Signing (changed in the run after 22):** until run 22 every CI run signed its APK with a freshly generated key, so no CI build could be installed over another one
+(Android refuses the update, or you had to uninstall and lose the local login). From the next run on, unofficial CI builds are signed with the fixed, public debug key
+`tools/ci-debug.keystore` (alias/password `retrogram-ci`), so later CI APKs update in place. The first install of such a build still cannot update over an APK signed with another key.
+That key is for debug builds only; releases use the real keystore from the CI secrets.
+
 How to test a build: Actions tab → latest green "Build" run on the branch → artifact `retrogram-normal` (debug APK, signed with a throwaway key, 7-day
 retention). It installs next to nothing else (package `app.retrogram.messenger`) and will not update over a differently signed build. Push notifications will not work
 (placeholder `google-services.json`) and login needs a real `api_id` (open decision 2 in `docs/plans/README.md`), so what you can test depends on that.

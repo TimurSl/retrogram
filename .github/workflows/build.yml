@@ -168,11 +168,10 @@ jobs:
             echo "ALIAS_NAME=$S_KEY_ALIAS" >> "$GITHUB_ENV"
             echo "ALIAS_PASS=$S_KEY_PASSWORD" >> "$GITHUB_ENV"
           else
-            echo "::warning::No KEYSTORE_B64 secret: signing with a throwaway key (not installable over a real build)."
-            rm -f TMessagesProj/release.keystore
-            keytool -genkeypair -keystore TMessagesProj/release.keystore -storetype PKCS12 \
-              -storepass retrogram-ci -keypass retrogram-ci -alias retrogram-ci \
-              -keyalg RSA -keysize 2048 -validity 3650 -dname "CN=Retrogram CI"
+            echo "::warning::No KEYSTORE_B64 secret: signing with the shared CI debug key tools/ci-debug.keystore (not a release key; not installable over a real release build)."
+            # One fixed key for all unofficial CI builds, so a newer CI APK can update an older one in place.
+            # (A key generated per run made every CI APK un-updatable.) It is public on purpose: debug builds only.
+            cp tools/ci-debug.keystore TMessagesProj/release.keystore
             echo "KEYSTORE_PASS=retrogram-ci" >> "$GITHUB_ENV"
             echo "ALIAS_NAME=retrogram-ci" >> "$GITHUB_ENV"
             echo "ALIAS_PASS=retrogram-ci" >> "$GITHUB_ENV"
