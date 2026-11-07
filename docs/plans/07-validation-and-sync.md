@@ -33,6 +33,9 @@ CI green for plugins off and on.
 ## Phase 8 — Upstream sync
 
 ### `tools/sync-upstream.sh` (WP 8.1, M)
+> **Status: written, `bash -n` only (not run: it fetches and branches).** `tools/sync-upstream.sh <name> [<ref>]` adds the `nagramxf`/`telegram`
+> remotes if missing, fetches blobless, creates `sync/<name>`, merges (stops with a conflict list and exit 2; never resolves, never pushes), then prints
+> glass-guard hits for `merge-base..HEAD`, the TL `LAYER` change and new top-level classes. Steps 1-5 below; step 6 (PR) stays manual.
 1. `git fetch nagramxf dev --tags` (and `telegram master` for the fallback path).
 2. Create `sync/<X>` from `main`; `git merge nagramxf/<tag-or-sha>`.
 3. Conflict policy: conflicts live almost entirely in the files with Retrogram hooks (`LaunchActivity`,
