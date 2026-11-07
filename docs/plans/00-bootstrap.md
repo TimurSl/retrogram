@@ -145,6 +145,24 @@ Also check that nothing in `src/main` imports a class that exists only in `src/p
 
 ## WP 0.4 — CI (M)
 
+> **Status: workflow written, never run.** `.github/workflows/build.yml` replaces `staging.yml` and `canary.yml`
+> (both deleted; they only uploaded artifacts). YAML parses; nothing else is verified: there is no runner or Android SDK here.
+> Differences from the steps below:
+> - Triggers: every branch push, PRs, `v*` tags, manual dispatch. Matrix is `[false]`, or `[false, true]` on tags and `sync/*`.
+> - PRs set `NATIVE_TARGET=arm64-v8a`. Non-tag builds run `assemble{Normal,Plugin}Debug`; tags run `...Release`.
+> - Submodules are initialised by explicit path list (no `upstream/*`; no `lsplant`/`shadowhook` unless plugins).
+> - Python and Cython are installed only for `plugins=true`.
+> - Without signing secrets the workflow swaps `TMessagesProj/release.keystore` (a committed NagramXF key) for a throwaway
+>   key, so PR builds still sign. Tags fail if a secret is missing.
+> - **New finding:** `TMessagesProj/google-services.json` is NagramXF's file and only has a client for `fork.risin42.nagramx`.
+>   Since WP 0.2 changed the application id, the google-services plugin fails every build locally. CI writes the
+>   `GOOGLE_SERVICES_JSON_B64` secret, or a clearly fake placeholder for the new package id. Locally, do the same or
+>   provide your own file. The committed file (with NagramXF's Firebase key) should be removed once the project has its own.
+> - `MAPS_API_KEY` is **not** wired: the manifest hard-codes a Maps key (`AndroidManifest.xml:867`), a leftover for WP 0.2.
+> - `tools/glass-guard.sh` is run when the file exists (Phase 4). Plugin `*Debug` builds are not unit-tested.
+> - Unverified assumptions: `--depth=1` submodule updates work for the pinned commits; `testNormalDebugUnitTest` exists
+>   under the `normal` flavor; `NATIVE_TARGET` alone is enough for a one-ABI build.
+
 Base: NagramXF `.github/workflows/staging.yml` (ubuntu-24.04, JDK 21 Temurin, ccache, Gradle cache,
 `ndk;27.2.12479018`, `build-tools;36.0.0`, `platforms;android-36`, writes `sdk.dir` to `local.properties`).
 
@@ -168,6 +186,18 @@ Base: NagramXF `.github/workflows/staging.yml` (ubuntu-24.04, JDK 21 Temurin, cc
 → green run with plugin APK.
 
 ## WP 0.5 — `RetroConfig` + settings stub (S)
+
+> **Status: implemented, not compiled.** (No Android SDK or `kotlinc` in the sandbox.)
+> - `TMessagesProj/src/main/kotlin/app/retrogram/RetroConfig.kt` (the module's Kotlin dir is `src/main/kotlin`, where `NaConfig`
+>   lives). Items: `retroUi` (true), `upstreamUiDebug` (false, no settings row), `remoteMetadata` (false). They are plain
+>   `ConfigItem`s in the existing `nkmrcfg` prefs, **not** registered in `NaConfig`, so there is no edit to that 2k-line file.
+>   `graph*` toggles come with Phase 6.
+> - Cold start: `RetroConfig.init()` runs in `ApplicationLoader.onCreate` right after `NaConfig.init()` and freezes
+>   `RetroConfig.isRetroUi()` (`retroUi && !upstreamUiDebug`). Hooks in Phases 1-4 should call `isRetroUi()`, not read the item.
+> - Settings → "Retrogram" (`RetrogramSettingsActivity`, deep link `retrogram`), two switches that show the restart tooltip.
+>   `remoteMetadata` is only stored for now: nothing reads it until the update-check and metadata switch is done (WP 0.2).
+> - Test: `src/test/java/app/retrogram/RetroConfigTest.java` (defaults, stored values after reload, snapshot only changes
+>   after restart, debug override). Not run yet.
 
 1. `app/retrogram/RetroConfig.kt` (Kotlin is already enabled: there are `.kt` files under `tw/nekomimi/nekogram/ui/`). Fields, all backed by the existing NagramXF config store
    (`NaConfig`/`NekoConfig` `ConfigItem`, which persists and has a settings UI helper):

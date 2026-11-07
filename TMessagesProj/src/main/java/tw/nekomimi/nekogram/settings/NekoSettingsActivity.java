@@ -88,6 +88,7 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity {
     private int pluginsRow;
     private int passcodeRow;
     private int experimentRow;
+    private int retrogramRow;
     private int categoriesEndRow;
     private int cloudSyncRow;
     private int cloudSyncEndRow;
@@ -114,6 +115,7 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity {
             passcodeRow = -1;
         }
         experimentRow = addRow();
+        retrogramRow = addRow();
         categoriesEndRow = addRow();
 
         cloudSyncRow = addRow();
@@ -407,6 +409,8 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity {
             presentFragment(new NekoPasscodeSettingsActivity());
         } else if (position == experimentRow) {
             presentFragment(new NekoExperimentalSettingsActivity());
+        } else if (position == retrogramRow) {
+            presentFragment(new RetrogramSettingsActivity());
         } else if (position == cloudSyncRow) {
             CloudSettingsHelper.getInstance().showDialog(NekoSettingsActivity.this);
         } else if (position == translatorRow) {
@@ -453,6 +457,8 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity {
                         textCell.setTextAndIcon(getString(R.string.PasscodeNeko), R.drawable.msg_permissions, true);
                     } else if (position == experimentRow) {
                         textCell.setTextAndIcon(getString(R.string.Experimental), R.drawable.msg_fave, true);
+                    } else if (position == retrogramRow) {
+                        textCell.setTextAndIcon(getString(R.string.Retrogram), R.drawable.msg_theme, true);
                     } else if (position == cloudSyncRow) {
                         textCell.setTextAndIcon(getString(R.string.CloudConfig), R.drawable.msg_retry, true);
                     } else if (position == aboutRow) {
@@ -468,7 +474,7 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity {
         public int getItemViewType(int position) {
             if (position == categoriesEndRow || position == cloudSyncEndRow) {
                 return TYPE_SHADOW;
-            } else if (position == chatRow || position == generalRow || position == appearanceRow || position == ayuMomentsRow || position == pluginsRow || position == passcodeRow || position == experimentRow || position == cloudSyncRow || position == translatorRow || position == aboutRow) {
+            } else if (position == chatRow || position == generalRow || position == appearanceRow || position == ayuMomentsRow || position == pluginsRow || position == passcodeRow || position == experimentRow || position == retrogramRow || position == cloudSyncRow || position == translatorRow || position == aboutRow) {
                 return TYPE_TEXT;
             }
             return TYPE_SHADOW;

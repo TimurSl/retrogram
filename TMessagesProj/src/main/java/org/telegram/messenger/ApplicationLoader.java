@@ -301,6 +301,7 @@ public class ApplicationLoader extends Application {
         SharedConfig.loadConfig();
         NekoConfig.init();
         NaConfig.init();
+        app.retrogram.RetroConfig.init();
         LastSeenHelper.preload();
         ExteraConfig.init();
         installPluginCrashHandler();
