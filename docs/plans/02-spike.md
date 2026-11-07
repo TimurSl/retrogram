@@ -72,3 +72,12 @@ reply/edit bars, voice/video record overlay, attach button and AI/rich-text butt
   search, backspace and sticker-settings buttons their glass pill backgrounds) returns early and makes sure the full-width solid `bottomTabContainerBackground` is colored with
   `key_chat_emojiPanelBackground`. Not touched: the inline search field at the top of the panel, the animated tab sizes, the emoji-category strip.
 
+### Device feedback on the classic emoji panel (2026-11-07, owner's screenshots of the run 25 build) and two fixes (not yet run)
+- **Seen:** the glass pill backgrounds are gone (tabs, backspace), but the bottom tab labels "Emoji | GIFs | Stickers" and the backspace icon floated over the grid: in the GIFs and
+  Stickers panels they overlapped the images and were hard to read. The panel's top still had rounded corners.
+- **Causes (from the code):** `EmojiView.updateColors()` clears `bottomTabContainerBackground` when `shouldDrawBackground` is false (the case inside the chat, where the glass container draws
+  the panel); the rounded top is the under-keyboard drawable with `INPUT_KEYBOARD_RADIUS` = 29dp, which the classic input switch did not zero.
+- **Fixes:** `updateColors()` re-applies `key_chat_emojiPanelBackground` to the bottom bar at the end when "Classic emoji panel" is on; `ChatInputViewsContainer.keyboardRadius()` is 0 with
+  "Classic input bar" on (used for the under-keyboard drawable, its path and bounds; `BotKeyboardView` still uses the constant).
+- **Still 12.4 in that panel:** the inline search field with reaction icons at the top (12.1.1 had a search button in the bottom bar instead).
+

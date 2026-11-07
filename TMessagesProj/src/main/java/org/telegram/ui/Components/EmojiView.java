@@ -5941,6 +5941,11 @@ public class EmojiView extends FrameLayout implements
                 bottomTabContainerBackground.setBackgroundColor(getThemedColor(Theme.key_chat_emojiPanelBackground));
             }
         }
+        // Retrogram: the classic bottom bar must stay solid even when the panel itself draws no background (as in the chat).
+        if (app.retrogram.RetroConfig.isClassicEmojiPanel() && bottomTabContainerBackground != null
+                && bottomTabContainerBackground.getVisibility() != View.GONE) {
+            bottomTabContainerBackground.setBackgroundColor(getThemedColor(Theme.key_chat_emojiPanelBackground));
+        }
         if (emojiTabs != null) {
             if (shouldDrawBackground) {
                 emojiTabs.setBackgroundColor(getThemedColor(Theme.key_chat_emojiPanelBackground));
