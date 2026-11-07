@@ -43,7 +43,13 @@ Two caveats the PLAN did not mention:
 >   The color providers' ~0.76-alpha tints composite over it, so panels come out almost opaque (step 5 "opaque variants" is **not** done; check visually).
 > - `LiteMode.isEnabled(FLAG_LIQUID_GLASS)` is `false` (toggle in `LiteModeSettingsActivity` still shown).
 > - `RichMediaCell.glass` is off: it cast `createDrawable()` to `BlurredBackgroundDrawableRenderNode`, the only unguarded cast in the tree.
-> - **Capture stopped centrally (written, not build-verified):** the ~15 screens that record content themselves all feed
+> - **`checkBlurEnabled` returns false in retro mode** (`BlurredBackgroundProviderImpl`, the existing "blur off" switch every chat/panel provider consults),
+>   so those providers return opaque theme colors: step 5 is done for them (not for `BlurredBackgroundColorProviderThemed`'s default 0.76 alpha).
+> - **Triage of the sites that keep their own render nodes (decision: leave for now):** `GroupCallActivity.renderNodeBlur` (call UI, also blurred in 12.1.1),
+>   `QrShareView` (the QR feature's own effect, not chrome), `ProfileGalleryBlurView` (profile header; revisit in WP 3.3 together with the classic header),
+>   `CommunityPendingRequestCell` (one small cell). `GlassEngine` is left alone too: its capture-triggering side is already inert and it still drives
+>   color/position invalidation for the flat drawables; decide after a GPU profile.
+> - **Capture stopped centrally (written, built in CI run 12):** the ~15 screens that record content themselves all feed
 >   `DownscaleScrollableNoiseSuppressor`, whose `draw`, `drawInline`, `onScrolled` and `invalidateResultRenderNodes` (the hashing and downscaled
 >   render-node work) now return immediately in retro mode. Those sites still call `beginRecording` and paint one `drawColor`, which is cheap.
 >   Not covered: sites with their own render nodes (`GroupCallActivity`, `ProfileGalleryBlurView`, `QrShareView`, `CommunityPendingRequestCell`).
