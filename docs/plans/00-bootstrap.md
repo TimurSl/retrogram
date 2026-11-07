@@ -170,6 +170,9 @@ Also check that nothing in `src/main` imports a class that exists only in `src/p
 > - **Run 12 (2026-11-07, commit `20325c48`): unit tests passed, `assembleNormalDebug` succeeded (30 min, arm64 only, cold ccache), 110 MB debug APK.**
 >   The run still went red at `upload-artifact`: "Artifact storage quota has been hit" (account-wide; this repo has no artifacts). The upload is now
 >   `continue-on-error` off tags, with a 7-day retention and a warning step. To get APKs again: free storage under the account's Actions artifacts, or wait 6-12 h.
+> - **Run 14 (commit `fec6a202`): fully green**, including the upload: unit tests 4 min, `assembleNormalDebug` 2.5 min (ccache warm from run 12),
+>   whole job under 10 min. Artifact `retrogram-normal` (80 MB, 7-day retention): https://github.com/TimurSl/retrogram/actions/runs/42386840983.
+>   So WP 0.3 (flag off), 0.4 and 0.5 are now **build-verified for `plugins=false`**; `plugins=true` has still never run (tags and `sync/*` branches, or a manual dispatch with `plugins`).
 > - Unverified assumptions: `--depth=1` submodule updates work for the pinned commits; `testNormalDebugUnitTest` exists
 >   under the `normal` flavor; `NATIVE_TARGET` alone is enough for a one-ABI build.
 
