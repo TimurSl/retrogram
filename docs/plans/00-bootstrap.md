@@ -1,0 +1,159 @@
+# Phase 0 — Bootstrap
+
+**Goal:** a CI-built, signed APK of NagramXF 13.1.1 under the Retrogram name that logs in
+and chats, with `retrogram.plugins` (default off) and a `RetroConfig` stub in place. No UI change yet.
+
+**Exit gate:** APK installs on the POCO, login + chat + call + push work; CI is green for
+plugins off *and* on.
+
+---
+
+## WP 0.1 — Import NagramXF with history (S)
+
+The repo already has 3 commits of its own (`PLAN.md`, README, submodule pins).
+
+1. `git remote add nagramxf https://github.com/Keeperorowner/NagramXF.git`
+   `git remote add telegram https://github.com/DrKLO/Telegram.git`
+2. `git fetch nagramxf dev` (full history is large; the blobless filter used for `upstream/`
+   works here too: `git fetch --filter=blob:none nagramxf dev`).
+3. `git merge --allow-unrelated-histories 49ae647f -m "Import NagramXF dev @ 49ae647f (13.1.1)"`.
+   Resolve the two expected conflicts: `README.md` (keep Retrogram's, append an "Upstream" section) and
+   `.gitmodules` (union of both files).
+4. Keep `upstream/telegram` and `upstream/nagramxf` as read-only references. **Do not** let Gradle see
+   them: confirm `settings.gradle` includes only `:TMessagesProj` (+ media module), and add
+   `upstream/` to `.gitattributes` `linguist-vendored`.
+5. **Submodules.** NagramXF has about 24 (td, tgcalls, ffmpeg, boringssl, dav1d, libvpx, opus*, ogg,
+   openh264, tlottie, wallet-engine, boost-regex, libprisma, absl, libyuv, jlatexmath,
+   `TMessagesProj_Modules/media`, plus plugin-only `lsplant` and `shadowhook`). Three are
+   `Keeperorowner/*` forks (`tgcalls`, `LSPlant`, `android-inline-hook`). Fork them to the project org
+   and rewrite those URLs in `.gitmodules`, so a deleted upstream repo cannot break builds.
+6. Add `NOTICE` (GPL-3.0 combined work; Telegram "GPL-2.0-or-later" headers kept; list of third-party
+   submodules and licenses) and keep `LICENSE`.
+
+**Accept:** `git log --oneline nagramxf/dev` is reachable from `HEAD`; `git submodule status` clean;
+`git merge-base HEAD nagramxf/dev` exists (so Phase 8 merges are real merges).
+
+## WP 0.2 — Rebrand (M)
+
+Only identity changes; keep `org.telegram.*` and `tw.nekomimi.*` Java packages untouched
+(renaming them would make every future merge conflict).
+
+| Item | Where | Change |
+| :--- | :--- | :--- |
+| Application ID | `gradle.properties` `APP_PACKAGE=fork.risin42.nagramx` | `app.retrogram.messenger`; `.beta` / `.debug` suffixes via `applicationIdSuffix` per build type (check the existing `staging`/`debug` types in `TMessagesProj/build.gradle`) |
+| App name, launcher icon | `res/values/strings*.xml` (`AppName`), mipmaps, adaptive icon | "Retrogram" + new icon; keep one monochrome layer for themed icons |
+| Output file name | `TMessagesProj/build.gradle` `androidComponents` block (`gramName = 'NagramXF'`) | `retrogram-<ver>-<abi>.apk`; matches PLAN.md §5 outputs |
+| Version | `gradle.properties` `APP_VERSION_NAME/CODE` | Keep `13.1.1` / `7237` for the import; Retrogram revisions as `13.1.1.r1` via a `RETROGRAM_REV` property |
+| Update checks, metadata and donate links | `tw/nekomimi/nekogram/helpers/remote/UpdateHelper.java`, `BaseRemoteHelper.CHANNEL_METADATA_ID` and callers (`EmojiHelper`, ...), about/donate cells in Neko settings | Disable the remote update check and metadata fetch behind `RetroConfig.remoteMetadata = false` (default). Point at Retrogram's own channel only after one exists. This also removes calls to channels Retrogram does not own. |
+| Manifest | `AndroidManifest.xml`, `src/plugin/AndroidManifest.xml` | `authorities` / provider names containing the old package; deep-link hosts stay Telegram's |
+| FCM | `google-services.json` | Project's own file from CI secret. Without it push will not work; document the failure mode in the README. |
+
+**Telegram API credentials — do before the first release build.** `TMessagesProj/build.gradle:189-191`
+falls back to `appId = '6'` and a hard-coded hash when no `TELEGRAM_APP_ID/HASH` is supplied.
+Those are the credentials of the official Telegram app, and Telegram's API terms do not allow reusing
+them in a fork. Change the fallback so **release builds fail** when the secrets are absent and debug
+builds use a clearly marked dev pair. `BuildVars.java:29-30` has another hard-coded pair that
+`BuildConfig` overwrites at line 47-48; remove it.
+
+**Accept:** `./gradlew :TMessagesProj:assembleNormalDebug` output has `applicationId app.retrogram.messenger.debug`
+(`aapt dump badging`), no string `nagramx` in `AndroidManifest.xml`, and the launcher shows "Retrogram".
+
+## WP 0.3 — `retrogram.plugins` build switch (L)
+
+Verified structure of `TMessagesProj/build.gradle` (line numbers for 49ae647f):
+
+- 78–84: `pluginAbis`, `chaquopy*Version`, `chaquopyAbis` — safe to keep (plain values).
+- 166–181: `productFlavors { normal {…} plugin {…} }`.
+- 282–288: `sourceSets.plugin.*` — **fails at configure time if the `plugin` flavor is undeclared.**
+- 294–301: `configurations { chaquopyTargetJni; chaquopyStdlibPyc; chaquopyGradlePlugin }` and the
+  `getByName` lookups.
+- 303–512: all Chaquopy / Cython / pip `tasks.register`.
+- 514–540: `androidComponents.onVariants` — the file-name rewrite must stay for both; the
+  `dependsOn(prepareChaquopy…)` part is plugin-only.
+- 644–645: `pluginImplementation …` dependencies — **the configuration does not exist without the flavor.**
+- `jni/CMakeLists.txt:351`: `if (NOT DEFINED ENABLE_PLUGINS) set(ENABLE_PLUGINS ON)`. Change the default to `OFF`
+  so a forgotten argument can never pull LSPlant/ShadowHook/Python in.
+
+Steps:
+
+1. At the top of the file define
+   ```groovy
+   def retrogramPlugins = (findProperty('retrogram.plugins') ?: System.getenv('RETROGRAM_PLUGINS') ?: 'false')
+           .toString().toLowerCase() in ['1', 'true', 'yes']
+   ```
+   Property lookup order Gradle gives us: `-P` > `~/.gradle/gradle.properties` > project `gradle.properties`.
+   `local.properties` is *not* read by Gradle for `findProperty`; load it explicitly (the file already loads
+   `properties` for `TELEGRAM_APP_ID`, reuse that object).
+2. Move lines 294–512 (configurations + tasks) and the plugin half of `onVariants` into
+   `apply from: 'plugins.gradle'` (new file) guarded by `if (retrogramPlugins)`. A separate file keeps the
+   diff against NagramXF to a handful of lines, which matters for merges.
+3. `productFlavors`: declare `normal` always, `plugin` only when the flag is on. Keep the flavor
+   dimension even with a single flavor so `src/normal` stays wired and variant names do not change.
+4. Wrap `sourceSets.plugin.*` and the `pluginImplementation` lines in the same condition.
+5. `buildConfigField 'boolean', 'PLUGINS_ENABLED', retrogramPlugins.toString()` in `defaultConfig`
+   (note: with the `plugin` flavor the value is `true` only if the flag is on, which is always the case there).
+   Hide the plugin entry points behind it: `SettingsHelper` / drawer item for plugins, `PluginsActivity`
+   links, the `NotificationCenter.pluginMenuItemsUpdated` registration in `LaunchActivity` (harmless, but skip).
+6. `root build.gradle` and `settings.gradle`: grep for `plugin`/`chaquopy` (only `plugins {}` blocks match
+   today; re-check after import).
+7. CI (WP 0.4) passes `-Pretrogram.plugins=${{ inputs.plugins }}`.
+
+**Accept (all four must pass):**
+
+| Command | Expect |
+| :--- | :--- |
+| `./gradlew :TMessagesProj:tasks --all` (flag off) | no `chaquopy*` / `stageChaquopy*` tasks; no Python / pip network access during configure |
+| `./gradlew :TMessagesProj:assembleNormalDebug` (flag off) | succeeds; `unzip -l` shows no `libchaquopy_java.so`, `liblsplant`, `libshadowhook`, `assets/chaquopy` |
+| `./gradlew :TMessagesProj:assemblePluginDebug -Pretrogram.plugins=true` | succeeds; plugin APK contains the above |
+| `./gradlew :TMessagesProj:assemblePluginDebug` (flag off) | fails fast with "variant not found", not a confusing error |
+
+Also check that nothing in `src/main` imports a class that exists only in `src/plugin` (list in
+`find src/plugin -name '*.java'` that has no twin under `src/normal`: `PythonPluginsEngine`, `PipController`,
+`PluginsWatchdog`, `SdkSignature`, `ClassProxy`, `UpdateAppAlertDialog`, `PythonSdkUpdateDialog`, the `models/*`,
+`client_utils`, `android_utils`). Compiling `normal` is the proof.
+
+## WP 0.4 — CI (M)
+
+Base: NagramXF `.github/workflows/staging.yml` (ubuntu-24.04, JDK 21 Temurin, ccache, Gradle cache,
+`ndk;27.2.12479018`, `build-tools;36.0.0`, `platforms;android-36`, writes `sdk.dir` to `local.properties`).
+
+1. Copy to `.github/workflows/build.yml`. Remove the Python/Cython setup steps unless `inputs.plugins`
+   (the existing workflow always installs Python 3.11.9 + Cython 3.0.11 for the Chaquopy bridge).
+2. Inputs: `plugins` (bool, default false), `upload` (skip upload). Matrix: `plugins: [false]` on push,
+   `[false, true]` on release tags and on `sync/*` branches.
+3. Submodules: `git submodule update --init --recursive --depth=1`, but **skip** `lsplant` and
+   `shadowhook` when `plugins` is false. (Do not use `actions/checkout submodules: recursive` blindly:
+   it also pulls `upstream/*` here. Use `submodules: false` + the explicit command with a pathspec list
+   excluding `upstream/`.)
+4. Secrets: `TELEGRAM_APP_ID`, `TELEGRAM_APP_HASH`, `KEYSTORE_B64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`,
+   `KEY_PASSWORD`, `GOOGLE_SERVICES_JSON_B64`, `MAPS_API_KEY`. Fail the job on tag builds if one is missing.
+5. Publish `retrogram-<ver>-arm64-v8a.apk` (main), v7a, universal, as artifacts. Upload a GitHub Release
+   only on tags.
+6. `canary.yml` only uploads an artifact (`upload-artifact@v4`), so there is no channel-posting step to remove; keep one workflow and drop the other.
+7. First job also runs `./gradlew :TMessagesProj:testNormalDebugUnitTest` (there is a `src/test` dir) and,
+   from Phase 4, `tools/glass-guard.sh`.
+
+**Accept:** push to a branch → green run → downloadable APK, for flag off; manual dispatch with `plugins=true`
+→ green run with plugin APK.
+
+## WP 0.5 — `RetroConfig` + settings stub (S)
+
+1. `app/retrogram/RetroConfig.kt` (Kotlin is already enabled: there are `.kt` files under `tw/nekomimi/nekogram/ui/`). Fields, all backed by the existing NagramXF config store
+   (`NaConfig`/`NekoConfig` `ConfigItem`, which persists and has a settings UI helper):
+   `retroUi` (default **true**), `upstreamUiDebug` (default false, hidden), `remoteMetadata` (false),
+   `graph*` toggles (added in Phase 6).
+2. Settings → new "Retrogram" section. Find where Neko settings entries are registered:
+   `SettingsHelper.java` (line 144/234 reference drawer items) and `NekoSettingsActivity`.
+3. Make `retroUi` a **cold-start decision**: read once in `ApplicationLoader.onCreate`, cached in a
+   `static final`-like field, and require a restart to change. Mixing both UIs live would double every
+   code path in Phases 1–4 and it is only a debugging toggle.
+
+**Accept:** unit test that `RetroConfig.retroUi` defaults to true and survives a config reload.
+
+## Risks specific to this phase
+
+| Risk | Mitigation |
+| :--- | :--- |
+| CI memory/time: the NDK build of td + ffmpeg + tgcalls is long | ccache + Gradle cache as in the NagramXF workflow; build `arm64-v8a` only on PRs via the existing `NATIVE_TARGET` environment variable (`TMessagesProj/build.gradle:77`; it also drives the `chaquopyAbis` filter) |
+| Merge of unrelated histories brings thousands of files into one commit | Do it as a dedicated commit with no other edits; follow-up rebrand commits are separate |
+| Removing remote metadata hides features NagramXF loads from its channel (emoji packs, etc., `EmojiHelper`) | Inventory first (`grep -rn CHANNEL_METADATA_ID`), ship with local fallbacks, decide per feature |

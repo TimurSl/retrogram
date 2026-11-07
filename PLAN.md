@@ -140,10 +140,11 @@ retrogram/                      (this repo)
 - **Revive old components from history** rather than rewriting them:
   `git -C upstream/telegram show 9cbf0333:TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java`,
   then trim them to the visual layer and wire them to the new controllers.
-- **Use one choke point for blur.** Make the `blur3` factories
-  (`BlurredBackgroundDrawableViewFactory` / `BlurredBackgroundSourceRenderNode`)
-  return a solid theme‑color source when `retroUi` is on. That removes glass
-  everywhere at once, including sheets nobody has reviewed yet.
+- **Use one choke point for blur.** Make `BlurredBackgroundSourceRenderNode.createDrawable()`
+  (the `BlurredBackgroundSource` implementation behind `BlurredBackgroundDrawableViewFactory`)
+  return a flat drawable with **opaque** theme colors, and stop its per‑frame render‑node capture,
+  when `retroUi` is on. That removes glass everywhere at once, including sheets nobody has
+  reviewed yet. Details and caveats: `docs/plans/04-global-sweep.md`.
 - **Ship one app and one mode.** Retrogram defaults to the old UI. A hidden
   "upstream UI" toggle stays for debugging and diffing only.
 
@@ -166,7 +167,9 @@ retrogram/                      (this repo)
   Global) says it sends data to third‑party servers, including servers in Russia,
   and ships Firebase Analytics and ad SDKs. That is a single source and
   unverified here. Retrogram ships **no ads and no third‑party analytics**.
-- Use **your own `TELEGRAM_APP_ID` / `TELEGRAM_APP_HASH`** (my.telegram.org), your
+- Use **your own `TELEGRAM_APP_ID` / `TELEGRAM_APP_HASH`** (my.telegram.org). NagramXF's
+  `TMessagesProj/build.gradle` falls back to the official app's `api_id` 6 and its hash when none is
+  supplied, so make release builds fail without them. Also use your
   own package name, your own FCM `google-services.json`, signing keys and Maps key.
   Also replace NagramXF's update and metadata channel IDs
   (`BaseRemoteHelper.CHANNEL_METADATA_ID`).
@@ -181,8 +184,9 @@ retrogram/                      (this repo)
 - This container has **no Android SDK**. Build on **GitHub Actions**, adapting
   NagramXF's `.github/workflows/{canary,staging}.yml`.
   - JDK 17/21, Android SDK 36, NDK and CMake as pinned by NagramXF.
-  - `git submodule update --init --recursive --depth=1` (tdlib, ffmpeg, boringssl,
-    tgcalls, and the rest).
+  - `git submodule update --init --recursive --depth=1` (about 24 submodules: td,
+    ffmpeg, boringssl, tgcalls and the rest; `lsplant` and `shadowhook` only for plugin builds; three are
+    `Keeperorowner/*` forks, so mirror them, see `docs/plans/00-bootstrap.md`).
   - Secrets: `TELEGRAM_APP_ID`, `TELEGRAM_APP_HASH`, keystore, `google-services.json`.
 
 ### Plugins as an opt‑in build option
@@ -248,7 +252,7 @@ checklist.
 - `DialogsActivity`:
   - Hamburger/back toggle in the action bar.
   - Classic title / "Connecting…" status. Replace
-    `DialogsActivityStatusLayout` / `TopPanelLayout` with the 12.1.1 header.
+    `DialogsActivityStatusLayout` / `DialogsActivityTopPanelLayout` with the 12.1.1 header.
   - Search as an action‑bar item instead of `FragmentSearchField`.
   - `FilterTabsView` folder tabs under the action bar, with the 12.1.1 stories
     header behaviour.
@@ -273,7 +277,7 @@ checklist.
   `ChatActivityBlurredRoundButton`.
 - Classic stacked top panels: pinned, group call, translate, action bar, and the
   "join / mute" bottom bar. These replace `ChatActivityTopPanelLayout` and
-  `ChatActivityTopFadeView`.
+  the glass top fade in `ChatActivity`.
 - Solid action bar. The optional 12.1‑style blur (`FLAG_CHAT_BLUR`) defaults off
   on AVERAGE devices.
 - **Accept when:** a regression matrix passes. It covers private, group, channel,
@@ -281,9 +285,10 @@ checklist.
   notes, polls, paid media, and the new 13.x message types.
 
 ### Phase 3 — Old profile and settings (≈2 weeks)
-- Your own profile and Settings use the 12.1.1 `ProfileActivity`
-  "settings" layout, opened from the drawer. They replace `SettingsActivity` and
-  `ProfileActivity2`.
+- Your own profile and Settings get the 12.1.1 layout, opened from the drawer.
+  The classic `ProfileActivity` still exists in 13.1.1 (used for other users and chats),
+  so this is mostly a re‑skin of `SettingsActivity` (decided in a spike, see
+  `docs/plans/03-profile-settings.md`). `ProfileActivity2` is no longer opened.
 - Other users' and chats' profiles use the classic expanding‑avatar layout.
   - New rows (gifts, wallet address, business info, music, rating and so on) are
     inserted as classic `TextCell` / `TextDetailCell` rows.
@@ -398,6 +403,9 @@ Android 10 low‑end phone (the minSdk sanity check).
 | What is "Telegraph"? | **Graph Messenger by Databite** (`ir.ilmili.telegraph`), used as a feature spec |
 | Ship NagramXF's Python plugins? | **Yes, as an opt‑in build option** (`retrogram.plugins`, default off) |
 | Final package name | **Open.** Placeholder `app.retrogram.messenger` |
+
+### Detailed plans
+Work packages per phase, with the verification findings: [`docs/plans/`](docs/plans/README.md).
 
 ### Immediate next steps
 1. Phase 0: import NagramXF history into the repo root, rebrand, add `RetroConfig`
