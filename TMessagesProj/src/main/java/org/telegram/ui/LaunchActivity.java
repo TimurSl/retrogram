@@ -1945,6 +1945,16 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         } else if (id == DrawerLayoutAdapter.nkbtnFeed) {
             com.exteragram.messenger.feed.ui.FeedActivity.presentFeed(getLastFragment());
             drawerLayoutContainer.closeDrawer(false);
+        } else if (id == DrawerLayoutAdapter.nkbtnInvite) {
+            presentFragment(new InviteContactsActivity());
+            drawerLayoutContainer.closeDrawer(false);
+        } else if (id == DrawerLayoutAdapter.nkbtnFeatures) {
+            if (MessagesController.getInstance(currentAccount).isFrozen()) {
+                AccountFrozenAlert.show(currentAccount);
+                return;
+            }
+            Browser.openUrl(LaunchActivity.this, LocaleController.getString(R.string.TelegramFeaturesUrl));
+            drawerLayoutContainer.closeDrawer(false);
         } else if (id == DrawerLayoutAdapter.nkbtnWallet) {
             presentFragment(new org.telegram.ui.Wallet.WalletActivity());
             drawerLayoutContainer.closeDrawer(false);
