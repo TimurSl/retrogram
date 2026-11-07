@@ -31,7 +31,14 @@ object RetroConfig {
     @JvmField
     val classicSettings = ConfigItem("RetroClassicSettings", ConfigItem.configTypeBool, true)
 
-    private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings)
+    /**
+     * Experimental: the chat input bar as a flat, full-width bar flush with the bottom (12.1.1 geometry) instead of the
+     * floating rounded "island". Off by default; read when a chat is created.
+     */
+    @JvmField
+    val classicInput = ConfigItem("RetroClassicInput", ConfigItem.configTypeBool, false)
+
+    private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings, classicInput)
 
     // Snapshot taken once per process. Until init() runs, behave like the defaults.
     @Volatile
@@ -40,6 +47,10 @@ object RetroConfig {
     /** Whether the old UI is active in this process. Hook point for Phases 1-4. */
     @JvmStatic
     fun isRetroUi(): Boolean = retroUiAtStart
+
+    /** Whether the chat input bar uses the flat full-width geometry. */
+    @JvmStatic
+    fun isClassicInput(): Boolean = retroUiAtStart && classicInput.Bool()
 
     /** Whether Settings should open the classic self-mode profile page. */
     @JvmStatic

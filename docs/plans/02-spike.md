@@ -30,3 +30,17 @@ Read from NagramXF `49ae647f` on 2026-11-07 (grep and code reading only; nothing
 - WP 2.1a: retro constants in `ChatInputViewsContainer` and a look at the horizontal margins; run on a device before widening.
 - WP 2.3: classic round buttons (`ChatActivityBlurredRoundButton` first).
 - WP 2.4: remove the top fade and the glass menu pill in the chat action bar.
+
+## First implementation: opt-in "Classic input bar" (WP 2.1a, 2026-11-07, not yet run on a device)
+
+Settings → Retrogram → "Classic input bar (experimental)", **off by default**, applies to chats opened afterwards.
+When on (`RetroConfig.isClassicInput()`):
+- `ChatInputViewsContainer.bubbleBottom()` is 0 instead of 9dp (the bar sits flush with the bottom; the two uses in `ChatActivity` that pad the message list follow),
+- `bubbleRadius()` is 0 instead of 22dp (flat corners),
+- `bubbleMargin()` is 0 instead of 7dp: the side margin of the enter view, the "bottom overlay" and the chat search container in `ChatActivity`,
+  and the padding/inset of the island drawable.
+Colors come from the opaque provider (WP 4.1), so the bar should read as a solid panel. Not touched: `INPUT_KEYBOARD_RADIUS` (the under-keyboard bubble),
+the 12.4 inner layout of `ChatActivityEnterView` (attach/emoji/send pills), `RichEditor` which animates from the old radius, side bubbles.
+What to look at on a device: bar edges against the screen edges, gap above the navigation bar (3-button and gesture nav), keyboard open/close animation,
+reply/edit bars, voice/video record overlay, attach button and AI/rich-text buttons, bot keyboard, scheduled/silent long-press sheet.
+
