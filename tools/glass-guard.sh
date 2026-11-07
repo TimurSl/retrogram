@@ -39,11 +39,16 @@ allowed_file() {  # $1 = path
 hits=$(mktemp); trap 'rm -f "$hits"' EXIT
 
 if [ "$mode" = range ]; then
+  # Fail closed: an unusable range must not look like "no hits".
+  diff_out=$(mktemp); trap 'rm -f "$hits" "$diff_out"' EXIT
+  if ! git diff -U0 --no-color "$range" -- $SRC > "$diff_out"; then
+    echo "error: git diff failed for range '$range'" >&2; exit 2
+  fi
   # file<TAB>added line, for added lines only
-  git diff -U0 --no-color "$range" -- $SRC | awk '
+  awk '
     /^\+\+\+ b\// { file = substr($0, 7); next }
     /^\+\+\+ /    { file = ""; next }
-    /^\+/ && file != "" { print file "\t" substr($0, 2) }' \
+    /^\+/ && file != "" { print file "\t" substr($0, 2) }' "$diff_out" \
     | grep -E -- "	.*($PATTERN)" > "$hits" || true
 else
   # shellcheck disable=SC2086

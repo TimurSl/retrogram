@@ -91,6 +91,9 @@ jobs:
         with:
           # Not recursive: that would also pull upstream/* (read-only references, ~GBs).
           submodules: false
+          # sync/* branches need history to diff against the default branch (glass-guard, strict range check).
+          fetch-depth: ${{ startsWith(github.ref, 'refs/heads/sync/') && 0 || 1 }}
+          filter: ${{ startsWith(github.ref, 'refs/heads/sync/') && 'blob:none' || '' }}
 
       - name: Initialise submodules
         run: |
@@ -202,10 +205,16 @@ jobs:
         if: ${{ !matrix.plugins }}
         run: ./gradlew :TMessagesProj:testNormalDebugUnitTest
 
-      # glass-guard.sh arrives with Phase 4; run it as soon as it exists.
-      - name: Glass guard
+      # Baseline summary on every build; it never fails (2000+ legacy hits, see docs/plans/04-global-sweep.md).
+      - name: Glass guard (baseline)
         if: ${{ !matrix.plugins && hashFiles('tools/glass-guard.sh') != '' }}
         run: bash tools/glass-guard.sh
+
+      # On sync/* branches (an upstream merge) every glass/blur3/MainTabs line the merge ADDED must be handled
+      # for retro mode, marked `glass-guard:ok`, or allow-listed in tools/glass-guard.allow. Fails otherwise.
+      - name: Glass guard (sync branch, strict)
+        if: ${{ !matrix.plugins && startsWith(github.ref, 'refs/heads/sync/') }}
+        run: bash tools/glass-guard.sh "origin/${{ github.event.repository.default_branch }}...HEAD"
 
       - name: Build APKs
         env:

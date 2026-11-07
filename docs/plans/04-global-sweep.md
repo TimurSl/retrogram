@@ -83,8 +83,11 @@ Compare `Theme` color keys 12.1.1 vs 13.1.1 (`git diff 9cbf0333 3de37c8c -- …/
 ### WP 4.4 — `tools/glass-guard.sh` (S)
 > **Status: written (2026-11-07).** `tools/glass-guard.sh` (no args = baseline summary, exit 0; `--strict` or a git range = exit 1 on unallowed hits).
 > Allowed: files under `app/retrogram/`, lines mentioning `RetroConfig` or carrying a `glass-guard:ok` comment, files matching `tools/glass-guard.allow`.
-> Baseline today: 2280 hits (2018 not allowed) over the tree, which is why CI runs it in baseline mode only. Wire it as a strict range check
-> for `sync/*` branches and PRs once the sweep has shrunk the baseline (CI's "Glass guard" step already runs it when the file exists).
+> Baseline today: 2280 hits (2018 not allowed) over the tree, which is why CI runs it in baseline mode on ordinary builds.
+> **CI wiring (written, not exercised yet because no `sync/*` branch exists):** on `sync/*` branches the workflow checks out full (blobless) history and runs
+> `tools/glass-guard.sh origin/<default-branch>...HEAD` strictly, so every glass/blur3/MainTabs line an upstream merge adds must be handled, marked `glass-guard:ok`,
+> or allow-listed. A bad or missing range now **fails closed** (exit 2; before, it printed "0 hits"). Checked locally: this branch against the default branch gives
+> 8 hits, 0 unallowed. Not wired for PRs (a PR touching those tokens for unrelated reasons would fail without a sweep first).
 Input: a git range (e.g. the diff of an upstream merge). Greps added lines for
 `blur3`, `GlassTab`, `MainTabs`, `FragmentFloatingButton`, `FragmentSearchField`, `BlurredBackground`,
 `LiquidGlass`, `ProfileActivity2`, `FLAG_LIQUID_GLASS`. Fails unless each hit is either under an `app/retrogram`
