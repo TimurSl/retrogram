@@ -66,3 +66,5 @@ independent of the UI work, so they are the best parallel track.
 2. Own Telegram `api_id` / `api_hash`, FCM project, signing keystore, Maps key. Needed by WP 0.4.
 3. Who has a phone with Graph Messenger and a throwaway account (blocks Phase 6 step 1).
 4. Whether to mirror the `Keeperorowner/*` submodule forks under the project's own org (recommended, WP 0.1).
+
+Manual device test script: [`../device-test-checklist.md`](../device-test-checklist.md) (switches, what to look at, what to send back).
