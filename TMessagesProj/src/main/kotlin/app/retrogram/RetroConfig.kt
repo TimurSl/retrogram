@@ -40,6 +40,7 @@ object RetroConfig {
         val prefs = tw.nekomimi.nekogram.NekoConfig.getPreferences()
         load { key, default -> prefs.getBoolean(key, default) }
         captureColdStart()
+        RetroShell.applyForcedConfig()
     }
 
     /** Reads every item through [read]. Separate from [init] so it runs without Android. */

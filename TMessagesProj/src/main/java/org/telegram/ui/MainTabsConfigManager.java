@@ -45,6 +45,17 @@ public class MainTabsConfigManager {
 
     @NonNull
     public static ArrayList<TabState> getAllTabs() {
+        if (app.retrogram.RetroConfig.isRetroUi()) {
+            // Retrogram: the chat list is the only "tab"; everything else lives in the drawer.
+            ArrayList<TabState> retro = new ArrayList<>();
+            retro.add(new TabState(TabType.CHATS, true));
+            for (TabType type : TabType.values()) {
+                if (type != TabType.CHATS) {
+                    retro.add(new TabState(type, false));
+                }
+            }
+            return retro;
+        }
         String value = NaConfig.INSTANCE.getMainTabsOrder().String();
         if (value == null || value.trim().isEmpty()) {
             value = DEFAULT_ORDER;

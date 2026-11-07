@@ -34,6 +34,13 @@ The PLAN's "tab host removed from the hierarchy" is satisfied by A as long as `M
 ## Work packages
 
 ### WP 1.1 — Shell switch (M, after spike)
+> **Status: first step written (option A), not build-verified, not yet run on a device.**
+> - `app/retrogram/RetroShell.applyForcedConfig()` (called from `RetroConfig.init()`) pins, in memory only, `navigationDrawerEnabled=true`,
+>   `mainTabsDisplayMode=HIDE`, `foldersAtBottom=false` in retro mode. Nothing is persisted, so the user's stored values return outside retro mode.
+> - `MainTabsConfigManager.getAllTabs()` returns CHATS as the only enabled tab in retro mode: no Contacts/Settings/Profile tab
+>   fragments are created and the pager cannot swipe. `MainTabsLayout` is still constructed but `GONE` (HIDE mode), not yet "never added".
+> - Still to do: hide the drawer toggle in `SidebarMenuActivity`/`NekoAppearanceSettingsActivity`; check account switch and
+>   notification cold start; screenshot-diff and frame profile to decide whether A is good enough.
 1. `RetroConfig.retroUi` read in `LaunchActivity` at startup (WP 0.5).
 2. Force in retro mode: `navigationDrawerEnabled=true` (hide the toggle in `SidebarMenuActivity`, line 206/360 and
    `NekoAppearanceSettingsActivity`, 277), `mainTabsDisplayMode=1`, `foldersAtBottom=false`.
