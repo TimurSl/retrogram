@@ -34,6 +34,14 @@ The PLAN's "tab host removed from the hierarchy" is satisfied by A as long as `M
 ## Work packages
 
 ### WP 1.1 — Shell switch (M, after spike)
+> **Status: first step written (option A), not build-verified, not yet run on a device.**
+> - `app/retrogram/RetroShell.applyForcedConfig()` (called from `RetroConfig.init()`) pins, in memory only, `navigationDrawerEnabled=true`,
+>   `mainTabsDisplayMode=HIDE`, `foldersAtBottom=false` in retro mode. Nothing is persisted, so the user's stored values return outside retro mode.
+> - `MainTabsConfigManager.getAllTabs()` returns CHATS as the only enabled tab in retro mode: no Contacts/Settings/Profile tab
+>   fragments are created and the pager cannot swipe. `MainTabsLayout` is still constructed but `GONE` (HIDE mode), not yet "never added".
+> - Drawer toggle hidden in `SidebarMenuActivity` in retro mode (the `foldersAtBottom` row in `NekoAppearanceSettingsActivity` is still shown, harmless: its stored value is overridden at start).
+> - Still to do: check account switch and
+>   notification cold start; screenshot-diff and frame profile to decide whether A is good enough.
 1. `RetroConfig.retroUi` read in `LaunchActivity` at startup (WP 0.5).
 2. Force in retro mode: `navigationDrawerEnabled=true` (hide the toggle in `SidebarMenuActivity`, line 206/360 and
    `NekoAppearanceSettingsActivity`, 277), `mainTabsDisplayMode=1`, `foldersAtBottom=false`.
@@ -41,6 +49,14 @@ The PLAN's "tab host removed from the hierarchy" is satisfied by A as long as `M
 4. Account switching (`switchToAccount`, 1295/1326) and push/intent cold starts (4133–4151) must create the same shell.
 
 ### WP 1.2 — `DialogsActivity` header (L)
+> **Status: findings + search done (cheap path), not build-verified.** What the code already does in 13.1.1 / NagramXF:
+> - The action bar title and `MenuDrawable` hamburger (`setBackButtonDrawable(menuDrawable = new MenuDrawable())`, ~3694) are still the classic path;
+>   `DialogsActivityStatusLayout` is created but its `addView` is commented out (~5848). So "Connecting…" already lives in the title. Step 1 is mostly a visual check.
+> - NagramXF has `NaConfig.hideHomeSearchField`: the pill is hidden at rest and a classic search icon (`searchItem`, driven by `animatorSearchButtonVisible`,
+>   `checkUi_itemSearchVisibility`) is shown; tapping it opens the pill. `RetroShell` now pins that option in retro mode. The result is an icon in the
+>   action bar plus the pill appearing on tap, not yet the 12.1.1 field that expands *inside* the action bar. Closing that gap is a polish item
+>   (position the active `fragmentSearchField` over the action bar), best done with a device to compare.
+> - Left: stories header placement, `FilterTabsView` background check against 12.1.1, `topBubblesFadeView` / `DialogsActivityTopPanelLayout` glass.
 Compare against `git show 9cbf0333:…/DialogsActivity.java` (13,524 lines vs 14,483 now).
 1. Action bar: `ActionBar` menu icon (hamburger / back-arrow morph via `MenuDrawable`), title, "Connecting…/Updating…"
    status via the old `setTitle` + `actionBar.setTitleAnimated` path. Gate `dialogsActivityStatusLayout`
@@ -55,6 +71,17 @@ Compare against `git show 9cbf0333:…/DialogsActivity.java` (13,524 lines vs 14
    (archive hint, proxy/connection banner, birthdays, etc.) as solid panels.
 
 ### WP 1.3 — FAB (S)
+> **Status: restyle written, not build-verified.** Finding: the 13.1.1 main FAB is already a plain round `FrameLayout` background
+> (`FragmentFloatingButton`, 48dp, `featuredStickers_addButton`); only the stories sub-button uses a glass-styled blur3 drawable.
+> So the re-skin is done inside `FragmentFloatingButton` (small diff, and it applies to every screen's FAB):
+> in retro mode `createDefaultLayoutParams()` is 56dp with 14dp margins, colors are `chats_actionBackground` / `chats_actionPressedBackground`,
+> elevation 3dp; the sub-button is a 36dp solid circle (no blur3 drawable) centered above the main one (`getSubButtonOffsetDp()` = 68,
+> used by `DialogsActivity.updateFloatingButtonOffset`).
+> Role swap (written, not build-verified): in 12.1.1 with stories enabled the **big** FAB is the camera and the small one the pencil; 13.1.1 has them the
+> other way round. In retro mode `DialogsActivity.retroSwapFabs()` (retro, not a widget picker, stories available, `disableStories` off) swaps icons
+> (`write_contacts_fab_icon_camera` / `fab_compose_small`, both revived from `9cbf0333`), click handlers and the story hint position. When stories are
+> unavailable the 13.1.1 behaviour stays (compose on the big button, premium story hint on the small one).
+> Assets restored from 12.1.1 history (GPL, same project): `res/raw/write_contacts_fab_icon_camera.json`, `res/drawable-{m,h,xh,xxh}dpi/fab_compose_small.png`.
 Round pencil FAB plus the camera mini-FAB for stories, replacing `floatingButton3` / `floatingButtonStories`.
 In 12.1.1 this was a plain `FrameLayout floatingButtonContainer` (`DialogsActivity:419`, no `FloatingActionButton`
 class exists in either tree), built with `Theme.createSimpleSelectorCircleDrawable` and animated by
@@ -62,6 +89,15 @@ class exists in either tree), built with `Theme.createSimpleSelectorCircleDrawab
 circle in retro mode — check its API first and pick whichever touches fewer `DialogsActivity` lines.
 
 ### WP 1.4 — Drawer content (M)
+> **Status: Wallet added, rest open; not build-verified.** The drawer is already a configurable list (`DrawerMenuHelper` entries + stored layout,
+> `DrawerLayoutAdapter.buildItemForId`, click handled in `LaunchActivity` and `MainMenuActions`). Already present: My Profile, New Group/Channel,
+> Contacts, Calls, Saved, Settings, Archived chats, Feed, N-settings, ghost mode. Added: `nkbtnWallet` (opens `WalletActivity`, skipped while
+> `config.walletAvailable` is false; in the stock layout after Calls; existing installs get it in the hidden list via `sanitize`).
+> Also added, as in the 12.1.1 drawer: **Invite Friends** (`nkbtnInvite` → `InviteContactsActivity`) and **Telegram Features** (`nkbtnFeatures` → `TelegramFeaturesUrl`,
+> frozen accounts get `AccountFrozenAlert`), in the stock layout after Settings (fresh installs only; existing installs find them in the hidden list).
+> Also added: **QR Code** (`nkbtnQrCode` → `QrShareActivity` for the own account; hidden by default, enable it in the sidebar manager). **Communities** need no entry:
+> they are per-community (opened from linked communities in the chat list / chat, see `docs/feature-matrix.md`); 13.1.1 has no global Communities screen.
+> The retro default layout has not been chosen separately from NagramXF's.
 `DrawerLayoutAdapter` already lists NagramXF items (ghost mode, browser, restart, N-settings: ids
 `nkbtn*`; `NaConfig.drawerItem*`). Required entries: accounts, My Profile/Stories, New Group/Secret/Channel,
 Contacts, Calls, Saved Messages, Settings, Invite, Telegram Features, plus the post-12.1 items that used to
@@ -86,3 +122,11 @@ Hide in retro mode the search/FAB glass layers that remain in the layout `onMeas
 | Edge-to-edge insets / navigation bar color: 12.4 changed insets handling for the floating bars | Compare `fitsSystemWindows`/`setOnApplyWindowInsetsListener` code in `DialogsActivity` and `ActionBarLayout` between 12.1.1 and now; test gesture and 3-button nav |
 | Tablet/landscape split view (`layersActionBarLayout`, `rightActionBarLayout`) | Test on a tablet emulator; 12.1.1 behaviour is the target |
 | `ContactsActivity`/`CallLogActivity` expect `hasMainTabs`-style padding | Pass `false` in retro mode; verified in Phase 4 sweep |
+
+## Device test notes (2026-11-07, run 17 APK, project owner's screenshots)
+- Works: drawer opens over the chat list with the classic rows (profile header with account switcher, Add Account, ghost, My Profile, Change Status, New Group,
+  Contacts, Calls, Recent chats, Saved Messages, Settings, N-Settings), search icon in the action bar, folder tab pill under it, FAB roles swapped as in 12.1.1
+  (blue camera on the big button, grey pencil above it). Retrogram appears in N-Settings.
+- Seen but not ours: the drawer header clips the tall glyphs of the display name (upstream layout, `DrawerProfileCell` name view is `WRAP_CONTENT` at the bottom).
+- Not covered by the screenshots: search opening, archive, "Connecting…" state, the stories row, tablet layout.
+

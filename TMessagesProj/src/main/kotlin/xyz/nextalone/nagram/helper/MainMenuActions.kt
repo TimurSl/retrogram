@@ -93,6 +93,20 @@ object MainMenuActions {
                 fragment.presentFragment(MainTabsCustomizeActivity())
             id == DrawerLayoutAdapter.nkbtnFeed ->
                 com.exteragram.messenger.feed.ui.FeedActivity.presentFeed(fragment)
+            id == DrawerLayoutAdapter.nkbtnQrCode -> {
+                val qrArgs = Bundle()
+                qrArgs.putLong("user_id", UserConfig.getInstance(currentAccount).clientUserId)
+                fragment.presentFragment(org.telegram.ui.QrShare.QrShareActivity(qrArgs))
+            }
+            id == DrawerLayoutAdapter.nkbtnInvite ->
+                fragment.presentFragment(org.telegram.ui.InviteContactsActivity())
+            id == DrawerLayoutAdapter.nkbtnFeatures ->
+                org.telegram.messenger.browser.Browser.openUrl(
+                    fragment.parentActivity,
+                    org.telegram.messenger.LocaleController.getString(org.telegram.messenger.R.string.TelegramFeaturesUrl)
+                )
+            id == DrawerLayoutAdapter.nkbtnWallet ->
+                fragment.presentFragment(org.telegram.ui.Wallet.WalletActivity())
             id == DrawerLayoutAdapter.nkbtnRestartApp -> AppRestartHelper.triggerRebirth(
                 ApplicationLoader.applicationContext,
                 Intent(ApplicationLoader.applicationContext, LaunchActivity::class.java)

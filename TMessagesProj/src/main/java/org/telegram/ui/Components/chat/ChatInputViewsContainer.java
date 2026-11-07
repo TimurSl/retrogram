@@ -29,6 +29,15 @@ public class ChatInputViewsContainer extends FrameLayout {
 
     public static final int INPUT_BUBBLE_BOTTOM = 9;
 
+    // Retrogram "classic input bar" (experimental): flat, full width, flush with the bottom. Values in dp.
+    private static boolean classic() { return app.retrogram.RetroConfig.isClassicInput(); }
+    /** Corner radius of the under-keyboard / emoji-panel background. */
+    public static int keyboardRadius() { return classic() ? 0 : INPUT_KEYBOARD_RADIUS; }
+    public static int bubbleBottom() { return classic() ? 0 : INPUT_BUBBLE_BOTTOM; }
+    public static int bubbleRadius() { return classic() ? 0 : INPUT_BUBBLE_RADIUS; }
+    /** Side margin of the input views and padding of the island drawable. */
+    public static int bubbleMargin() { return classic() ? 0 : 7; }
+
     private WindowInsetsProvider windowInsetsProvider;
 
     private final View fadeView;
@@ -88,12 +97,12 @@ public class ChatInputViewsContainer extends FrameLayout {
 
     public void setLeftBubbleDrawable(BlurredBackgroundDrawable drawable) {
         leftBubbleDrawable = drawable;
-        leftBubbleDrawable.setRadius(dp(INPUT_BUBBLE_RADIUS));
+        leftBubbleDrawable.setRadius(dp(bubbleRadius()));
     }
 
     public void setRightBubbleDrawable(BlurredBackgroundDrawable drawable) {
         rightBubbleDrawable = drawable;
-        rightBubbleDrawable.setRadius(dp(INPUT_BUBBLE_RADIUS));
+        rightBubbleDrawable.setRadius(dp(bubbleRadius()));
     }
 
     public void setLeftBubbleBounds(int left, int right) {
@@ -121,14 +130,14 @@ public class ChatInputViewsContainer extends FrameLayout {
 
     public void setInputIslandBubbleDrawable(BlurredBackgroundDrawable drawable) {
         blurredBackgroundDrawable = drawable;
-        blurredBackgroundDrawable.setPadding(dp(7));
-        blurredBackgroundDrawable.setRadius(dp(INPUT_BUBBLE_RADIUS));
+        blurredBackgroundDrawable.setPadding(dp(bubbleMargin()));
+        blurredBackgroundDrawable.setRadius(dp(bubbleRadius()));
     }
 
     public void setUnderKeyboardBackgroundDrawable(BlurredBackgroundDrawable drawable) {
         underKeyboardBackgroundDrawable = drawable;
         underKeyboardBackgroundDrawable.enableInAppKeyboardOptimization();
-        underKeyboardBackgroundDrawable.setRadius(dp(INPUT_KEYBOARD_RADIUS), dp(INPUT_KEYBOARD_RADIUS), 0, 0);
+        underKeyboardBackgroundDrawable.setRadius(dp(keyboardRadius()), dp(keyboardRadius()), 0, 0);
         underKeyboardBackgroundDrawable.setThickness(dp(32));
         underKeyboardBackgroundDrawable.setIntensity(0.4f);
     }
@@ -183,11 +192,11 @@ public class ChatInputViewsContainer extends FrameLayout {
     private void checkBlurredHeight(boolean force) {
         checkViewsPositions();
 
-        final int blurredHeight = inputBubbleHeightRound + dp(INPUT_BUBBLE_BOTTOM) + Math.round(maxBottomInset);
+        final int blurredHeight = inputBubbleHeightRound + dp(bubbleBottom()) + Math.round(maxBottomInset);
         if (currentBlurredHeight != blurredHeight || force) {
             currentBlurredHeight = blurredHeight;
 
-            final int r = dp(INPUT_KEYBOARD_RADIUS);
+            final int r = dp(keyboardRadius());
             tmpRectF.set(0, getMeasuredHeight() - imeBottomInset, getMeasuredWidth(), getMeasuredHeight());
             underKeyboardPath.rewind();
             underKeyboardPath.addRoundRect(tmpRectF, new float[] {r, r, r, r, 0, 0, 0, 0}, Path.Direction.CW);
@@ -226,12 +235,12 @@ public class ChatInputViewsContainer extends FrameLayout {
                     rightBottomRadius = bottomRight == null ? 0 : bottomRight.getRadius();
                 }
             }
-            underKeyboardBackgroundDrawable.setRadius(dp(INPUT_KEYBOARD_RADIUS), dp(INPUT_KEYBOARD_RADIUS), rightBottomRadius, leftBottomRadius, true);
+            underKeyboardBackgroundDrawable.setRadius(dp(keyboardRadius()), dp(keyboardRadius()), rightBottomRadius, leftBottomRadius, true);
         }
     }
 
     private void checkViewsPositions() {
-        inputIslandBubbleContainer.setTranslationY(-maxBottomInset - dp(INPUT_BUBBLE_BOTTOM));
+        inputIslandBubbleContainer.setTranslationY(-maxBottomInset - dp(bubbleBottom()));
         inAppKeyboardBubbleContainer.setTranslationY(inAppKeyboardBubbleContainer.getMeasuredHeight() - imeBottomInset);
     }
 
@@ -280,7 +289,7 @@ public class ChatInputViewsContainer extends FrameLayout {
     }
 
     public float getInputBubbleBottom() {
-        return getMeasuredHeight() - maxBottomInset - dp(INPUT_BUBBLE_BOTTOM);
+        return getMeasuredHeight() - maxBottomInset - dp(bubbleBottom());
     }
 
     @Override
@@ -303,7 +312,7 @@ public class ChatInputViewsContainer extends FrameLayout {
             0,
             getMeasuredHeight() - (int) imeBottomInset,
             getMeasuredWidth(),
-            Math.max(getMeasuredHeight(), getMeasuredHeight() - (int) imeBottomInset + dp(INPUT_KEYBOARD_RADIUS * 2))
+            Math.max(getMeasuredHeight(), getMeasuredHeight() - (int) imeBottomInset + dp(keyboardRadius() * 2))
         );
 
         final int blurTop = getMeasuredHeight() - currentBlurredHeight;
@@ -314,7 +323,7 @@ public class ChatInputViewsContainer extends FrameLayout {
             getMeasuredWidth() - Math.round(inputBubbleOffsetRight),
             inputBubbleHeightRound
         );
-        tmpRect.inset(0, -dp(7));
+        tmpRect.inset(0, -dp(bubbleMargin()));
         tmpRect.offset(0, blurTop + (int) bubbleInputTranlationY);
 
         blurredBackgroundDrawable.setBounds(tmpRect);

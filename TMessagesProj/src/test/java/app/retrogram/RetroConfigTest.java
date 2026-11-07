@@ -29,6 +29,14 @@ public class RetroConfigTest {
         assertTrue(RetroConfig.retroUi.Bool());
         assertFalse(RetroConfig.upstreamUiDebug.Bool());
         assertFalse(RetroConfig.remoteMetadata.Bool());
+        assertTrue(RetroConfig.classicSettings.Bool());
+        assertTrue(RetroConfig.isClassicSettings());
+        assertFalse(RetroConfig.classicInput.Bool());
+        assertFalse(RetroConfig.isClassicInput());
+        assertFalse(RetroConfig.classicColors.Bool());
+        assertFalse(RetroConfig.classicChatHeader.Bool());
+        assertFalse(RetroConfig.isClassicChatHeader());
+        assertFalse(RetroConfig.classicEmojiPanel.Bool());
         assertTrue(RetroConfig.isRetroUi());
     }
 

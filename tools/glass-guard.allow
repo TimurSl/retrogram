@@ -1,0 +1,4 @@
+# <path regex>	<reason>
+# Files that may mention glass/blur3 symbols without a RetroConfig guard (every hit here is already
+# neutralised by the retro choke point in BlurredBackgroundSourceRenderNode / LiteMode).
+^TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/	blur3 implementation itself; retro handled at the choke point (WP 4.1)

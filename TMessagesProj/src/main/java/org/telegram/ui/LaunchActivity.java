@@ -1850,7 +1850,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             presentFragment(new ContactsActivity(args));
             drawerLayoutContainer.closeDrawer(false);
         } else if (id == 8) {
-            presentFragment(new SettingsActivity());
+            presentFragment(app.retrogram.RetroNav.settingsFragment());
             drawerLayoutContainer.closeDrawer(false);
         } else if (id == 10) {
             presentFragment(new CallLogActivity());
@@ -1944,6 +1944,24 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             drawerLayoutContainer.closeDrawer(false);
         } else if (id == DrawerLayoutAdapter.nkbtnFeed) {
             com.exteragram.messenger.feed.ui.FeedActivity.presentFeed(getLastFragment());
+            drawerLayoutContainer.closeDrawer(false);
+        } else if (id == DrawerLayoutAdapter.nkbtnQrCode) {
+            Bundle qrArgs = new Bundle();
+            qrArgs.putLong("user_id", UserConfig.getInstance(currentAccount).getClientUserId());
+            presentFragment(new org.telegram.ui.QrShare.QrShareActivity(qrArgs));
+            drawerLayoutContainer.closeDrawer(false);
+        } else if (id == DrawerLayoutAdapter.nkbtnInvite) {
+            presentFragment(new InviteContactsActivity());
+            drawerLayoutContainer.closeDrawer(false);
+        } else if (id == DrawerLayoutAdapter.nkbtnFeatures) {
+            if (MessagesController.getInstance(currentAccount).isFrozen()) {
+                AccountFrozenAlert.show(currentAccount);
+                return;
+            }
+            Browser.openUrl(LaunchActivity.this, LocaleController.getString(R.string.TelegramFeaturesUrl));
+            drawerLayoutContainer.closeDrawer(false);
+        } else if (id == DrawerLayoutAdapter.nkbtnWallet) {
+            presentFragment(new org.telegram.ui.Wallet.WalletActivity());
             drawerLayoutContainer.closeDrawer(false);
         } else if (id == DrawerLayoutAdapter.nkbtnRestartApp) {
             AppRestartHelper.triggerRebirth(ApplicationLoader.applicationContext, new Intent(ApplicationLoader.applicationContext, LaunchActivity.class));
@@ -3961,7 +3979,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                 BaseFragment fragment;
                 boolean closePrevious = false;
                 if (open_settings == 1) {
-                    fragment = new SettingsActivity();
+                    fragment = app.retrogram.RetroNav.settingsFragment();
                 } else if (open_settings == 2) {
                     fragment = new ThemeActivity(ThemeActivity.THEME_TYPE_BASIC);
                 } else if (open_settings == 3) {

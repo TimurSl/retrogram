@@ -11,6 +11,8 @@ import android.graphics.RenderNode;
 import android.graphics.Shader;
 import android.os.Build;
 
+import app.retrogram.RetroConfig;
+
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
@@ -52,6 +54,9 @@ public class DownscaleScrollableNoiseSuppressor {
     public static final int DRAW_FROSTED_GLASS_NO_SATURATION = -4;
 
     public void draw(Canvas canvas, int index) {
+        if (RetroConfig.isRetroUi()) {
+            return; // Retrogram: backgrounds are flat, nothing reads the captured content (WP 4.1)
+        }
         if (!canvas.isHardwareAccelerated()) {
             throw new IllegalStateException();
         }
@@ -71,6 +76,9 @@ public class DownscaleScrollableNoiseSuppressor {
     }
 
     public void drawInline(Canvas canvas, int index) {
+        if (RetroConfig.isRetroUi()) {
+            return;
+        }
         final int a;
         if (!isLiquidGlassEnabled && simpleMode) {
             a = 0;
@@ -278,6 +286,9 @@ public class DownscaleScrollableNoiseSuppressor {
 
 
     public void onScrolled(float dx, float dy) {
+        if (RetroConfig.isRetroUi()) {
+            return;
+        }
         for (int a = 0; a < rectRenderNodesCount; a++) {
             final SourcePart sourcePart = rectRenderNodes.get(a);
             sourcePart.renderNodesForBlur.onScrolled(dx, dy);
@@ -366,6 +377,9 @@ public class DownscaleScrollableNoiseSuppressor {
     private final Blur3HashImpl builder = new Blur3HashImpl();
 
     public boolean invalidateResultRenderNodes(IBlur3Capture capture, int width, int height) {
+        if (RetroConfig.isRetroUi()) {
+            return false; // no capture, no hashing, no downscaled render nodes
+        }
         int updatedCount = 0;
         for (int a = 0; a < rectRenderNodesCount; a++) {
             final SourcePart sourcePart = rectRenderNodes.get(a);

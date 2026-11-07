@@ -8,6 +8,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Outline;
+import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.view.Gravity;
@@ -20,6 +21,9 @@ import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RawRes;
+import androidx.core.graphics.ColorUtils;
+
+import app.retrogram.RetroConfig;
 
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.utils.ViewOutlineProviderImpl;
@@ -124,10 +128,14 @@ public class FragmentFloatingButton extends FrameLayout implements FactorAnimato
         ScaleStateListAnimator.apply(this);
         if (!isSubButton) {
             setOutlineProvider(createFabOutlineProvider());
-            setTranslationZ(dpf2(0.5f));
+            setTranslationZ(isRetro() ? dp(3) : dpf2(0.5f));
+        } else if (isRetro()) {
+            // Retrogram: classic 36dp round button with a drop shadow instead of the glass-styled one.
+            setOutlineProvider(ViewOutlineProviderImpl.BOUNDS_OVAL);
+            setTranslationZ(dp(3));
         }
 
-        if (isSubButton) {
+        if (isSubButton && !isRetro()) {
             iBlur3ColorProviderTabs = new BlurredBackgroundColorProviderThemed(null, Theme.key_dialogBackground) {
                 @Override
                 public int getStrokeColorTop() {
@@ -200,7 +208,16 @@ public class FragmentFloatingButton extends FrameLayout implements FactorAnimato
     private BlurredBackgroundColorProviderThemed iBlur3ColorProviderTabs;
 
     public void updateColors() {
-        if (isSubButton) {
+        if (isSubButton && isRetro()) {
+            imageView.setColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteGrayIcon, resourcesProvider), PorterDuff.Mode.SRC_IN);
+            progressView.setProgressColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayIcon, resourcesProvider));
+            final int white = Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider);
+            setBackground(Theme.createSimpleSelectorCircleDrawable(
+                dp(RETRO_SUB_SIZE),
+                ColorUtils.blendARGB(white, Color.WHITE, 0.1f),
+                Theme.blendOver(white, Theme.getColor(Theme.key_listSelector, resourcesProvider))
+            ));
+        } else if (isSubButton) {
             imageView.setColorFilter(Theme.getColor(Theme.key_actionBarDefaultIcon, resourcesProvider), PorterDuff.Mode.SRC_IN);
             progressView.setProgressColor(Theme.getColor(Theme.key_actionBarDefaultIcon, resourcesProvider));
 
@@ -216,24 +233,48 @@ public class FragmentFloatingButton extends FrameLayout implements FactorAnimato
         } else {
             imageView.setColorFilter(Theme.getColor(Theme.key_chats_actionIcon, resourcesProvider), PorterDuff.Mode.SRC_IN);
             progressView.setProgressColor(Theme.getColor(Theme.key_chats_actionIcon, resourcesProvider));
-            int size = Math.max(Math.min(getMeasuredWidth(), getMeasuredHeight()), dp(SIZE));
+            int size = Math.max(Math.min(getMeasuredWidth(), getMeasuredHeight()), dp(isRetro() ? RETRO_SIZE : SIZE));
             setOutlineProvider(createFabOutlineProvider());
             setBackground(createFabBackgroundPx(size,
-                Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider),
-                Theme.getColor(Theme.key_featuredStickers_addButtonPressed, resourcesProvider)
+                Theme.getColor(isRetro() ? Theme.key_chats_actionBackground : Theme.key_featuredStickers_addButton, resourcesProvider),
+                Theme.getColor(isRetro() ? Theme.key_chats_actionPressedBackground : Theme.key_featuredStickers_addButtonPressed, resourcesProvider)
             ));
         }
     }
 
     public static final int SIZE = 48;
 
+    /** Retrogram (12.1.1 look): 56dp main FAB, 36dp round secondary button above it. */
+    public static final int RETRO_SIZE = 56;
+    public static final int RETRO_SUB_SIZE = 36;
+
+    private static boolean isRetro() {
+        return RetroConfig.isRetroUi();
+    }
+
+    /** Distance in dp between the main button and the secondary one stacked above it. */
+    public static int getSubButtonOffsetDp() {
+        return isRetro() ? 68 : 52;
+    }
+
     public static FrameLayout.LayoutParams createSubButtonLayoutParams() {
+        if (isRetro()) {
+            // Centered over the 56dp main button (14dp margin + (56 - 36) / 2).
+            return LayoutHelper.createFrame(RETRO_SUB_SIZE, RETRO_SUB_SIZE,
+                    (LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT) | Gravity.BOTTOM,
+                    LocaleController.isRTL ? 24 : 0, 0, LocaleController.isRTL ? 0 : 24, 14);
+        }
         return LayoutHelper.createFrame(48, 48,
                 (LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT) | Gravity.BOTTOM,
                 20, 0, 20, 14);
     }
 
     public static FrameLayout.LayoutParams createDefaultLayoutParams() {
+        if (isRetro()) {
+            return LayoutHelper.createFrame(RETRO_SIZE, RETRO_SIZE,
+                    (LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT) | Gravity.BOTTOM,
+                    LocaleController.isRTL ? 14 : 0, 0, LocaleController.isRTL ? 0 : 14, 14);
+        }
         return LayoutHelper.createFrame(48, 48,
                 (LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT) | Gravity.BOTTOM,
                 20, 0, 20, 14);

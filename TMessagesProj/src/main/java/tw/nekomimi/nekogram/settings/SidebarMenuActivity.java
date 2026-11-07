@@ -159,9 +159,16 @@ public class SidebarMenuActivity extends BaseReorderManagerActivity {
         super.updateRows();
         reloadData();
 
-        settingsHeaderRow = addRow();
-        navigationDrawerRow = addRow(KEY_NAV_DRAWER);
-        settingsShadowRow = addRow();
+        if (app.retrogram.RetroConfig.isRetroUi()) {
+            // Retrogram: the drawer is always on, so the toggle (and its header/shadow) is not offered.
+            settingsHeaderRow = -1;
+            navigationDrawerRow = -1;
+            settingsShadowRow = -1;
+        } else {
+            settingsHeaderRow = addRow();
+            navigationDrawerRow = addRow(KEY_NAV_DRAWER);
+            settingsShadowRow = addRow();
+        }
 
         visibleHeaderRow = addRow();
         visibleRowStart = rowCount;

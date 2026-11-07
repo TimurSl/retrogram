@@ -50,8 +50,12 @@ The repo already has 3 commits of its own (`PLAN.md`, README, submodule pins).
 > - `applicationIdSuffix` for `.debug`/`.beta` is **deferred**: the account type and contact MIME types in
 >   `res/xml/{auth,contacts,sync_contacts,auth_menu}.xml` are static strings while `ContactsController:2313` builds the MIME type from
 >   `BuildConfig.APPLICATION_ID`; template them with manifest placeholders first, otherwise contact sync breaks on suffixed builds.
-> - App name/strings (`NagramX` string resource used in ~10 places), launcher icons, `RETROGRAM_REV`,
->   remote update/metadata switch (`RetroConfig.remoteMetadata`, needs WP 0.5), `google-services.json`.
+> - Done (not build-verified): remote update/metadata switch. `BaseRemoteHelper.load()` returns early (calling `onError` for a
+>   non-null delegate) unless `RetroConfig.remoteMetadata` is on, so `UpdateHelper`, `EmojiHelper`, trusted-plugins and
+>   page-preview rules make no requests to the NagramXF metadata channel by default. Consequence: remote emoji packs and
+>   update prompts are off until a Retrogram channel exists (decide per feature, see risks below).
+> - Still open: app name/strings (`NagramX` string resource used in ~10 places), launcher icons, `RETROGRAM_REV`,
+>   `google-services.json`.
 > - `.github/workflows/*` still use the NagramXF artifact names (handled in WP 0.4).
 
 Only identity changes; keep `org.telegram.*` and `tw.nekomimi.*` Java packages untouched
@@ -160,6 +164,22 @@ Also check that nothing in `src/main` imports a class that exists only in `src/p
 >   provide your own file. The committed file (with NagramXF's Firebase key) should be removed once the project has its own.
 > - `MAPS_API_KEY` is **not** wired: the manifest hard-codes a Maps key (`AndroidManifest.xml:867`), a leftover for WP 0.2.
 > - `tools/glass-guard.sh` is run when the file exists (Phase 4). Plugin `*Debug` builds are not unit-tested.
+> - **First runs (2026-11-07):** unit tests (which compile all Java/Kotlin) pass in ~7 min; the all-ABI debug APK build was killed by
+>   a runner shutdown after 38 min in the native step. Branch pushes now build `arm64-v8a` only (like PRs), with a 120 min job timeout;
+>   tags and manual runs still build every ABI.
+> - **Run 12 (2026-11-07, commit `20325c48`): unit tests passed, `assembleNormalDebug` succeeded (30 min, arm64 only, cold ccache), 110 MB debug APK.**
+>   The run still went red at `upload-artifact`: "Artifact storage quota has been hit" (account-wide; this repo has no artifacts). The upload is now
+>   `continue-on-error` off tags, with a 7-day retention and a warning step. To get APKs again: free storage under the account's Actions artifacts, or wait 6-12 h.
+> - **Run 14 (commit `fec6a202`): fully green**, including the upload: unit tests 4 min, `assembleNormalDebug` 2.5 min (ccache warm from run 12),
+>   whole job under 10 min. Artifact `retrogram-normal` (80 MB, 7-day retention): https://github.com/TimurSl/retrogram/actions/runs/42386840983.
+>   So WP 0.3 (flag off), 0.4 and 0.5 are now **build-verified for `plugins=false`**; `plugins=true` has still never run (tags and `sync/*` branches, or a manual dispatch with `plugins`).
+> - **Run 15 (manual dispatch, `plugins=true`, `upload=false`, commit `757366b4`): green**, ~31 min cold, all ABIs, Python 3.11 + Cython 3.0.11 setup included.
+>   So `assemblePluginDebug` with the flag on works, and `assembleNormalDebug` with it off works (run 14): WP 0.3's two build paths are verified.
+>   Not yet checked from the WP 0.3 acceptance table: `unzip -l` on both APKs (no `libchaquopy_java.so`/`liblsplant`/`libshadowhook` in the normal one),
+>   `tasks --all` without `chaquopy*`, and `assemblePluginDebug` with the flag off failing fast. Unit tests are skipped for plugin builds by design.
+> - **Run 16 (commit `c6e9560a`): WP 0.3 acceptance now runs in CI and passes.** Step "Verify plugin isolation (plugins off)" checks that the normal APK has no
+>   `chaquopy|lsplant|shadowhook` entries (`unzip -l`), that `tasks --all` lists no chaquopy task, and that `assemblePluginDebug` fails with the flag off.
+>   It stays in the workflow as a regression guard (skipped on tags).
 > - Unverified assumptions: `--depth=1` submodule updates work for the pinned commits; `testNormalDebugUnitTest` exists
 >   under the `normal` flavor; `NATIVE_TARGET` alone is enough for a one-ABI build.
 

@@ -336,6 +336,9 @@ public class BlurredBackgroundProviderImpl {
     }
 
     public static boolean checkBlurEnabled(int currentAccount, Theme.ResourcesProvider resourcesProvider) {
+        if (app.retrogram.RetroConfig.isRetroUi()) {
+            return false; // Retrogram: providers return opaque theme colors (WP 4.1 step 5)
+        }
         final boolean isDark = resourcesProvider != null ? resourcesProvider.isDark() : Theme.isCurrentThemeDark();
         final boolean isLight = !isDark;
         boolean blurEnabled = SharedConfig.chatBlurEnabled();

@@ -93,7 +93,7 @@ public class RichMediaCell extends RichBlockCell
     private final ArrayList<RectF> collageRects = new ArrayList<>();
     private final ArrayList<RectF> itemRects = new ArrayList<>();
 
-    private final boolean glass = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && SharedConfig.chatBlurEnabled();
+    private final boolean glass = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && SharedConfig.chatBlurEnabled() && !app.retrogram.RetroConfig.isRetroUi();
     private BlurredBackgroundSourceRenderNode blurSource;
     private BlurredBackgroundColorProvider blurColors;
     private final ArrayList<ImageView> circleButtons = new ArrayList<>();

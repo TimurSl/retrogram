@@ -4973,7 +4973,18 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         floatingButtonStories = new FragmentFloatingButton(context, resourceProvider, true);
         floatingButtonStories.setContentDescription(getString(R.string.StoryPrivacyButtonPost));
         floatingButtonStories.setImageResource(R.drawable.outline_fab_story_24);
-        floatingButtonStories.setOnClickListener(v -> openStoriesRecorder());
+        floatingButtonStories.setOnClickListener(v -> {
+            if (retroSwapFabs()) {
+                // Retrogram: in the 12.1.1 layout the small button composes and the big one is the camera.
+                if (MessagesController.getInstance(currentAccount).isFrozen()) {
+                    AccountFrozenAlert.show(currentAccount);
+                    return;
+                }
+                openWriteContacts();
+            } else {
+                openStoriesRecorder();
+            }
+        });
         contentView.addView(floatingButtonStories, FragmentFloatingButton.createSubButtonLayoutParams());
 
         floatingButton3 = new FragmentFloatingButton(context, resourceProvider);
@@ -4997,7 +5008,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     AccountFrozenAlert.show(currentAccount);
                     return;
                 }
-                openWriteContacts();
+                if (retroSwapFabs()) {
+                    openStoriesRecorder();
+                } else {
+                    openWriteContacts();
+                }
             }
         });
 
@@ -9219,9 +9234,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             floatingButton3.setTranslationY(baseTranslationY - floatingButtonsOffset);
         }
         if (floatingButtonStories != null) {
-            floatingButtonStories.setTranslationY(baseTranslationY - dp(52) - floatingButtonsOffset);
+            floatingButtonStories.setTranslationY(baseTranslationY - dp(FragmentFloatingButton.getSubButtonOffsetDp()) - floatingButtonsOffset); // glass-guard:ok (retro offset lives in FragmentFloatingButton)
             if (storyHint != null) {
-                storyHint.setTranslationY(baseTranslationY - dp(52) - floatingButtonsOffset);
+                storyHint.setTranslationY(retroSwapFabs()
+                        ? baseTranslationY - floatingButtonsOffset
+                        : baseTranslationY - dp(FragmentFloatingButton.getSubButtonOffsetDp()) - floatingButtonsOffset); // glass-guard:ok (retro offset lives in FragmentFloatingButton)
             }
         }
 
@@ -9262,10 +9279,30 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         if (initialDialogsType == DIALOGS_TYPE_WIDGET) {
             floatingButton3.setImageResource(R.drawable.floating_check);
             floatingButton3.setContentDescription(LocaleController.getString(R.string.Done));
+        } else if (retroSwapFabs()) {
+            // Retrogram (12.1.1): camera on the big button, pencil on the small one.
+            floatingButton3.setAnimation(R.raw.write_contacts_fab_icon_camera, 56);
+            floatingButton3.setContentDescription(LocaleController.getString(R.string.AccDescrCaptureStory));
+            if (floatingButtonStories != null) {
+                floatingButtonStories.setImageResource(R.drawable.fab_compose_small);
+                floatingButtonStories.setContentDescription(LocaleController.getString(R.string.NewMessageTitle));
+            }
         } else {
             floatingButton3.setImageResource(R.drawable.filled_fab_compose_32);
             floatingButton3.setContentDescription(LocaleController.getString(R.string.NewMessageTitle));
+            if (floatingButtonStories != null) {
+                floatingButtonStories.setImageResource(R.drawable.outline_fab_story_24);
+                floatingButtonStories.setContentDescription(getString(R.string.StoryPrivacyButtonPost));
+            }
         }
+    }
+
+    /** Retro mode with stories available: the big button opens the story camera, the small one composes. */
+    private boolean retroSwapFabs() {
+        return app.retrogram.RetroConfig.isRetroUi()
+                && initialDialogsType != DIALOGS_TYPE_WIDGET
+                && storiesEnabled
+                && !NaConfig.INSTANCE.getDisableStories().Bool();
     }
 
     public boolean hasHiddenArchive() {

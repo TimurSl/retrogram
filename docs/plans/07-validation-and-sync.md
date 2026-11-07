@@ -33,6 +33,9 @@ CI green for plugins off and on.
 ## Phase 8 — Upstream sync
 
 ### `tools/sync-upstream.sh` (WP 8.1, M)
+> **Status: written, `bash -n` only (not run: it fetches and branches).** `tools/sync-upstream.sh <name> [<ref>]` adds the `nagramxf`/`telegram`
+> remotes if missing, fetches blobless, creates `sync/<name>`, merges (stops with a conflict list and exit 2; never resolves, never pushes), then prints
+> glass-guard hits for `merge-base..HEAD`, the TL `LAYER` change and new top-level classes. Steps 1-5 below; step 6 (PR) stays manual.
 1. `git fetch nagramxf dev --tags` (and `telegram master` for the fallback path).
 2. Create `sync/<X>` from `main`; `git merge nagramxf/<tag-or-sha>`.
 3. Conflict policy: conflicts live almost entirely in the files with Retrogram hooks (`LaunchActivity`,
@@ -51,6 +54,8 @@ plugins) then have to be re-applied by hand — keep a list in `docs/nagram-delt
 NagramXF-only code (start it in Phase 0, it is cheap to maintain then and costly to reconstruct later).
 
 ### Health signals to watch
+- **2026-11-07 check:** `git fetch --filter=blob:none --tags nagramxf dev` works (the first half of `tools/sync-upstream.sh`); `nagramxf/dev` is still at `49ae647f`,
+  our import base, i.e. 0 commits ahead, so there is nothing to merge yet. The merge/report half of the script is still untested.
 Days between DrKLO release and NagramXF merge (NagramXF's latest commit here is 2026-11-06, 13.1.1 landed on
 the DrKLO release day); open `glass-guard` hits; size of the Retrogram diff vs NagramXF
 (`git diff --stat nagramxf/dev -- TMessagesProj | tail -1`) — if it grows past what a person can re-review in a day,

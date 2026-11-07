@@ -37,6 +37,24 @@ Two caveats the PLAN did not mention:
 ## Work packages
 
 ### WP 4.1 — Choke point (M) — **can start right after WP 0.1**
+> **Status: first cut written, not build-verified (2026-11-07).** In retro mode (`RetroConfig.isRetroUi()`, no separate `noBlur` flag):
+> - `BlurredBackgroundSourceRenderNode.createDrawable()` returns a `BlurredBackgroundDrawableSource` over a flat source whose color is the live
+>   `key_windowBackgroundWhite`; it is not registered in `drawables`. `draw()` paints that flat color; `updateDisplayListIfNeeded()` is a no-op.
+>   The color providers' ~0.76-alpha tints composite over it, so panels come out almost opaque (step 5 "opaque variants" is **not** done; check visually).
+> - `LiteMode.isEnabled(FLAG_LIQUID_GLASS)` is `false` (toggle in `LiteModeSettingsActivity` still shown).
+> - `RichMediaCell.glass` is off: it cast `createDrawable()` to `BlurredBackgroundDrawableRenderNode`, the only unguarded cast in the tree.
+> - **`checkBlurEnabled` returns false in retro mode** (`BlurredBackgroundProviderImpl`, the existing "blur off" switch every chat/panel provider consults),
+>   so those providers return opaque theme colors: step 5 is done for them (not for `BlurredBackgroundColorProviderThemed`'s default 0.76 alpha).
+> - **Triage of the sites that keep their own render nodes (decision: leave for now):** `GroupCallActivity.renderNodeBlur` (call UI, also blurred in 12.1.1),
+>   `QrShareView` (the QR feature's own effect, not chrome), `ProfileGalleryBlurView` (profile header; revisit in WP 3.3 together with the classic header),
+>   `CommunityPendingRequestCell` (one small cell). `GlassEngine` is left alone too: its capture-triggering side is already inert and it still drives
+>   color/position invalidation for the flat drawables; decide after a GPU profile.
+> - **Capture stopped centrally (written, built in CI run 12):** the ~15 screens that record content themselves all feed
+>   `DownscaleScrollableNoiseSuppressor`, whose `draw`, `drawInline`, `onScrolled` and `invalidateResultRenderNodes` (the hashing and downscaled
+>   render-node work) now return immediately in retro mode. Those sites still call `beginRecording` and paint one `drawColor`, which is cheap.
+>   Not covered: sites with their own render nodes (`GroupCallActivity`, `ProfileGalleryBlurView`, `QrShareView`, `CommunityPendingRequestCell`).
+>   Steps 1 (separate `noBlur` flag), 4 and 7 (`GlassEngine`) also remain; confirm with a GPU profile on the POCO.
+
 1. Add `RetroConfig.noBlur` (= `retroUi`).
 2. `BlurredBackgroundSourceRenderNode.createDrawable()`: when `noBlur`, return a flat drawable (reuse
    `BlurredBackgroundDrawableSource` with a `BlurredBackgroundSourceColor` fed by the provider's opaque colour),
@@ -59,10 +77,30 @@ StarGiftPreviewSheet, NagramXF `BookmarkManagerActivity`, Bulletins, ItemOptions
 Per screen: before/after screenshots in `docs/sweep/`.
 
 ### WP 4.3 — Theme (M)
+> **Findings and first implementation (2026-11-07; checked by diffing, not yet seen on a device):**
+> - The plan's assumption was wrong: **no `key_chats_menu*` key was dropped.** Only 10 keys exist in 12.1.1 and not in 13.1.1 (attach-sheet colors
+>   `key_chat_attach{Audio,File,Gallery,Location,Poll,Todo}*`, `key_chat_goDownButtonIcon`, `key_dialogCameraIcon`); 72 keys were added (`key_glass_*`, IV rich-message,
+>   tags, ...). So the palette is almost a superset.
+> - **What changed is the default theme's values** (`ActionBar/ThemeColors.createDefaultColors`): of 734 keys defined in both, **123 have a different default**. The
+>   biggest visible one: `key_actionBarDefault` was `0xff527da3` (blue bar, white icons/titles) in 12.1.1 and is `0xffffffff` (white bar, dark icons) in 13.1.1;
+>   also `actionBarDefaultIcon/Title/Subtitle/Selector/Search*`, tab colors, `windowBackgroundWhite*Text`, `windowBackgroundGray`, switch/checkbox colors, 33 `chat_*`,
+>   12 `chats_*`, profile/avatar/stories/dialog keys. So the classic *look* of the default (Blue) theme needs the old palette, not only layout work.
+> - Implemented as the opt-in switch **Settings → Retrogram → "Classic theme colors (experimental)"** (off by default, needs a restart):
+>   `app.retrogram.RetroThemeColors.apply()` (generated from the diff, one line per key with the 13.1.1 value in a comment) overrides `Theme.defaultColors` while the table is built.
+>   `RetroThemeColors.enabled()` reads the stored preference itself because `Theme`'s static initializer can run before `RetroConfig.init()`.
+> - Not covered: other built-in themes (Day, Night, Dark Blue) have their own overrides; the wallpaper and default theme *selection* (12.1.1 started on Blue); the 10 removed
+>   attach keys. To check on a device: switch the app to the "Blue" (classic) theme with the switch on and compare the chat list, chat, settings and sheets with 12.1.1 and Graph 12.1.1.0.
 Compare `Theme` color keys 12.1.1 vs 13.1.1 (`git diff 9cbf0333 3de37c8c -- …/ActionBar/Theme.java`); restore dropped
 `key_chats_menu*` values for built-in themes; make sure the default theme set and wallpapers equal 12.1.1.
 
 ### WP 4.4 — `tools/glass-guard.sh` (S)
+> **Status: written (2026-11-07).** `tools/glass-guard.sh` (no args = baseline summary, exit 0; `--strict` or a git range = exit 1 on unallowed hits).
+> Allowed: files under `app/retrogram/`, lines mentioning `RetroConfig` or carrying a `glass-guard:ok` comment, files matching `tools/glass-guard.allow`.
+> Baseline today: 2280 hits (2018 not allowed) over the tree, which is why CI runs it in baseline mode on ordinary builds.
+> **CI wiring (written, not exercised yet because no `sync/*` branch exists):** on `sync/*` branches the workflow checks out full (blobless) history and runs
+> `tools/glass-guard.sh origin/<default-branch>...HEAD` strictly, so every glass/blur3/MainTabs line an upstream merge adds must be handled, marked `glass-guard:ok`,
+> or allow-listed. A bad or missing range now **fails closed** (exit 2; before, it printed "0 hits"). Checked locally: this branch against the default branch gives
+> 8 hits, 0 unallowed. Not wired for PRs (a PR touching those tokens for unrelated reasons would fail without a sweep first).
 Input: a git range (e.g. the diff of an upstream merge). Greps added lines for
 `blur3`, `GlassTab`, `MainTabs`, `FragmentFloatingButton`, `FragmentSearchField`, `BlurredBackground`,
 `LiquidGlass`, `ProfileActivity2`, `FLAG_LIQUID_GLASS`. Fails unless each hit is either under an `app/retrogram`

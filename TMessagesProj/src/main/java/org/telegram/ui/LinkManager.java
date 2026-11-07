@@ -327,7 +327,7 @@ public class LinkManager {
     private boolean handleSettings(final List<String> segments) {
         if (segments == null) return false;
         if (segments.isEmpty()) {
-            presentFragment(new SettingsActivity());
+            presentFragment(app.retrogram.RetroNav.settingsFragment());
             return true;
         }
 
@@ -1268,7 +1268,7 @@ public class LinkManager {
             return true;
         }
 
-        presentFragment(new SettingsActivity());
+        presentFragment(app.retrogram.RetroNav.settingsFragment());
         return true;
     }
 

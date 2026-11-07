@@ -2324,7 +2324,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         }
 
         final long selfId = getUserConfig().getClientUserId();
-        if ((userId == selfId || dialogId == selfId) && !myProfile) {
+        // Retrogram: with the classic-settings option the own profile opened without "my_profile" stays in
+        // settings mode (the 12.1.1 page); everything else still gets the 13.x my-profile mode.
+        final boolean retroClassicSettings = userId == selfId && app.retrogram.RetroConfig.isClassicSettings();
+        if ((userId == selfId || dialogId == selfId) && !myProfile && !retroClassicSettings) {
             myProfile = true;
             // AndroidUtilities.printStackTrace("myProfile flag debug");
         }
@@ -4122,7 +4125,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         itemOptions.show();
                         break;
                     case ProfileActionsView.KEY_SETTINGS:
-                        presentFragment(new SettingsActivity());
+                        presentFragment(app.retrogram.RetroNav.settingsFragment());
                         break;
                 }
             });
@@ -15182,7 +15185,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     position == phoneSuggestionSectionRow || position == premiumSectionsRow || position == reportDividerRow ||
                     position == channelDividerRow || position == graceSuggestionSectionRow || position == balanceDividerRow ||
                     position == botPermissionsDivider || position == channelBalanceSectionRow || position == unofficialSecurityRiskDividerRow ||
-                    position == nowPlayingSectionRow
+                    position == nowPlayingSectionRow || position == nekoSectionRow
             ) {
                 return VIEW_TYPE_SHADOW;
             } else if (position >= membersStartRow && position < membersEndRow) {

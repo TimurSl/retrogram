@@ -68,14 +68,17 @@ public class ChatActivityTopPanelLayout extends AnimatedLinearLayout {
 
         clipRectF.set(getPaddingLeft(), getPaddingTop(), getMeasuredWidth() - getPaddingRight(), getPaddingTop() + bgHeight);
 
-        final float r = Math.min(dp(18), Math.min(clipRectF.width(), clipRectF.height()) / 2f);
+        // Retrogram classic chat header: flat full-width strip instead of the rounded floating card.
+        final boolean classic = app.retrogram.RetroConfig.isClassicChatHeader();
+        final float r = classic ? 0 : Math.min(dp(18), Math.min(clipRectF.width(), clipRectF.height()) / 2f);
         clipPath.rewind();
         clipPath.addRoundRect(clipRectF, r, r, Path.Direction.CW);
 
         if (backgroundDrawable != null) {
             backgroundDrawable.setAlpha((int) (bgAlpha * 255));
-            backgroundDrawable.setBounds(getPaddingLeft() - dp(7), 0, getMeasuredWidth() - getPaddingRight() + dp(7), getPaddingTop() + getPaddingBottom() + (int) bgHeight);
-            backgroundDrawable.setRadius(Math.min(dp(18), bgHeight / 2));
+            final int ext = classic ? 0 : dp(7);
+            backgroundDrawable.setBounds(getPaddingLeft() - ext, 0, getMeasuredWidth() - getPaddingRight() + ext, getPaddingTop() + getPaddingBottom() + (int) bgHeight);
+            backgroundDrawable.setRadius(classic ? 0 : Math.min(dp(18), bgHeight / 2));
         }
     }
 

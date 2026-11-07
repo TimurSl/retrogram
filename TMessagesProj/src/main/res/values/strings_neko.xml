@@ -43,6 +43,16 @@
     <string name="RetroUi">Classic interface</string>
     <string name="RetroUiInfo">Use the classic Telegram layout. Applied after restart.</string>
     <string name="RetroRemoteMetadata">Remote update checks</string>
+    <string name="RetroClassicSettings">Classic settings page</string>
+    <string name="RetroClassicInput">Classic input bar (experimental)</string>
+    <string name="RetroClassicInputInfo">Flat, full-width message bar flush with the bottom instead of the floating rounded one. Applies to chats opened afterwards. If it looks wrong, turn it off.</string>
+    <string name="RetroClassicChatHeader">Classic chat header (experimental)</string>
+    <string name="RetroClassicChatHeaderInfo">Solid action bar at the top of chats instead of the floating rounded buttons and name pill, and no fade over the messages. Applies to chats opened afterwards.</string>
+    <string name="RetroClassicEmojiPanel">Classic emoji panel (experimental)</string>
+    <string name="RetroClassicEmojiPanelInfo">Full-width bottom tab bar in the emoji, GIF and sticker panel instead of the floating rounded tabs and buttons. Applies to chats opened afterwards.</string>
+    <string name="RetroClassicColors">Classic theme colors (experimental)</string>
+    <string name="RetroClassicColorsInfo">Telegram 12.1.1 colors for the default theme: blue action bar with white icons and the older text and link colors. Applied after restart. Dark themes are mostly unaffected.</string>
+    <string name="RetroClassicSettingsInfo">Open Settings as the classic profile page of Telegram 12.1.1 instead of the new Settings screen. Takes effect the next time you open Settings.</string>
     <string name="RetroRemoteMetadataInfo">Fetch update info and extra data from channels not owned by Retrogram. Off by default.</string>
     <string name="UnlimitedFavoredStickers">Unlimited Favored Stickers</string>
     <string name="UnlimitedFavoredStickersAbout">Add unlimited stickers to favorites. Stickers may not be synchronized to other devices.</string>

@@ -53,6 +53,7 @@ jobs:
     name: Gradle build (plugins=${{ matrix.plugins }})
     needs: matrix
     runs-on: ubuntu-24.04
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
@@ -64,8 +65,9 @@ jobs:
       CCACHE_MAXSIZE: "10G"
       IS_TAG: ${{ startsWith(github.ref, 'refs/tags/') }}
       PLUGINS: ${{ matrix.plugins }}
-      # Pull requests only need a compile check: one ABI keeps the NDK build short.
-      NATIVE_TARGET: ${{ github.event_name == 'pull_request' && 'arm64-v8a' || '' }}
+      # Branch pushes and PRs only need a compile check (and the POCO is arm64): one ABI keeps the
+      # NDK build short. Tags and manual runs build every ABI.
+      NATIVE_TARGET: ${{ (github.event_name == 'pull_request' || (github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/'))) && 'arm64-v8a' || '' }}
       TELEGRAM_APP_ID: ${{ secrets.TELEGRAM_APP_ID }}
       TELEGRAM_APP_HASH: ${{ secrets.TELEGRAM_APP_HASH }}
     steps:
@@ -89,6 +91,9 @@ jobs:
         with:
           # Not recursive: that would also pull upstream/* (read-only references, ~GBs).
           submodules: false
+          # sync/* branches need history to diff against the default branch (glass-guard, strict range check).
+          fetch-depth: ${{ startsWith(github.ref, 'refs/heads/sync/') && 0 || 1 }}
+          filter: ${{ startsWith(github.ref, 'refs/heads/sync/') && 'blob:none' || '' }}
 
       - name: Initialise submodules
         run: |
@@ -108,7 +113,7 @@ jobs:
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           append-timestamp: false
-          key: ccache-${{ matrix.plugins }}-${{ github.event_name == 'pull_request' && 'arm64' || 'all' }}
+          key: ccache-${{ matrix.plugins }}-${{ (github.event_name == 'pull_request' || (github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/'))) && 'arm64' || 'all' }}
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
@@ -163,11 +168,10 @@ jobs:
             echo "ALIAS_NAME=$S_KEY_ALIAS" >> "$GITHUB_ENV"
             echo "ALIAS_PASS=$S_KEY_PASSWORD" >> "$GITHUB_ENV"
           else
-            echo "::warning::No KEYSTORE_B64 secret: signing with a throwaway key (not installable over a real build)."
-            rm -f TMessagesProj/release.keystore
-            keytool -genkeypair -keystore TMessagesProj/release.keystore -storetype PKCS12 \
-              -storepass retrogram-ci -keypass retrogram-ci -alias retrogram-ci \
-              -keyalg RSA -keysize 2048 -validity 3650 -dname "CN=Retrogram CI"
+            echo "::warning::No KEYSTORE_B64 secret: signing with the shared CI debug key tools/ci-debug.keystore (not a release key; not installable over a real release build)."
+            # One fixed key for all unofficial CI builds, so a newer CI APK can update an older one in place.
+            # (A key generated per run made every CI APK un-updatable.) It is public on purpose: debug builds only.
+            cp tools/ci-debug.keystore TMessagesProj/release.keystore
             echo "KEYSTORE_PASS=retrogram-ci" >> "$GITHUB_ENV"
             echo "ALIAS_NAME=retrogram-ci" >> "$GITHUB_ENV"
             echo "ALIAS_PASS=retrogram-ci" >> "$GITHUB_ENV"
@@ -200,10 +204,16 @@ jobs:
         if: ${{ !matrix.plugins }}
         run: ./gradlew :TMessagesProj:testNormalDebugUnitTest
 
-      # glass-guard.sh arrives with Phase 4; run it as soon as it exists.
-      - name: Glass guard
+      # Baseline summary on every build; it never fails (2000+ legacy hits, see docs/plans/04-global-sweep.md).
+      - name: Glass guard (baseline)
         if: ${{ !matrix.plugins && hashFiles('tools/glass-guard.sh') != '' }}
         run: bash tools/glass-guard.sh
+
+      # On sync/* branches (an upstream merge) every glass/blur3/MainTabs line the merge ADDED must be handled
+      # for retro mode, marked `glass-guard:ok`, or allow-listed in tools/glass-guard.allow. Fails otherwise.
+      - name: Glass guard (sync branch, strict)
+        if: ${{ !matrix.plugins && startsWith(github.ref, 'refs/heads/sync/') }}
+        run: bash tools/glass-guard.sh "origin/${{ github.event.repository.default_branch }}...HEAD"
 
       - name: Build APKs
         env:
@@ -214,6 +224,26 @@ jobs:
           type=$([ "$IS_TAG" = "true" ] && echo Release || echo Debug)
           ./gradlew ":TMessagesProj:assemble${flavor}${type}" -Pretrogram.plugins="$PLUGINS"
 
+      # WP 0.3 acceptance: with the plugin switch off nothing of the Python / hooking runtime may be present.
+      - name: Verify plugin isolation (plugins off)
+        if: ${{ !matrix.plugins && env.IS_TAG != 'true' }}
+        run: |
+          fail=0
+          apk=$(ls TMessagesProj/build/outputs/apk/normal/debug/*.apk | head -n1)
+          echo "APK: $apk"
+          if unzip -l "$apk" | grep -Ei 'chaquopy|lsplant|shadowhook'; then
+            echo "::error::plugin runtime files found in the normal APK"; fail=1
+          fi
+          if ./gradlew :TMessagesProj:tasks --all -q | grep -i 'chaquopy'; then
+            echo "::error::chaquopy tasks are registered with retrogram.plugins=false"; fail=1
+          fi
+          if ./gradlew :TMessagesProj:assemblePluginDebug -q > plugin-variant.log 2>&1; then
+            echo "::error::assemblePluginDebug succeeded with retrogram.plugins=false"; fail=1
+          else
+            echo "assemblePluginDebug fails with the flag off, as intended:"; grep -m3 -i "not found\|wasn't found\|What went wrong" -A2 plugin-variant.log || tail -n 5 plugin-variant.log
+          fi
+          exit $fail
+
       - name: Locate APKs
         id: apk
         run: |
@@ -221,12 +251,21 @@ jobs:
           echo "dir=$dir" >> "$GITHUB_OUTPUT"
           ls -l "$dir"
 
+      # The build itself is the result that matters; an account-wide artifact storage quota
+      # ("Artifact storage quota has been hit") must not turn a successful build red.
+      # Tags still fail on a missing upload because the release job needs the APKs.
       - uses: actions/upload-artifact@v4
+        id: upload
         if: github.event_name != 'workflow_dispatch' || inputs.upload
+        continue-on-error: ${{ env.IS_TAG != 'true' }}
         with:
           name: retrogram-${{ matrix.plugins && 'plugins' || 'normal' }}
           path: ${{ steps.apk.outputs.dir }}/*.apk
           if-no-files-found: error
+          retention-days: 7
+      - name: Warn when the APK could not be uploaded
+        if: steps.upload.outcome == 'failure'
+        run: echo "::warning::APK built but not uploaded (artifact storage quota?). The build log has the file name and size."
 
   release:
     name: GitHub release
