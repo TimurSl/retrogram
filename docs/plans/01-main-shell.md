@@ -122,3 +122,11 @@ Hide in retro mode the search/FAB glass layers that remain in the layout `onMeas
 | Edge-to-edge insets / navigation bar color: 12.4 changed insets handling for the floating bars | Compare `fitsSystemWindows`/`setOnApplyWindowInsetsListener` code in `DialogsActivity` and `ActionBarLayout` between 12.1.1 and now; test gesture and 3-button nav |
 | Tablet/landscape split view (`layersActionBarLayout`, `rightActionBarLayout`) | Test on a tablet emulator; 12.1.1 behaviour is the target |
 | `ContactsActivity`/`CallLogActivity` expect `hasMainTabs`-style padding | Pass `false` in retro mode; verified in Phase 4 sweep |
+
+## Device test notes (2026-11-07, run 17 APK, project owner's screenshots)
+- Works: drawer opens over the chat list with the classic rows (profile header with account switcher, Add Account, ghost, My Profile, Change Status, New Group,
+  Contacts, Calls, Recent chats, Saved Messages, Settings, N-Settings), search icon in the action bar, folder tab pill under it, FAB roles swapped as in 12.1.1
+  (blue camera on the big button, grey pencil above it). Retrogram appears in N-Settings.
+- Seen but not ours: the drawer header clips the tall glyphs of the display name (upstream layout, `DrawerProfileCell` name view is `WRAP_CONTENT` at the bottom).
+- Not covered by the screenshots: search opening, archive, "Connecting…" state, the stories row, tablet layout.
+

@@ -25,11 +25,11 @@ object RetroConfig {
     val remoteMetadata = ConfigItem("RetroRemoteMetadata", ConfigItem.configTypeBool, false)
 
     /**
-     * Experimental: open "Settings" as the classic profile-in-self-mode page of 12.1.1 instead of
-     * `SettingsActivity`. Off by default; read live (no restart). Only has an effect in retro mode.
+     * Open "Settings" as the classic profile-in-self-mode page of 12.1.1 instead of
+     * `SettingsActivity`. On by default since the first device test; read live (no restart). Only has an effect in retro mode.
      */
     @JvmField
-    val classicSettings = ConfigItem("RetroClassicSettings", ConfigItem.configTypeBool, false)
+    val classicSettings = ConfigItem("RetroClassicSettings", ConfigItem.configTypeBool, true)
 
     private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings)
 

@@ -27,7 +27,14 @@
 >   `ProfileActivity(user_id=self)` instead of `SettingsActivity` at the drawer, deep links (`LinkManager`, 2 sites), `LaunchActivity` open_settings and the profile's settings
 >   button; `ProfileActivity` skips the `myProfile` override for the own user in that mode. `my_profile=true` callers (chat header, Stars sheets, drawer "My profile") are unchanged.
 >   Left alone: the saved-state restore of `SettingsActivity` ("settings2" in `LaunchActivity`).
-> - To check on a device: the page renders (header, avatar, phone/username/bio rows, every row of `docs/settings-rows.md`), back/transition animations, stories row, account switcher,
+> - **First device test (2026-11-07, run 17 APK, screenshots from the project owner):** the classic page works. It shows the 13.x profile header (peer-color
+>   background, avatar, name, status, camera button), the Account block (phone, username, DC/ID row, bio), the N-Settings card and the full "Settings" list:
+>   Chat Settings, Privacy and Security, Notifications and Sounds, Data and Storage, Power Saving, Chat Folders, Devices, Language, Telegram Premium, My Stars,
+>   My Grams, Telegram Business, Send a Gift. So `docs/settings-rows.md` is covered on this page. It is **not** the 12.1.1 header (no expanding avatar yet).
+>   One bug seen: the N-Settings card had a large empty block under its row. Cause: `nekoSectionRow` (the divider after it) was missing from the shadow-cell list
+>   in `ProfileActivity.getItemViewType`; fixed. The switch is now **on by default** (Settings → Retrogram → Classic settings page turns it off).
+>   Still untested: back/transition animations, stories row, account switcher, and "My profile" unchanged.
+> - To check on a device (original list): the page renders (header, avatar, phone/username/bio rows, every row of `docs/settings-rows.md`), back/transition animations, stories row, account switcher,
 >   and that "My profile" is unchanged. If it works, flip the default and move on to the header re-skin; if not, the switch can stay off.
 Diff `ProfileActivity` 12.1.1 vs the current file and list what 12.4 changed
 (`git diff --stat 9cbf0333 3de37c8c -- TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java`). Decide:

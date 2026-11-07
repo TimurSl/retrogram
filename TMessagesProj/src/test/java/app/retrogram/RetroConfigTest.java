@@ -29,8 +29,8 @@ public class RetroConfigTest {
         assertTrue(RetroConfig.retroUi.Bool());
         assertFalse(RetroConfig.upstreamUiDebug.Bool());
         assertFalse(RetroConfig.remoteMetadata.Bool());
-        assertFalse(RetroConfig.classicSettings.Bool());
-        assertFalse(RetroConfig.isClassicSettings());
+        assertTrue(RetroConfig.classicSettings.Bool());
+        assertTrue(RetroConfig.isClassicSettings());
         assertTrue(RetroConfig.isRetroUi());
     }
 

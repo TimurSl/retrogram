@@ -15185,7 +15185,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     position == phoneSuggestionSectionRow || position == premiumSectionsRow || position == reportDividerRow ||
                     position == channelDividerRow || position == graceSuggestionSectionRow || position == balanceDividerRow ||
                     position == botPermissionsDivider || position == channelBalanceSectionRow || position == unofficialSecurityRiskDividerRow ||
-                    position == nowPlayingSectionRow
+                    position == nowPlayingSectionRow || position == nekoSectionRow
             ) {
                 return VIEW_TYPE_SHADOW;
             } else if (position >= membersStartRow && position < membersEndRow) {
