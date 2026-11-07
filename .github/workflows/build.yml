@@ -53,6 +53,7 @@ jobs:
     name: Gradle build (plugins=${{ matrix.plugins }})
     needs: matrix
     runs-on: ubuntu-24.04
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
@@ -64,8 +65,9 @@ jobs:
       CCACHE_MAXSIZE: "10G"
       IS_TAG: ${{ startsWith(github.ref, 'refs/tags/') }}
       PLUGINS: ${{ matrix.plugins }}
-      # Pull requests only need a compile check: one ABI keeps the NDK build short.
-      NATIVE_TARGET: ${{ github.event_name == 'pull_request' && 'arm64-v8a' || '' }}
+      # Branch pushes and PRs only need a compile check (and the POCO is arm64): one ABI keeps the
+      # NDK build short. Tags and manual runs build every ABI.
+      NATIVE_TARGET: ${{ (github.event_name == 'pull_request' || (github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/'))) && 'arm64-v8a' || '' }}
       TELEGRAM_APP_ID: ${{ secrets.TELEGRAM_APP_ID }}
       TELEGRAM_APP_HASH: ${{ secrets.TELEGRAM_APP_HASH }}
     steps:
@@ -108,7 +110,7 @@ jobs:
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           append-timestamp: false
-          key: ccache-${{ matrix.plugins }}-${{ github.event_name == 'pull_request' && 'arm64' || 'all' }}
+          key: ccache-${{ matrix.plugins }}-${{ (github.event_name == 'pull_request' || (github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/'))) && 'arm64' || 'all' }}
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:

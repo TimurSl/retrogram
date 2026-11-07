@@ -164,6 +164,9 @@ Also check that nothing in `src/main` imports a class that exists only in `src/p
 >   provide your own file. The committed file (with NagramXF's Firebase key) should be removed once the project has its own.
 > - `MAPS_API_KEY` is **not** wired: the manifest hard-codes a Maps key (`AndroidManifest.xml:867`), a leftover for WP 0.2.
 > - `tools/glass-guard.sh` is run when the file exists (Phase 4). Plugin `*Debug` builds are not unit-tested.
+> - **First runs (2026-11-07):** unit tests (which compile all Java/Kotlin) pass in ~7 min; the all-ABI debug APK build was killed by
+>   a runner shutdown after 38 min in the native step. Branch pushes now build `arm64-v8a` only (like PRs), with a 120 min job timeout;
+>   tags and manual runs still build every ABI.
 > - Unverified assumptions: `--depth=1` submodule updates work for the pinned commits; `testNormalDebugUnitTest` exists
 >   under the `normal` flavor; `NATIVE_TARGET` alone is enough for a one-ABI build.
 
