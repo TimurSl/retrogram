@@ -9745,8 +9745,8 @@ public class ChatActivity extends BaseFragment implements
         checkUi_topPanelLayoutWidth();
         topPanelLayout.setBlurredBackground(glassBackgroundDrawableFactory.create(topPanelLayout)
             .setColorProvider(BlurredBackgroundProviderImpl.topPanelChatActivity(themeDelegate))
-            .setRadius(dp(18))
-            .setPadding(dp(7)));
+            .setRadius(app.retrogram.RetroConfig.isClassicChatHeader() ? 0 : dp(18))
+            .setPadding(app.retrogram.RetroConfig.isClassicChatHeader() ? 0 : dp(7)));
 
         if (chatMode == MODE_SEARCH) {
             if (!isFeedSearch()) {
@@ -51841,7 +51841,11 @@ public class ChatActivity extends BaseFragment implements
                 * (1f - animatorSearchResultAsListVisibility.getFloatValue())
                 * (1f - getHashtagTabsShownT());
 
-            topPanelLayout.setPadding(dp(7) + (int) sideMenu, dp(7), dp(7), dp(7));
+            if (app.retrogram.RetroConfig.isClassicChatHeader()) {
+                topPanelLayout.setPadding((int) sideMenu, 0, 0, 0); // flush strip under the solid action bar
+            } else {
+                topPanelLayout.setPadding(dp(7) + (int) sideMenu, dp(7), dp(7), dp(7));
+            }
         }
     }
 

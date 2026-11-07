@@ -55,3 +55,11 @@ reply/edit bars, voice/video record overlay, attach button and AI/rich-text butt
   Not handled: theme change while a chat is open (the bar color is set once), forum/topic chats and the `MODE_*` chats (pinned, welcome, comments) which take other glass branches
   at ~5259, the top panels (pinned/translate) which keep their own backgrounds.
 
+### Device feedback on the classic chat header (2026-11-07, owner's screenshot, newer build) and top panels (WP 2.4b, not yet run)
+- **Works:** with the switch on, the chat shows a solid action bar (back arrow, avatar, name, "last seen recently", menu) and the flat full-width input bar. The owner's own messages in
+  the screenshot confirm "old input" and "chat header" both came back.
+- **Still floating:** the top panel under the bar (here the "bot manages this chat" panel: bot avatar, "Stop" button, settings icon) was a rounded card with margins.
+- **Change:** with "Classic chat header" on, `ChatActivityTopPanelLayout` draws a flat, full-width strip (radius 0, no 7dp side extension) and `ChatActivity.checkUi_topPanelLayoutWidth`
+  pads it flush (0 instead of 7dp; only the side-menu offset remains). The panel's background drawable gets radius/padding 0 too. The list padding still reserves the extra 7dp above the first
+  message (harmless). Not handled: pinned message bar (`topChatPanelView` and the pinned layout), translate/report panels have their own item backgrounds.
+
