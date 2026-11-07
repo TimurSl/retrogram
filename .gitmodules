@@ -5,10 +5,3 @@
 	path = upstream/nagramxf
 	url = https://github.com/Keeperorowner/NagramXF.git
 	branch = dev
-[submodule "upstream/telegraher"]
-	path = upstream/telegraher
-	url = https://github.com/nikitasius/Telegraher.git
-	branch = graher_12.92.1
-[submodule "upstream/telegraph-x"]
-	path = upstream/telegraph-x
-	url = https://github.com/sergpetrov/telegraph-android.git

@@ -1,8 +1,9 @@
 # Retrogram — Project Plan
 
 > **Retrogram** = the current Telegram feature set (13.x and newer), with the
-> **classic pre‑Liquid‑Glass Android UI**. It is built on the code of **Telegram**,
-> **Nagram XF** and **Telegraher** (plus Telegra.ph tooling).
+> **classic pre‑Liquid‑Glass Android UI**. It builds on the code of **Telegram** and
+> **Nagram XF**, plus the feature set of **Graph Messenger** (Databite, formerly
+> "Telegraph").
 >
 > **Minimum supported device (must run well):** Xiaomi POCO X4 Pro 5G (`veux`,
 > Snapdragon 695 / Adreno 619, 8 GB RAM, Android 13 / HyperOS 1.0, 1080×2400 @ 120 Hz).
@@ -13,38 +14,49 @@
 
 | Term | Meaning in this project |
 | :--- | :--- |
-| **Old UI** | The Telegram Android look **up to 12.1.1** (Oct 2025): side **navigation drawer** with a hamburger button, a solid top action bar, folder tabs under the action bar, a round pencil **FAB**, a full‑width solid **message input bar**, a solid emoji/sticker panel, the classic profile screen, and Settings opened from the drawer. No glass, refraction or floating "pill" chrome. |
+| **Old UI** | The Telegram Android look **up to 12.1.1** (Oct 2025): side **navigation drawer** with a hamburger button, a solid top action bar, folder tabs under the action bar, a round pencil **FAB**, a full‑width solid **message input bar**, a solid emoji/sticker panel, the classic profile screen, and Settings opened from the drawer. No glass, refraction or floating "pill" chrome. Graph Messenger's latest release (12.1.1.0, based on Telegram 12.1.1) has exactly this look. |
 | **Liquid Glass UI** | Started in **12.2.0** (Nov 2025: glass input bar, emoji panel and round chat buttons, `blur3/LiquidGlassEffect`). The full redesign shipped in **12.4.0** (Feb 2026): the drawer was removed, `MainTabsActivity` added glass bottom tabs, and `SettingsActivity` / `ProfileActivity2` / `FragmentFloatingButton` / `FragmentSearchField` arrived. |
 | **New functionality** | Everything Telegram added after 12.1.1, up to the current **13.1.1** (API layer **232**, vs 216 in 12.1.1) and future releases. Examples: Gram wallet, QR share, rich‑text / IV editor, AI editor, live comments, communities, gift crafting and auctions, new polls, OAuth sheet, summaries. |
 
 ---
 
-## 1. Source repositories (cloned into `upstream/` as pinned submodules)
+## 1. Sources
+
+### Code (cloned into `upstream/` as pinned submodules)
 
 | Path | Upstream | Branch @ pinned commit | Base Telegram version | License | Role in Retrogram |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `upstream/telegram` | [DrKLO/Telegram](https://github.com/DrKLO/Telegram) | `master` @ `3de37c8c` | **13.1.1 (7237)** | GPL‑2.0 | Reference for new features. Its **history** is where old‑UI code comes from (`git show 9cbf0333:<path>` = 12.1.1). |
-| `upstream/nagramxf` | [Keeperorowner/NagramXF](https://github.com/Keeperorowner/NagramXF) | `dev` @ `49ae647f` | **13.1.1 (7237)** | GPL‑3.0 | **Primary code base** (fork of Nagram X, plus exteraGram and AyuGram features). |
-| `upstream/telegraher` | [nikitasius/Telegraher](https://github.com/nikitasius/Telegraher) | `graher_12.92.1` @ `0f8f9e78` | 12.9.2 (6991) | GPL‑2.0 | Feature donor: PIN/duress hardening, keep‑on‑ban, TTL media, de‑Googling. |
-| `upstream/telegraph-x` | [sergpetrov/telegraph-android](https://github.com/sergpetrov/telegraph-android) | `master` @ `dc1be256` | n/a (Telegra.ph client) | GPL‑3.0 | Optional donor for a built‑in **Telegra.ph** composer (see §6, Phase 7). |
+| `upstream/telegram` | [DrKLO/Telegram](https://github.com/DrKLO/Telegram) | `master` @ `3de37c8c` | **13.1.1 (7237)** | GPL‑2.0‑or‑later | Reference for new features. Its **history** is where old‑UI code comes from (`git show 9cbf0333:<path>` = 12.1.1). |
+| `upstream/nagramxf` | [Keeperorowner/NagramXF](https://github.com/Keeperorowner/NagramXF) | `dev` @ `49ae647f` | **13.1.1 (7237)** | GPL‑3.0 | **Primary code base** (fork of Nagram X, plus exteraGram and AyuGram features). Its Python plugin system becomes an **opt‑in build option** (§5). |
 
 The clones use `--filter=blob:none`: the full commit history is present and file
 contents are downloaded on demand. That keeps the old‑UI archaeology
 (`git show <old-commit>:<path>`) cheap.
 
-> **"Telegraph" interpretation.** I read "Telegraph" as **Telegraher**, the
-> Telegram fork. If you meant the Telegra.ph publishing platform, Phase 7 covers
-> it. Both are cloned. Confirm which one you meant.
+### Feature reference (no code available)
+
+| App | Package | Latest known | Source code | Role |
+| :--- | :--- | :--- | :--- | :--- |
+| **Graph Messenger** by Databite (ILMILI), formerly "Telegraph" | `ir.ilmili.telegraph` | 12.1.1.0 (Telegram 12.1.1); last listing update 2026‑01‑13 | **Not published.** No public repo found on GitHub, its listings or the web. | **Functional spec only.** Its features are re‑implemented clean‑room on top of NagramXF (§6, Phase 6). Its old‑style screens are a **visual reference** for Phases 1–4. |
+
+> **Why Graph Messenger is not cloned or decompiled.** It is a Telegram derivative,
+> so GPL obligates Databite to provide source to anyone who has the APK. They
+> haven't published it. Copying decompiled code would bring in code we hold no
+> license to.
+>
+> **Action:** send Databite a formal GPL source request (via Google Play or
+> the developer contact, citing GPL‑2.0 §3). If source arrives, add it as
+> `upstream/graph` and port directly. Until then, use only the installed app's
+> **behaviour** as the spec.
 
 ### Key Telegram version commits (in `upstream/telegram`)
 
 | Version | Commit | Date | Note |
 | :--- | :--- | :--- | :--- |
-| 12.1.1 | `9cbf0333` | 2025‑10‑15 | **Old UI reference** (last release without any glass) |
+| 12.1.1 | `9cbf0333` | 2025‑10‑15 | **Old UI reference** (last release without any glass; same base as Graph Messenger 12.1.1.0) |
 | 12.2.0 | `17b771ef` | 2025‑11‑18 | First glass: input bar, emoji panel, blurred round chat buttons |
 | 12.3.1 | `d7deedfa` | 2026‑01‑15 | Last release that still has the drawer |
 | 12.4.0 | `fa4e8aa0` | 2026‑02‑14 | Full Liquid Glass redesign (45 files added, 10 deleted, 347 modified) |
-| 12.9.2 | `b7561f0c` | 2026‑08‑03 | Telegraher base |
 | 13.1.1 | `3de37c8c` | 2026‑10‑25 | Current upstream = NagramXF base |
 
 ---
@@ -54,8 +66,8 @@ contents are downloaded on demand. That keeps the old‑UI archaeology
 1. **Forward‑porting features onto old code is not viable.** From 12.1.1 to 13.1.1,
    **2,150 Java files changed (+338,855 / −347,940 lines)** and the API layer
    moved 216 → 232. `ChatActivity` alone has +8.4k/−5.5k lines and
-   `DialogsActivity` +3.4k/−2.5k. **Decision: start from the new code and re‑skin
-   it.**
+   `DialogsActivity` +3.4k/−2.5k. This is also why Graph Messenger is stuck on
+   12.1.1. **Decision: start from the new code and re‑skin it.**
 2. **NagramXF already did part of the work.**
    - It re‑added the drawer that 12.4 deleted (`DrawerLayoutAdapter`,
      `DrawerContainer`, `DrawerProfileCell` and others, used in `LaunchActivity`).
@@ -70,12 +82,19 @@ contents are downloaded on demand. That keeps the old‑UI archaeology
    glass tab bar, `FragmentFloatingButton`, `FragmentSearchField`,
    `ProfileActivity2` / `SettingsActivity`, and the frosted `blur3` backgrounds.
    Real layout work is needed.
-4. **Telegraher's diff is small and portable.** It changes 228 files in `src/`
-   (+6.8k/−7.1k lines) relative to 12.9.2. Many of its features **already exist in
-   NagramXF**: disable ads, save deleted messages, ignore content restrictions,
-   ghost mode, date of forwarded message, delete downloaded file, 10 accounts.
-   Only the remainder needs porting (§6, Phase 6).
-5. **POCO X4 Pro 5G is in Telegram's "AVERAGE" performance class.** `SM6375` is not
+4. **Many Graph Messenger features already exist in NagramXF.** Ghost mode,
+   keeping deleted messages and edit history (from AyuGram), forwarding without
+   quote, 10 accounts, translation and themes are already there. Only the rest
+   needs new code (§6, Phase 6).
+5. **The plugin system can be cut cleanly.** NagramXF already has `normal` and
+   `plugin` product flavors with no‑op stubs in `src/normal/`
+   (`com.exteragram.messenger.plugins.*`, an Xposed shim).
+   - The `plugin` flavor adds Chaquopy (Python 3.11), LSPlant and ShadowHook
+     natives and `-DENABLE_PLUGINS=ON`.
+   - The Chaquopy tasks and configurations are registered **unconditionally**
+     today. Making plugins optional means gating those registrations too, not
+     only skipping the APK.
+6. **POCO X4 Pro 5G is in Telegram's "AVERAGE" performance class.** `SM6375` is not
    in `SharedConfig.LOW_SOC`. Its average max CPU frequency is about 1.9 GHz
    ((6 × 1.8 + 2 × 2.2) / 8), which is ≤ 2055 MHz, so the class is AVERAGE and
    Lite Mode starts at `PRESET_MEDIUM`.
@@ -95,14 +114,16 @@ contents are downloaded on demand. That keeps the old‑UI archaeology
 retrogram/                      (this repo)
 ├── PLAN.md
 ├── upstream/                   read-only reference submodules (pinned)
-│   ├── telegram/   nagramxf/   telegraher/   telegraph-x/
+│   ├── telegram/   nagramxf/
 └── (Phase 0) app source = NagramXF history imported at repo root
     ├── TMessagesProj/…                       NagramXF + Telegram code
-    │   └── src/main/java/app/retrogram/      ← all Retrogram-specific code
-    │       ├── RetroConfig.kt                master switches (retroUi = ON)
-    │       ├── ui/legacy/…                   old UI components revived from 12.1.1
-    │       ├── ui/shims/…                    adapters: new feature → old-UI entry point
-    │       └── graher/…                      ported Telegraher features
+    │   ├── src/main/java/app/retrogram/      ← all Retrogram-specific code
+    │   │   ├── RetroConfig.kt                master switches (retroUi = ON)
+    │   │   ├── ui/legacy/…                   old UI components revived from 12.1.1
+    │   │   ├── ui/shims/…                    adapters: new feature → old-UI entry point
+    │   │   └── graph/…                       Graph Messenger features (clean-room)
+    │   ├── src/normal/…                      plugin stubs (existing)
+    │   └── src/plugin/…                      Python plugin runtime (built only on opt-in)
     └── tools/
         ├── sync-upstream.sh                  pull new NagramXF tag, rebase Retrogram patches
         └── glass-guard.sh                    flags new glass/blur3/MainTabs uses in upstream diffs
@@ -130,19 +151,28 @@ retrogram/                      (this repo)
 
 ## 4. Licensing and compliance
 
-- The combined work is **GPL‑3.0**, because NagramXF is GPL‑3.0. Telegram and
-  Telegraher are "GPL v. 2 or later" per the Telegram source file headers, so they are compatible.
-  Keep all copyright headers and add a `NOTICE`.
+- The combined work is **GPL‑3.0**, because NagramXF is GPL‑3.0. Telegram is
+  "GPL v. 2 or later" per its source file headers, so it is compatible. Keep all
+  copyright headers and add a `NOTICE`.
 - NagramXF says it **contains reverse‑engineered code from closed‑source
   forks**. Record which modules these are and treat them as a legal risk.
   Prefer clean‑room versions where possible.
+- **Graph Messenger: clean‑room only.**
+  - Never paste decompiled code from it.
+  - Write a behaviour spec per feature (screenshots plus steps on the installed
+    app), then implement it independently.
+  - Pursue the GPL source request (§1).
+- **Do not copy Graph Messenger's telemetry.** Reporting (SecurityLab citing RKS
+  Global) says it sends data to third‑party servers, including servers in Russia,
+  and ships Firebase Analytics and ad SDKs. That is a single source and
+  unverified here. Retrogram ships **no ads and no third‑party analytics**.
 - Use **your own `TELEGRAM_APP_ID` / `TELEGRAM_APP_HASH`** (my.telegram.org), your
   own package name, your own FCM `google-services.json`, signing keys and Maps key.
   Also replace NagramXF's update and metadata channel IDs
   (`BaseRemoteHelper.CHANNEL_METADATA_ID`).
 - Features that bypass Telegram's restrictions (anti‑delete, ignoring "restrict
-  saving content", keeping TTL media, ghost mode) can get **accounts limited**.
-  Ship them **off by default** with a clear warning.
+  saving content", ghost mode) can get **accounts limited**. Ship them
+  **off by default** with a clear warning.
 
 ---
 
@@ -154,16 +184,36 @@ retrogram/                      (this repo)
   - `git submodule update --init --recursive --depth=1` (tdlib, ffmpeg, boringssl,
     tgcalls, and the rest).
   - Secrets: `TELEGRAM_APP_ID`, `TELEGRAM_APP_HASH`, keystore, `google-services.json`.
-- Flavors:
-  - **`normal`** is the default release (no Python plugin runtime, smaller APK).
-  - `plugin` (Chaquopy) is optional.
-  - A future **`foss`** flavor would apply Telegraher's de‑Googling (no FCM, no
-    Maps, no billing) and use UnifiedPush or a background connection instead.
-- Outputs:
-  - `retrogram-<ver>-arm64-v8a.apk` is the main APK for the POCO.
-  - armeabi‑v7a and universal APKs are also built.
-  - Stable, beta and debug builds use separate application IDs so they can be
-    installed side by side.
+
+### Plugins as an opt‑in build option
+
+The Gradle property `retrogram.plugins` defaults to `false`. It can be set in
+`gradle.properties` or `local.properties`, with `-Pretrogram.plugins=true`, or with
+the `RETROGRAM_PLUGINS=1` environment variable.
+
+| | `retrogram.plugins=false` (default) | `retrogram.plugins=true` |
+| :--- | :--- | :--- |
+| Product flavors | `normal` only; the `plugin` flavor is **not declared** | `normal` + `plugin` |
+| Chaquopy / Cython / pip tasks and configurations | **Not registered** (no Python download, faster configure) | Registered as in NagramXF |
+| Natives | `-DENABLE_PLUGINS=OFF`; no LSPlant / ShadowHook / Python libs | `-DENABLE_PLUGINS=ON` (arm64‑v8a, armeabi‑v7a) |
+| Plugin code | `src/normal` stubs; plugin settings and drawer entries hidden | Full plugin manager and Python SDK |
+| CI | Always built | Built when the workflow input `plugins: true` is set, or on release tags |
+
+Work items:
+1. Wrap the `plugin` flavor, `sourceSets.plugin.*`, the `chaquopy*`
+   configurations and task registrations in `TMessagesProj/build.gradle` in
+   `if (retrogramPlugins) { … }`.
+2. Make sure nothing in `src/main` references `src/plugin`‑only classes.
+   Compiling `normal` with the flag off proves it.
+3. Hide the plugin UI entry points through a `BuildConfig.PLUGINS_ENABLED` field.
+4. Expose the switch as a workflow‑dispatch input.
+
+### Outputs
+- `retrogram-<ver>-arm64-v8a.apk` (`normal`) is the main APK for the POCO.
+- armeabi‑v7a and universal APKs are also built.
+- `-plugins` APKs are built when the flag is on.
+- Stable, beta and debug builds use separate application IDs so they can be
+  installed side by side.
 
 ---
 
@@ -176,14 +226,18 @@ checklist.
 - Import NagramXF into the repo root with its history and add remotes
   (`nagramxf`, `telegram`).
 - Rebrand:
-  - application ID such as `app.retrogram.messenger`, plus `.beta` and `.debug`
+  - application ID (placeholder `app.retrogram.messenger`, plus `.beta` and
+    `.debug`; final name to be decided)
   - app name "Retrogram", launcher icon, about screen and links
   - remove NagramXF update checks and donation links, or point them at Retrogram
     channels
-- Add `RetroConfig` (`retroUi`, `graher*` toggles) and a "Retrogram" settings section.
+- Add `RetroConfig` (`retroUi`, `graph*` toggles) and a "Retrogram" settings section.
+- Implement the `retrogram.plugins` build switch (§5).
 - Get CI green and sign APKs.
-- **Accept when:** the CI APK installs on the POCO, logs in, and chats, calls and
-  push notifications work.
+- **Accept when:**
+  - The CI APK installs on the POCO, logs in, and chats, calls and push
+    notifications work.
+  - Builds pass both with and without `retrogram.plugins`.
 
 ### Phase 1 — Old main shell (≈2 weeks)
 - `LaunchActivity` root is `DialogsActivity` again, as in 12.1.1, instead of
@@ -204,8 +258,9 @@ checklist.
   - Contacts, Calls, Saved, Settings, New group / channel, Archived, accounts
   - new entries such as Wallet, QR share and Communities
   - NagramXF `drawerItem*` toggles keep working
-- **Accept when:** side‑by‑side screenshots against 12.1.1 on the same theme match
-  for the chat list, drawer, search and archive; no glass is visible.
+- **Accept when:** side‑by‑side screenshots match on the same theme for the chat
+  list, drawer, search and archive. Compare against Telegram 12.1.1 and Graph
+  Messenger 12.1.1.0. No glass is visible.
 
 ### Phase 2 — Old chat screen (≈3 weeks)
 - `ChatActivityEnterView`:
@@ -259,41 +314,41 @@ checklist.
   stories albums.
 - **Accept when:** the matrix is 100% "reachable" and ≥ 90% "old‑styled".
 
-### Phase 6 — Telegraher features (≈2 weeks)
-Ported into `app.retrogram.graher`, each behind a toggle in Retrogram settings.
-Toggles are off by default unless marked otherwise.
+### Phase 6 — Graph Messenger features, clean‑room (≈3–4 weeks)
 
-| Telegraher feature | NagramXF already has it? | Plan |
-| :--- | :--- | :--- |
-| Disable ads | ✅ `DisableAds` | Reuse |
-| Disable remote deletions / keep deleted | ✅ Ayu "save deleted messages" | Reuse |
-| Full access in "restrict saving" chats | ✅ `ignoreContentRestrictions` | Reuse |
-| Real forwarded date, delete downloaded file | ✅ | Reuse |
-| "Save to Downloads / Gallery" on **every** element | partial | **Port** |
-| Keep cached chats after ban/kick | ❌ | **Port** |
-| Keep TTL / view‑once media (private + secret) | ❌ | **Port** (warning) |
-| Screenshots in secret chats | ❌ | **Port** (warning) |
-| Scrambled PIN keypad | ❌ | **Port** (on by default) |
-| PIN length 4–16, 3 s retry, wipe after N failures | ❌ | **Port** |
-| **Duress PIN** → local wipe ("KABOOM") | ❌ | **Port** |
-| Disable biometric unlock option | ❌ | **Port** |
-| Same phone logged in multiple times / unlimited accounts | 10 accounts | Port the "same number" flow; raise the limit with care, since more accounts mean more RAM |
-| Remove trackers / Google Vision / ML Kit / Huawei / SafetyNet / billing | ❌ | **Port into the `foss` flavor only** |
-| Monet theme (Android 12+) | partial | Merge with NagramXF's Material You support |
-| Remove countries from the phone list | — | **Do not port.** It breaks phone parsing for real users. |
-| Emulator‑detection bypass / "legit phone" spoofing | — | **Do not port.** High ban risk, no user benefit. |
+**Step 1 (≈2 days): write the spec.**
+- Install Graph Messenger on a test phone with a throwaway account. Record every
+  Graph‑specific screen and setting in `docs/graph-spec/`: screenshots, menu path,
+  behaviour, defaults.
+- The table below is the starting list and must be verified on device.
+  - *Listed* = in its store/SourceForge listing.
+  - *Reported* = widely attributed to the app; confirm it exists.
 
-### Phase 7 — Telegra.ph integration (optional; depends on what "Telegraph" means, ≈2 weeks)
-- A new Gradle module `:telegraph` derived from Telegraph X's `editor` and `base`
-  modules (Kotlin, GPL‑3.0). Raise its minSdk and targetSdk to match the app.
-- Entry points:
-  - drawer → "Telegra.ph articles"
-  - chat attach menu → "Publish article"
-  - long‑press a long message → "Publish to Telegra.ph"
-- Auth through the official @telegraph bot flow, using the logged‑in account.
-  Store drafts locally.
+**Step 2: implement in `app.retrogram.graph`.** Each feature sits behind a toggle
+under Settings → Retrogram → Graph features.
 
-### Phase 8 — Device validation on POCO X4 Pro 5G (continuous, gate for every release)
+| Graph Messenger feature | Evidence | NagramXF already has it? | Plan |
+| :--- | :--- | :--- | :--- |
+| Up to 10 accounts | Listed | ✅ `MAX_ACCOUNT_COUNT = 10` | Reuse |
+| Theme engine / many themes | Listed | ✅ (themes, Material You) | Reuse; add Graph‑style presets if the spec shows unique ones |
+| **Password / PIN‑locked chats** (per chat) | Listed | ❌ (app‑wide passcode only) | **Build**: per‑dialog lock, biometric option, re‑lock timeout |
+| **Hidden chats / contacts** (removed from the list, opened with a secret gesture or passcode) | Listed | ❌ | **Build**: hidden dialog set excluded from lists, search and notifications preview |
+| **Auto‑reply** (auto‑responder) | Listed | ❌ | **Build**: rules per chat type and schedule; send through the normal `SendMessagesHelper` path; rate‑limited |
+| **Voice changer** for voice notes | Listed | ❌ | **Build**: DSP filters (pitch / robot / echo) applied to the Opus recording before upload |
+| **Download manager** (queue, pause/resume, save to device) | Listed | partial (`showDeleteDownloadedFile`, save to Downloads) | **Build**: downloads screen in the drawer, queue, Wi‑Fi‑only and scheduled downloads, bulk save |
+| Built‑in audio/video player | Listed | ✅ (Telegram player) | Reuse; check for Graph‑only extras in the spec |
+| Ghost mode (hide online / read / typing) | Reported | ✅ Ghost mode | Reuse; add a drawer toggle like Graph's |
+| Anti‑delete / edit history | Reported | ✅ AyuGram "save deleted" | Reuse |
+| **Special contacts / contact change log** (alerts when chosen contacts come online or change name, photo or number) | Reported | ❌ | **Build**: local watcher over `updateUserStatus` / `updateUserName` / photo updates, with a log screen |
+| **Chat categories** (custom tabs beyond Telegram folders) | Reported | partial (folders, NagramXF filters) | Map to local folders; build only if the spec shows a real difference |
+| Forward without quote / multi‑forward | Reported | ✅ `NoQuoteForward` | Reuse |
+| Profile photo download / full‑size viewer | Reported | partial | **Build** if missing after the spec |
+| Ads, analytics, data sent to third parties | Reported | — | **Never** |
+
+**Accept when:** every feature in `docs/graph-spec/` is marked reused, built, or
+consciously rejected, and each built one has a toggle and a test.
+
+### Phase 7 — Device validation on POCO X4 Pro 5G (continuous, gate for every release)
 | Check | Target |
 | :--- | :--- |
 | Chat list and chat scroll at 120 Hz | No janky frames in a 30 s fling test. Use the upstream `FrameMetricsOverlayView` (added in 12.4) in debug builds; p95 frame ≤ 8.3 ms. |
@@ -302,19 +357,19 @@ Toggles are off by default unless marked otherwise.
 | Performance class detection | Reports **AVERAGE**; medium Lite Mode preset applied |
 | HyperOS background behavior | Push arrives with autostart/battery defaults; show an in‑app tip for "No restrictions" |
 | Calls | Voice and video work over Wi‑Fi and 5G; no ANR on Bluetooth LE audio routing |
-| Media | 1080p@60 hardware decode (HEVC/VP9), voice notes, round video with the selfie camera |
-| APK size (arm64, `normal`) | Track per release; alert on > +5% growth |
+| Media | 1080p@60 hardware decode (HEVC/VP9), voice notes (including voice changer), round video with the selfie camera |
+| APK size (arm64, `normal`) | Track per release; alert on > +5% growth. The `-plugins` APK is tracked separately. |
 
 Test matrix beyond the minimum device: one Android 15/16 Pixel‑class phone and one
 Android 10 low‑end phone (the minSdk sanity check).
 
-### Phase 9 — Upstream sync process (ongoing)
+### Phase 8 — Upstream sync process (ongoing)
 1. DrKLO publishes "update to X". NagramXF usually merges it within days.
 2. `tools/sync-upstream.sh` fetches the new NagramXF commit and merges it into
    `main` on a `sync/X` branch.
-3. CI runs the build, `glass-guard.sh` and unit tests. Any new glass UI is handled
-   in retro mode before merging.
-4. Smoke test on the POCO (Phase 8 checklist), then tag `retrogram-X.r<n>`.
+3. CI runs the build (plugins off **and** on), `glass-guard.sh` and unit tests.
+   Any new glass UI is handled in retro mode before merging.
+4. Smoke test on the POCO (Phase 7 checklist), then tag `retrogram-X.r<n>`.
 5. Fallback if NagramXF stalls: merge DrKLO directly. Telegram history is already
    in `upstream/telegram`.
 
@@ -325,29 +380,38 @@ Android 10 low‑end phone (the minSdk sanity check).
 | Risk | Impact | Mitigation |
 | :--- | :--- | :--- |
 | Upstream churn in huge files (`ChatActivity`, `DialogsActivity`, `ChatActivityEnterView`) | Painful merges every release | Hooks‑and‑legacy‑package design; `glass-guard.sh`; small upstream diffs |
+| Graph Messenger source never published | Its features must be rebuilt by us | Clean‑room spec (Phase 6); GPL source request |
+| Accidental use of decompiled Graph code | Copyright claim | Clean‑room rule; review checklist in PRs |
 | NagramXF becomes inactive | Lose fast upstream syncs and its feature work | Keep a DrKLO merge path; Telegram history is local |
 | Reverse‑engineered code in NagramXF | Legal / takedown | Inventory those modules; consider clean‑room versions |
-| Telegram account restrictions for mod features | Users limited | Off by default, warnings, nothing that spoofs the client |
+| Plugin build rots because it is opt‑in | Broken `-plugins` builds discovered late | CI builds both variants on every sync and release |
+| Telegram account restrictions for mod features (ghost, anti‑delete, auto‑reply spam) | Users limited | Off by default, warnings, rate limits, nothing that spoofs the client |
 | New Telegram features built only for the glass layout | Missing entry points in the old UI | Phase 5 matrix, maintained on every sync |
-| GPU cost of leftover blur on Adreno 619 | Jank at 120 Hz | blur3 choke point; AVERAGE‑class defaults; Phase 8 frame gate |
+| GPU cost of leftover blur on Adreno 619 | Jank at 120 Hz | blur3 choke point; AVERAGE‑class defaults; Phase 7 frame gate |
 
 ---
 
-## 8. Immediate next steps
+## 8. Decisions
 
-1. **You decide:**
-   - "Telegraph" = Telegraher (assumed) or Telegra.ph (Phase 7)?
-   - Final package name.
-   - Whether to ship the Python `plugin` flavor.
-2. Phase 0: import NagramXF history into the repo root, rebrand, add `RetroConfig`,
-   and port the CI workflow with your API ID/hash and signing secrets.
+| Question | Decision |
+| :--- | :--- |
+| What is "Telegraph"? | **Graph Messenger by Databite** (`ir.ilmili.telegraph`), used as a feature spec |
+| Ship NagramXF's Python plugins? | **Yes, as an opt‑in build option** (`retrogram.plugins`, default off) |
+| Final package name | **Open.** Placeholder `app.retrogram.messenger` |
+
+### Immediate next steps
+1. Phase 0: import NagramXF history into the repo root, rebrand, add `RetroConfig`
+   and the `retrogram.plugins` switch, and port the CI workflow with your API
+   ID/hash and signing secrets.
+2. Phase 6, step 1, in parallel: install Graph Messenger and write
+   `docs/graph-spec/`. Send the GPL source request to Databite.
 3. Phase 1 spike: flip the drawer on, remove the tab host, and revive the 12.1.1
-   FAB and header in `DialogsActivity`. Screenshot‑diff against 12.1.1 on the POCO.
+   FAB and header in `DialogsActivity`. Screenshot‑diff against 12.1.1 and
+   Graph Messenger on the POCO.
 
 ### Useful commands
 ```bash
-git submodule update --init                     # fetch the four reference repos (not recursive)
+git submodule update --init                     # fetch the reference repos (not recursive)
 git -C upstream/telegram show 9cbf0333:TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java   # 12.1.1 source
 git -C upstream/telegram diff --stat d7deedfa fa4e8aa0 -- TMessagesProj/src/main/java   # what 12.4 changed
-git -C upstream/telegraher diff b7561f0c HEAD -- TMessagesProj/src                     # all Telegraher changes
 ```
