@@ -7,7 +7,7 @@ and an acceptance check.
 
 | File | Phase | Status |
 | :--- | :--- | :--- |
-| [00-bootstrap.md](00-bootstrap.md) | 0 — import NagramXF, rebrand, `retrogram.plugins` switch, CI | in progress: 0.1 done (minus submodule forks); 0.2 partial; 0.3 (flag off), 0.4, 0.5 build-verified in CI (run 14, APK artifact); `plugins=true` never run; nothing run on a device yet |
+| [00-bootstrap.md](00-bootstrap.md) | 0 — import NagramXF, rebrand, `retrogram.plugins` switch, CI | in progress: 0.1 done (minus submodule forks); 0.2 partial; 0.3 (flag off), 0.4, 0.5 build-verified in CI (run 14, APK artifact); `plugins=true` also green (run 15, manual dispatch); WP 0.3 `unzip`/task-list acceptance checks and anything on a device still open |
 | [01-main-shell.md](01-main-shell.md) | 1 — drawer + `DialogsActivity` as root | ready after WP 0.1 |
 | [02-chat-screen.md](02-chat-screen.md) | 2 — old chat screen | after Phase 1 |
 | [03-profile-settings.md](03-profile-settings.md) | 3 — old profile and settings | after Phase 1 |

@@ -173,6 +173,10 @@ Also check that nothing in `src/main` imports a class that exists only in `src/p
 > - **Run 14 (commit `fec6a202`): fully green**, including the upload: unit tests 4 min, `assembleNormalDebug` 2.5 min (ccache warm from run 12),
 >   whole job under 10 min. Artifact `retrogram-normal` (80 MB, 7-day retention): https://github.com/TimurSl/retrogram/actions/runs/42386840983.
 >   So WP 0.3 (flag off), 0.4 and 0.5 are now **build-verified for `plugins=false`**; `plugins=true` has still never run (tags and `sync/*` branches, or a manual dispatch with `plugins`).
+> - **Run 15 (manual dispatch, `plugins=true`, `upload=false`, commit `757366b4`): green**, ~31 min cold, all ABIs, Python 3.11 + Cython 3.0.11 setup included.
+>   So `assemblePluginDebug` with the flag on works, and `assembleNormalDebug` with it off works (run 14): WP 0.3's two build paths are verified.
+>   Not yet checked from the WP 0.3 acceptance table: `unzip -l` on both APKs (no `libchaquopy_java.so`/`liblsplant`/`libshadowhook` in the normal one),
+>   `tasks --all` without `chaquopy*`, and `assemblePluginDebug` with the flag off failing fast. Unit tests are skipped for plugin builds by design.
 > - Unverified assumptions: `--depth=1` submodule updates work for the pinned commits; `testNormalDebugUnitTest` exists
 >   under the `normal` flavor; `NATIVE_TARGET` alone is enough for a one-ABI build.
 
