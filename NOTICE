@@ -1,0 +1,56 @@
+Retrogram
+=========
+
+Retrogram is a combined work distributed under the GNU General Public License,
+version 3 (see LICENSE).
+
+It is derived from:
+
+  * Nagram XF (https://github.com/Keeperorowner/NagramXF), GPL-3.0, itself a
+    fork of Nagram X and including features derived from exteraGram and AyuGram.
+  * Telegram for Android (https://github.com/DrKLO/Telegram), whose source
+    headers grant "GNU GPL version 2 or later"; that grant permits distribution
+    of the combined work under GPL-3.0.
+
+All upstream copyright and license headers are kept in the files they appear in.
+Do not remove them when editing or reviving code.
+
+Provenance notes
+----------------
+
+  * Nagram XF states that it contains code reverse-engineered from closed-source
+    forks. Retrogram tracks the affected modules as a legal risk (PLAN.md §4) and
+    prefers clean-room replacements.
+  * Code revived from older Telegram releases carries a header comment with the
+    source commit and path.
+  * Graph Messenger is used only as a behavioural reference. No code from it is
+    copied or decompiled.
+
+Third-party components (git submodules)
+---------------------------------------
+
+Listed with the license each project declares upstream. Check each submodule's
+own LICENSE file before a release; this list is a starting point, not a legal opinion.
+
+  TMessagesProj/jni/td                              tdlib/td                      Boost Software License 1.0
+  TMessagesProj/jni/tgcalls                         tgcalls (Keeperorowner fork)  see submodule
+  TMessagesProj/jni/tlottie                         dkaraush/tlottie              see submodule
+  TMessagesProj/jni/wallet-engine                   dkaraush/wallet-engine        see submodule
+  TMessagesProj/jni/third_party/absl                abseil-cpp                    Apache-2.0
+  TMessagesProj/jni/third_party/boost-regex         boostorg/regex                Boost Software License 1.0
+  TMessagesProj/jni/third_party/boringssl           google/boringssl              OpenSSL / ISC (see submodule)
+  TMessagesProj/jni/third_party/dav1d               videolan/dav1d                BSD-2-Clause
+  TMessagesProj/jni/third_party/ffmpeg              FFmpeg                        LGPL-2.1-or-later (GPL parts depend on configure flags)
+  TMessagesProj/jni/third_party/libprisma           TelegramMessenger/libprisma   see submodule
+  TMessagesProj/jni/third_party/libvpx              webmproject/libvpx            BSD-3-Clause
+  TMessagesProj/jni/third_party/libyuv              chromium/libyuv               BSD-3-Clause
+  TMessagesProj/jni/third_party/openh264            cisco/openh264                BSD-2-Clause
+  TMessagesProj/jni/third_party/wamr                wasm-micro-runtime            Apache-2.0 with LLVM exception
+  TMessagesProj/jni/third_party/xiph/{ogg,opus,opusfile}  xiph.org                BSD-3-Clause
+  TMessagesProj/lib/jlatexmath                      dkaraush/jlatexmath-android   GPL-2.0 with classpath exception
+  TMessagesProj_Modules/media                       Arseny271/media               Apache-2.0 (AndroidX Media fork)
+
+Plugin-build only (compiled only with -Pretrogram.plugins=true):
+
+  TMessagesProj/jni/third_party/lsplant             LSPlant (Keeperorowner fork)  LGPL-3.0
+  TMessagesProj/jni/third_party/shadowhook          android-inline-hook (fork)    MIT

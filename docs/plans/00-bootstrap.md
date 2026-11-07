@@ -10,6 +10,11 @@ plugins off *and* on.
 
 ## WP 0.1 — Import NagramXF with history (S)
 
+> **Status: done except step 5 (fork the `Keeperorowner/*` submodules; needs the project org) and the
+> submodule-status check (submodules are deliberately not initialised in this checkout).**
+> Imported as `2af55562`; `git merge-base HEAD nagramxf/dev` = `49ae647f`. `.gitattributes` and `NOTICE` added.
+> Gradle only includes `:TMessagesProj` and the media modules, so `upstream/` is invisible to the build.
+
 The repo already has 3 commits of its own (`PLAN.md`, README, submodule pins).
 
 1. `git remote add nagramxf https://github.com/Keeperorowner/NagramXF.git`
@@ -35,6 +40,20 @@ The repo already has 3 commits of its own (`PLAN.md`, README, submodule pins).
 
 ## WP 0.2 — Rebrand (M)
 
+> **Status: partly done, not build-verified.**
+> Done: `APP_PACKAGE=app.retrogram.messenger` (placeholder, open decision 1) and the matching account type,
+> contact MIME types, `auth_menu` target package and `:retrogram` process in manifest/`res/xml`; output file name is
+> `retrogram-<ver>-<abi>.apk`; official-app API credentials removed (`build.gradle` now fails release/staging/bundle
+> tasks without `TELEGRAM_APP_ID/HASH`, and uses a no-login placeholder for debug); hard-coded pair removed from `BuildVars`.
+> Open:
+> - The debug fallback is a placeholder, not a working dev pair: needs the project's own `api_id` (open decision 2).
+> - `applicationIdSuffix` for `.debug`/`.beta` is **deferred**: the account type and contact MIME types in
+>   `res/xml/{auth,contacts,sync_contacts,auth_menu}.xml` are static strings while `ContactsController:2313` builds the MIME type from
+>   `BuildConfig.APPLICATION_ID`; template them with manifest placeholders first, otherwise contact sync breaks on suffixed builds.
+> - App name/strings (`NagramX` string resource used in ~10 places), launcher icons, `RETROGRAM_REV`,
+>   remote update/metadata switch (`RetroConfig.remoteMetadata`, needs WP 0.5), `google-services.json`.
+> - `.github/workflows/*` still use the NagramXF artifact names (handled in WP 0.4).
+
 Only identity changes; keep `org.telegram.*` and `tw.nekomimi.*` Java packages untouched
 (renaming them would make every future merge conflict).
 
@@ -59,6 +78,18 @@ builds use a clearly marked dev pair. `BuildVars.java:29-30` has another hard-co
 (`aapt dump badging`), no string `nagramx` in `AndroidManifest.xml`, and the launcher shows "Retrogram".
 
 ## WP 0.3 — `retrogram.plugins` build switch (L)
+
+> **Status: implemented, not yet build-verified.** The sandbox has no Android SDK (dl.google.com is blocked),
+> so the four acceptance commands below still have to be run, locally or in CI (WP 0.4). Only a Groovy syntax
+> check and a byte-for-byte check of the moved block were done.
+> What changed: the flag is read in `TMessagesProj/build.gradle` (`-P`, then `local.properties`, then
+> `RETROGRAM_PLUGINS`); the `plugin` flavor is declared only when it is on; all Chaquopy configurations/tasks,
+> `sourceSets.plugin.*` and the `pluginImplementation`/`chaquopy*` dependencies moved verbatim into
+> `TMessagesProj/plugins.gradle`; `jni/CMakeLists.txt` now defaults `ENABLE_PLUGINS` to OFF;
+> `BuildConfig.PLUGINS_ENABLED` is `false` for `normal` and `true` for `plugin` (per flavor, because with the flag on
+> both flavors exist). Step 5 needed no source change: plugin UI entry points are already behind
+> `PluginsController.isPluginEngineSupported()`, which the `normal` stub returns `false` for.
+> Not yet done: step 7 and `settings.gradle`/root re-check after rebrand.
 
 Verified structure of `TMessagesProj/build.gradle` (line numbers for 49ae647f):
 

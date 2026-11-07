@@ -1,0 +1,2 @@
+# Read-only reference checkouts (see PLAN.md §1); not part of the build.
+upstream/** linguist-vendored

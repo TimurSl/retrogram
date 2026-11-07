@@ -1,0 +1,435 @@
+import java.nio.file.Paths
+import org.gradle.internal.os.OperatingSystem
+
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android' version '2.3.0'
+    id 'com.google.gms.google-services'
+    id 'com.google.firebase.crashlytics'
+    id 'org.telegram.build-plugin'
+    id 'org.telegram.build-app-plugin'
+    id 'idea'
+}
+
+idea {
+    module {
+        excludeDirs += [
+            file('jni/td'),
+            file('jni/third_party'),
+            file('jni/ffmpeg'),
+            file('jni/third_party/absl'),
+            file('jni/third_party/boringssl'),
+            file('jni/third_party/dav1d'),
+            file('jni/third_party/libvpx'),
+            file('jni/third_party/libyuv'),
+            file('jni/third_party/openh264'),
+            file('jni/third_party/xiph'),
+            file('jni/third_party/wamr'),
+            file('jni/third_party/libprisma'),
+            file('jni/third_party/boost-regex'),
+            file('jni/tgcalls'),
+            file('jni/tlottie'),
+            file('jni/boringssl'),
+            file('jni/sqlite')
+        ]
+    }
+}
+
+def buildTimestamp = System.getenv('BUILD_TIMESTAMP') ?: '0'
+def commitId = System.getenv('COMMIT_ID')
+def verName = "${APP_VERSION_NAME}${commitId?.take(7) ? "-${commitId.take(7)}" : ''}"
+def verCode = 1252
+
+def officialVer = APP_VERSION_NAME
+def officialCode = APP_VERSION_CODE
+
+def keystorePwd = null
+def alias = null
+def pwd = null
+
+Properties properties
+def base64 = System.getenv('LOCAL_PROPERTIES')
+if (base64 != null && !base64.isBlank()) {
+    properties = new Properties()
+    properties.load(new ByteArrayInputStream(Base64.decoder.decode(base64)))
+} else if (project.rootProject.file('local.properties').exists()) {
+    properties = new Properties()
+    properties.load(project.rootProject.file('local.properties').newDataInputStream())
+}
+
+if (properties != null) {
+    keystorePwd = properties.getProperty('KEYSTORE_PASS')
+    alias = properties.getProperty('ALIAS_NAME')
+    pwd = properties.getProperty('ALIAS_PASS')
+}
+
+// Retrogram: Python plugin runtime is opt-in. Lookup order: -Pretrogram.plugins, gradle.properties
+// (project or ~/.gradle), local.properties, RETROGRAM_PLUGINS env. Default off.
+def retrogramPlugins = (findProperty('retrogram.plugins')
+        ?: properties?.getProperty('retrogram.plugins')
+        ?: System.getenv('RETROGRAM_PLUGINS')
+        ?: 'false').toString().toLowerCase() in ['1', 'true', 'yes']
+
+keystorePwd = keystorePwd ?: System.getenv('KEYSTORE_PASS')
+alias = alias ?: System.getenv('ALIAS_NAME')
+pwd = pwd ?: System.getenv('ALIAS_PASS')
+
+def nativeTarget = System.getenv('NATIVE_TARGET') ?: ''
+// Plugin package is arm-only: shadowhook doesn't support x86.
+def pluginAbis = ['armeabi-v7a', 'arm64-v8a']
+def normalAbis = ['armeabi-v7a', 'arm64-v8a', 'x86_64']
+// Java runtime classes come from src/plugin/java/com/chaquo (see README there).
+def chaquopyTargetVersion = '3.11.10-1'
+def chaquopyPluginVersion = '16.1.0'
+def chaquopyAbis = pluginAbis.findAll { nativeTarget.isBlank() || it == nativeTarget }
+def abiToNdkTriple = [
+    'armeabi-v7a': 'arm-linux-androideabi',
+    'arm64-v8a'  : 'aarch64-linux-android',
+    'x86_64'     : 'x86_64-linux-android',
+]
+
+def ndkHostTag = {
+    if (OperatingSystem.current().windows) {
+        return 'windows-x86_64'
+    }
+    if (OperatingSystem.current().linux) {
+        return 'linux-x86_64'
+    }
+    if (OperatingSystem.current().macOsX) {
+        return System.getProperty('os.arch') == 'aarch64' ? 'darwin-arm64' : 'darwin-x86_64'
+    }
+    throw new GradleException("Unsupported host OS for NDK: ${OperatingSystem.current()}")
+}
+
+def ndkHasStl = { ndkDir ->
+    ndkDir?.isDirectory() && chaquopyAbis.every {
+        new File(ndkDir, "toolchains/llvm/prebuilt/${ndkHostTag()}/sysroot/usr/lib/${abiToNdkTriple[it]}/libc++_shared.so").exists()
+    }
+}
+
+def resolveNdkDir = {
+    def ndkDirPath = properties?.getProperty('ndk.dir') ?: System.getenv('ANDROID_NDK_ROOT') ?: System.getenv('ANDROID_NDK_HOME')
+    if (ndkDirPath != null && !ndkDirPath.isBlank() && ndkHasStl(file(ndkDirPath))) {
+        return file(ndkDirPath)
+    }
+    def sdkDirPath = properties?.getProperty('sdk.dir') ?: System.getenv('ANDROID_HOME') ?: System.getenv('ANDROID_SDK_ROOT')
+    if (sdkDirPath != null && !sdkDirPath.isBlank()) {
+        def ndkRoot = file("${sdkDirPath}/ndk")
+        if (ndkRoot.isDirectory()) {
+            return ndkRoot.listFiles({ f -> f.isDirectory() } as FileFilter)
+                    ?.sort { it.name }?.reverse()?.find { ndkHasStl(it) }
+        }
+    }
+    return null
+}
+
+def resolvedNdkDir = resolveNdkDir()
+
+if (nativeTarget == 'SKIP') {
+    tasks.configureEach { task ->
+        if (
+            task.name.toLowerCase().contains('cmake') ||
+            task.name.toLowerCase().contains('jni') ||
+            task.name.toLowerCase().contains('test')
+        ) {
+            task.enabled = false
+        }
+    }
+}
+
+android {
+    defaultConfig.applicationId = APP_PACKAGE
+
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
+
+    // emoji.pack is mmap'd via AssetManager.openFd; compressed assets have no fd
+    aaptOptions {
+        noCompress += "pack"
+    }
+
+    // splits.abi is not flavor-aware; the plugin flavor prunes x86_64 and universal below.
+    splits {
+        abi {
+            enable = true
+            reset()
+            include(*(nativeTarget.isBlank() ? normalAbis : [nativeTarget]))
+            universalApk = nativeTarget.isBlank()
+        }
+    }
+
+    flavorDimensions 'runtime'
+
+    productFlavors {
+        normal {
+            dimension 'runtime'
+            if (nativeTarget.isBlank()) {
+                ndk.abiFilters.addAll(normalAbis)
+            }
+            externalNativeBuild.cmake.arguments '-DENABLE_PLUGINS=OFF'
+            buildConfigField 'boolean', 'PLUGINS_ENABLED', 'false'
+        }
+        // The plugin flavor (and everything Chaquopy) exists only when retrogram.plugins is on.
+        // `normal` stays declared in both cases: src/normal holds the no-op plugin stubs.
+        if (retrogramPlugins) {
+            plugin {
+                dimension 'runtime'
+                if (nativeTarget.isBlank()) {
+                    ndk.abiFilters.addAll(pluginAbis)
+                }
+                externalNativeBuild.cmake.arguments '-DENABLE_PLUGINS=ON'
+                buildConfigField 'boolean', 'PLUGINS_ENABLED', 'true'
+                proguardFiles 'proguard-plugin-rules.pro'
+            }
+        }
+    }
+
+    defaultConfig {
+        versionName verName
+        versionCode verCode
+
+        // Retrogram: no official-app credentials. Obtain your own at https://my.telegram.org/apps
+        // (Telegram's API terms do not allow reusing another app's api_id/api_hash).
+        def appId = properties?.getProperty('TELEGRAM_APP_ID') ?: System.getenv('TELEGRAM_APP_ID')
+        def appHash = properties?.getProperty('TELEGRAM_APP_HASH') ?: System.getenv('TELEGRAM_APP_HASH')
+        if (!appId || !appHash) {
+            // Release/staging/bundle tasks must not silently ship without credentials.
+            def requestedTasks = gradle.startParameter.taskNames.collect { it.toLowerCase() }
+            if (requestedTasks.any { it.contains('release') || it.contains('staging') || it.contains('bundle') }) {
+                throw new GradleException('TELEGRAM_APP_ID and TELEGRAM_APP_HASH are required for release builds ' +
+                        '(set them in local.properties or the environment).')
+            }
+            // Debug / CI compile-only builds: a placeholder that compiles but cannot log in.
+            logger.warn('WARNING: TELEGRAM_APP_ID/TELEGRAM_APP_HASH not set; using a placeholder, login will not work.')
+            appId = '0'
+            appHash = 'RETROGRAM_DEV_PLACEHOLDER_NO_LOGIN'
+        }
+
+        buildConfigField 'String', 'BUILD_VERSION_STRING', '"' + verName + '"'
+        buildConfigField 'String', 'OFFICIAL_VERSION', '"' + officialVer + '"'
+        buildConfigField 'int', 'OFFICIAL_VERSION_CODE', officialCode + ''
+        buildConfigField 'int', 'APP_ID', appId
+        buildConfigField 'String', 'APP_HASH', '"' + appHash + '"'
+        buildConfigField 'long', 'BUILD_TIMESTAMP', buildTimestamp + 'L'
+        buildConfigField 'boolean', 'DEBUG_VERSION', 'false'
+        buildConfigField 'boolean', 'DEBUG_PRIVATE_VERSION', 'false'
+        buildConfigField 'boolean', 'BUNDLE', 'false'
+
+        externalNativeBuild {
+            cmake {
+                arguments '-DANDROID_STL=c++_static', '-DANDROID_PLATFORM=android-27', '-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON'
+                System.getenv('PATH').split(File.pathSeparator).any { path ->
+                    var file = Paths.get("${path}${File.separator}ccache${if (OperatingSystem.current().windows) ".exe" else ""}").toFile()
+                    if (file.exists()) {
+                        println("Using ccache ${file.getAbsolutePath()}")
+                        arguments += "-DANDROID_CCACHE=${file.getAbsolutePath()}"
+                        return true
+                    }
+                }
+            }
+        }
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments += ['room.schemaLocation': "$projectDir/schemas".toString()]
+            }
+        }
+    }
+
+    bundle {
+        language {
+            enableSplit = false
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            version = '3.31.6+'
+            path = 'jni/CMakeLists.txt'
+        }
+    }
+
+    signingConfigs {
+        release {
+            storeFile project.file('release.keystore')
+            storePassword keystorePwd
+            keyAlias alias
+            keyPassword pwd
+        }
+    }
+
+    buildTypes {
+        debug {
+            isDefault = true
+            debuggable = true
+            jniDebuggable = false
+            multiDexEnabled = true
+            signingConfig = signingConfigs.release
+        }
+
+        staging {
+            debuggable = false
+            jniDebuggable = false
+            minifyEnabled = true
+            shrinkResources = true
+            multiDexEnabled = true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            matchingFallbacks = ['release', 'staging', 'debug']
+            signingConfig = signingConfigs.release
+        }
+
+        release {
+            debuggable = false
+            jniDebuggable = false
+            minifyEnabled = true
+            shrinkResources = true
+            multiDexEnabled = true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            matchingFallbacks = ['release', 'staging', 'debug']
+            signingConfig = signingConfigs.release
+        }
+    }
+
+    namespace = 'org.telegram.messenger'
+}
+
+if (retrogramPlugins) {
+    ext.chaquopyAbis = chaquopyAbis
+    ext.chaquopyTargetVersion = chaquopyTargetVersion
+    ext.chaquopyPluginVersion = chaquopyPluginVersion
+    ext.abiToNdkTriple = abiToNdkTriple
+    ext.ndkHostTag = ndkHostTag
+    ext.resolvedNdkDir = resolvedNdkDir
+    apply from: 'plugins.gradle'
+}
+
+androidComponents {
+    onVariants(selector().all()) { variant ->
+        boolean isPluginFlavor = variant.name.startsWith('plugin')
+        variant.outputs.forEach { output ->
+            if (isPluginFlavor) {
+                def abi = output.filters.find { it.filterType.name() == 'ABI' }?.identifier
+                output.enabled.set(pluginAbis.contains(abi))
+            }
+            String first = "retrogram-${verName}"
+            output.outputFileName.set(
+                output.outputFileName.get()
+                    .replace('TMessagesProj', first)
+                    .replace('-release', '')
+                    .replace('-staging', '')
+            )
+        }
+        if (isPluginFlavor) {
+            // AGP 9 has no per-variant preBuild tasks; wire to the merge tasks instead.
+            tasks.matching {
+                it.name.startsWith("merge${variant.name.capitalize()}") &&
+                        (it.name.endsWith('JniLibFolders') || it.name.endsWith('Assets'))
+            }.configureEach {
+                dependsOn('prepareChaquopyJniLibs', 'prepareChaquopyBootstrapNative',
+                          'stageChaquopyStdlibCommon', 'stageChaquopyAppImy', 'stageChaquopyBootstrap',
+                          'stageChaquopyRequirements',
+                          *chaquopyAbis.collect { "stageChaquopyStdlibAbi_${it}" },
+                          'generateChaquopyBuildJson')
+            }
+        }
+    }
+}
+
+configurations.configureEach {
+    exclude group: 'androidx.recyclerview', module: 'recyclerview'
+    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
+    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
+    exclude group: 'org.jetbrains', module: 'annotations-java5'
+}
+
+dependencies {
+    // official
+    implementation 'androidx.core:core-ktx:1.18.0' // 1.10.1
+    implementation 'androidx.palette:palette-ktx:1.0.0'
+    implementation 'androidx.exifinterface:exifinterface:1.4.2' // 1.3.6
+    implementation 'androidx.dynamicanimation:dynamicanimation:1.0.0'
+    implementation 'androidx.mediarouter:mediarouter:1.8.0'
+    implementation "androidx.media:media:1.7.0"
+    implementation "androidx.lifecycle:lifecycle-runtime:2.7.0"
+    implementation 'androidx.car.app:app:1.7.0'
+    implementation 'androidx.sharetarget:sharetarget:1.2.0'
+    implementation 'androidx.interpolator:interpolator:1.0.0'
+    implementation 'androidx.biometric:biometric:1.1.0'
+    implementation 'androidx.webkit:webkit:1.14.0'
+    implementation project(':TMessagesProj_Modules:media3:media-lib-exoplayer')
+    implementation project(':TMessagesProj_Modules:media3:media-lib-exoplayer-dash')
+    implementation project(':TMessagesProj_Modules:media3:media-lib-exoplayer-hls')
+    implementation project(':TMessagesProj_Modules:media3:media-lib-decoder-ffmpeg')
+    implementation project(':TMessagesProj_Modules:media3:media-lib-session')
+    // vendored zxing sources were removed upstream; QR now goes through the maven artifact
+    implementation 'com.google.zxing:core:3.5.4'
+    implementation 'com.neovisionaries:nv-websocket-client:2.14'
+    implementation 'org.nanohttpd:nanohttpd:2.3.1'
+    compileOnly 'org.checkerframework:checker-qual:2.5.2'
+    compileOnly 'org.checkerframework:checker-compat-qual:2.5.0'
+    implementation 'com.google.firebase:firebase-messaging:25.0.1' // 22.0.0
+    implementation 'com.google.firebase:firebase-crashlytics:20.0.4'
+    implementation 'com.google.firebase:firebase-appindexing:20.0.0'
+    implementation 'com.google.android.play:integrity:1.3.0'
+    implementation 'com.google.android.gms:play-services-safetynet:18.0.1'
+    implementation 'com.google.android.gms:play-services-cast-framework:22.2.0' // 21.4.0
+    implementation 'com.google.android.gms:play-services-maps:20.0.0' // 18.1.0
+    implementation 'com.google.android.gms:play-services-auth:21.5.1' // 20.4.0
+    implementation 'com.google.android.gms:play-services-vision:20.1.3'
+    implementation 'com.google.android.gms:play-services-location:21.3.0'
+    implementation 'com.googlecode.mp4parser:isoparser:1.0.6'
+    implementation 'com.google.mlkit:language-id:17.0.6'
+    implementation 'com.google.code.gson:gson:2.13.2'
+    implementation ('com.google.guava:guava:33.5.0-android') { // 31.1
+        exclude group: 'com.google.code.findbugs', module: 'jsr305'
+        exclude group: 'org.checkerframework', module: 'checker-compat-qual'
+        exclude group: 'org.checkerframework', module: 'checker-qual'
+        exclude group: 'com.google.errorprone', module: 'error_prone_annotations'
+        exclude group: 'com.google.j2objc', module: 'j2objc-annotations'
+        exclude group: 'org.codehaus.mojo', module: 'animal-sniffer-annotations'
+    }
+    implementation 'com.google.android.gms:play-services-mlkit-subject-segmentation:16.0.0-beta1'
+    implementation 'com.google.android.gms:play-services-mlkit-image-labeling:16.0.8'
+    implementation "androidx.credentials:credentials:1.6.0-alpha04"
+    implementation "androidx.credentials:credentials-play-services-auth:1.6.0-alpha04"
+    // payment
+    implementation 'com.google.android.gms:play-services-wallet:19.5.0' // 19.1.0
+    implementation('com.stripe:stripe-android:2.0.2') {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    }
+    implementation 'com.android.billingclient:billing:8.0.0'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs_nio:2.1.5'
+    testImplementation 'junit:junit:4.13.2'
+
+    // kotlin
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
+    // utilities
+    implementation 'org.maplibre.gl:android-sdk-opengl:13.1.0'
+    // network
+    implementation 'com.squareup.okhttp3:okhttp:5.3.2'
+    implementation 'dnsjava:dnsjava:3.6.4'
+    // add for emoji
+    implementation 'com.jaredrummler:truetypeparser-light:1.0.0'
+    // add for UnifiedPush
+    implementation 'org.unifiedpush.android:connector:3.3.2'
+    // add for save deleted messages
+    implementation 'androidx.room:room-runtime:2.8.4'
+    annotationProcessor 'androidx.room:room-compiler:2.8.4'
+    // add for keep formatting in translations
+    implementation 'org.apache.commons:commons-text:1.15.0'
+    // translator from nekogram
+    implementation 'app.nekogram.translator:translator:1.5.5'
+    // markwon for MarkdownParser
+    implementation "io.noties.markwon:core:4.6.2"
+    implementation "io.noties.markwon:ext-strikethrough:4.6.2"
+    implementation "io.noties.markwon:ext-tables:4.6.2"
+    implementation "io.noties.markwon:html:4.6.2"
+    implementation "io.noties.markwon:inline-parser:4.6.2"
+    implementation "io.noties.markwon:ext-latex:4.6.2"
+
+    // wear auth
+    implementation 'com.google.android.gms:play-services-wearable:18.0.0'
+}
