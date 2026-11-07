@@ -348,8 +348,9 @@ target_link_libraries(${NATIVE_LIB}
         breakpad)
 
 #aliuhook: ART hook runtime for plugins (LSPlant + shadowhook), arm/arm64 only.
+# Retrogram: plugins are opt-in; Gradle passes -DENABLE_PLUGINS=ON only for the plugin flavor.
 if (NOT DEFINED ENABLE_PLUGINS)
-    set(ENABLE_PLUGINS ON)
+    set(ENABLE_PLUGINS OFF)
 endif ()
 if (ENABLE_PLUGINS AND (${ANDROID_ABI} STREQUAL "arm64-v8a" OR ${ANDROID_ABI} STREQUAL "armeabi-v7a"))
     set(LSPLANT_BUILD_SHARED OFF CACHE INTERNAL "" FORCE)
