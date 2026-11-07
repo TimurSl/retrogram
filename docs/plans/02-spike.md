@@ -61,5 +61,5 @@ reply/edit bars, voice/video record overlay, attach button and AI/rich-text butt
 - **Still floating:** the top panel under the bar (here the "bot manages this chat" panel: bot avatar, "Stop" button, settings icon) was a rounded card with margins.
 - **Change:** with "Classic chat header" on, `ChatActivityTopPanelLayout` draws a flat, full-width strip (radius 0, no 7dp side extension) and `ChatActivity.checkUi_topPanelLayoutWidth`
   pads it flush (0 instead of 7dp; only the side-menu offset remains). The panel's background drawable gets radius/padding 0 too. The list padding still reserves the extra 7dp above the first
-  message (harmless). Not handled: pinned message bar (`topChatPanelView` and the pinned layout), translate/report panels have their own item backgrounds.
+  message (harmless). The pinned message bar (`pinnedMessageView`), the top chat panel (`topChatPanelView`: translate/report/add-contact), the pending-requests bar and the restart-topic button are all children of this layout with only selector backgrounds, so they sit on the flat strip too (read from the code, not seen on a device). Not covered: the group-call capsule (`CapsuleBlobDrawable`) which draws its own rounded shape.
 
