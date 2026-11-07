@@ -49,6 +49,14 @@ The PLAN's "tab host removed from the hierarchy" is satisfied by A as long as `M
 4. Account switching (`switchToAccount`, 1295/1326) and push/intent cold starts (4133–4151) must create the same shell.
 
 ### WP 1.2 — `DialogsActivity` header (L)
+> **Status: findings + search done (cheap path), not build-verified.** What the code already does in 13.1.1 / NagramXF:
+> - The action bar title and `MenuDrawable` hamburger (`setBackButtonDrawable(menuDrawable = new MenuDrawable())`, ~3694) are still the classic path;
+>   `DialogsActivityStatusLayout` is created but its `addView` is commented out (~5848). So "Connecting…" already lives in the title. Step 1 is mostly a visual check.
+> - NagramXF has `NaConfig.hideHomeSearchField`: the pill is hidden at rest and a classic search icon (`searchItem`, driven by `animatorSearchButtonVisible`,
+>   `checkUi_itemSearchVisibility`) is shown; tapping it opens the pill. `RetroShell` now pins that option in retro mode. The result is an icon in the
+>   action bar plus the pill appearing on tap, not yet the 12.1.1 field that expands *inside* the action bar. Closing that gap is a polish item
+>   (position the active `fragmentSearchField` over the action bar), best done with a device to compare.
+> - Left: stories header placement, `FilterTabsView` background check against 12.1.1, `topBubblesFadeView` / `DialogsActivityTopPanelLayout` glass.
 Compare against `git show 9cbf0333:…/DialogsActivity.java` (13,524 lines vs 14,483 now).
 1. Action bar: `ActionBar` menu icon (hamburger / back-arrow morph via `MenuDrawable`), title, "Connecting…/Updating…"
    status via the old `setTitle` + `actionBar.setTitleAnimated` path. Gate `dialogsActivityStatusLayout`
