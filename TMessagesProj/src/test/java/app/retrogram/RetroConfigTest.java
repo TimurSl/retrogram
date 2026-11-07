@@ -33,6 +33,7 @@ public class RetroConfigTest {
         assertTrue(RetroConfig.isClassicSettings());
         assertFalse(RetroConfig.classicInput.Bool());
         assertFalse(RetroConfig.isClassicInput());
+        assertFalse(RetroConfig.classicColors.Bool());
         assertTrue(RetroConfig.isRetroUi());
     }
 

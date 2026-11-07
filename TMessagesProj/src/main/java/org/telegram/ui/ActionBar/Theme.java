@@ -3545,6 +3545,9 @@ public class Theme {
 
     static {
         defaultColors = ThemeColors.createDefaultColors();
+        if (app.retrogram.RetroThemeColors.enabled()) {
+            app.retrogram.RetroThemeColors.apply(defaultColors);
+        }
 
         fallbackKeys.put(key_iv_background, key_windowBackgroundWhite);
         fallbackKeys.put(key_iv_backgroundGray, key_windowBackgroundGray);

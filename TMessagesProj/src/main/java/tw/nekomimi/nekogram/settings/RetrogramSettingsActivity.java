@@ -31,6 +31,7 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
     private final AbstractConfigCell remoteMetadataRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.remoteMetadata, getString(R.string.RetroRemoteMetadataInfo)));
     private final AbstractConfigCell classicSettingsRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.classicSettings, getString(R.string.RetroClassicSettingsInfo)));
     private final AbstractConfigCell classicInputRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.classicInput, getString(R.string.RetroClassicInputInfo)));
+    private final AbstractConfigCell classicColorsRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.classicColors, getString(R.string.RetroClassicColorsInfo)));
     private final AbstractConfigCell dividerInterface = cellGroup.appendCell(new ConfigCellDivider());
 
     public RetrogramSettingsActivity() {

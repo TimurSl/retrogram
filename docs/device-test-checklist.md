@@ -13,6 +13,7 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 | Remote update checks | off | after restart |
 | Classic settings page | on | next time Settings opens |
 | Classic input bar (experimental) | off | chats opened afterwards |
+| Classic theme colors (experimental) | off | after restart |
 
 ## Checks
 **Shell (tested once, 2026-11-07)**
@@ -38,6 +39,11 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 - [ ] Attach button, AI and rich-text buttons, send / voice, hold-to-record overlay
 - [ ] Bot keyboard, scheduled/silent long-press sheet, search-in-chat bar, "join/mute" bottom bar
 - [ ] Turn it off: the floating island returns (new chats)
+
+**Classic theme colors (switch on, restart, theme "Blue" / default)**
+- [ ] Chat list: blue action bar with white icons and title, white status text; search icon; folder tabs
+- [ ] Chat screen action bar, profile and settings pages, sheets and dialogs: nothing unreadable (dark text on dark, white on white)
+- [ ] Switch to a dark theme and back: no leftovers
 
 **Glass leftovers (retro on)**
 - [ ] Any blurred or translucent panel you can find: share sheet, attach sheet, photo viewer, profile of another user, chat action bar, top panels (pinned, translate)

@@ -38,7 +38,15 @@ object RetroConfig {
     @JvmField
     val classicInput = ConfigItem("RetroClassicInput", ConfigItem.configTypeBool, false)
 
-    private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings, classicInput)
+    /**
+     * Experimental: the 12.1.1 default-theme palette (blue action bar, white icons, ...) for the keys whose default
+     * changed in 13.1.1 (see [RetroThemeColors]). Off by default; applied at process start, so it needs a restart.
+     * `RetroThemeColors.enabled()` reads the stored value itself because `Theme` can load before [init].
+     */
+    @JvmField
+    val classicColors = ConfigItem("RetroClassicColors", ConfigItem.configTypeBool, false)
+
+    private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings, classicInput, classicColors)
 
     // Snapshot taken once per process. Until init() runs, behave like the defaults.
     @Volatile

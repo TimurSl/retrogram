@@ -77,6 +77,19 @@ StarGiftPreviewSheet, NagramXF `BookmarkManagerActivity`, Bulletins, ItemOptions
 Per screen: before/after screenshots in `docs/sweep/`.
 
 ### WP 4.3 — Theme (M)
+> **Findings and first implementation (2026-11-07; checked by diffing, not yet seen on a device):**
+> - The plan's assumption was wrong: **no `key_chats_menu*` key was dropped.** Only 10 keys exist in 12.1.1 and not in 13.1.1 (attach-sheet colors
+>   `key_chat_attach{Audio,File,Gallery,Location,Poll,Todo}*`, `key_chat_goDownButtonIcon`, `key_dialogCameraIcon`); 72 keys were added (`key_glass_*`, IV rich-message,
+>   tags, ...). So the palette is almost a superset.
+> - **What changed is the default theme's values** (`ActionBar/ThemeColors.createDefaultColors`): of 734 keys defined in both, **123 have a different default**. The
+>   biggest visible one: `key_actionBarDefault` was `0xff527da3` (blue bar, white icons/titles) in 12.1.1 and is `0xffffffff` (white bar, dark icons) in 13.1.1;
+>   also `actionBarDefaultIcon/Title/Subtitle/Selector/Search*`, tab colors, `windowBackgroundWhite*Text`, `windowBackgroundGray`, switch/checkbox colors, 33 `chat_*`,
+>   12 `chats_*`, profile/avatar/stories/dialog keys. So the classic *look* of the default (Blue) theme needs the old palette, not only layout work.
+> - Implemented as the opt-in switch **Settings → Retrogram → "Classic theme colors (experimental)"** (off by default, needs a restart):
+>   `app.retrogram.RetroThemeColors.apply()` (generated from the diff, one line per key with the 13.1.1 value in a comment) overrides `Theme.defaultColors` while the table is built.
+>   `RetroThemeColors.enabled()` reads the stored preference itself because `Theme`'s static initializer can run before `RetroConfig.init()`.
+> - Not covered: other built-in themes (Day, Night, Dark Blue) have their own overrides; the wallpaper and default theme *selection* (12.1.1 started on Blue); the 10 removed
+>   attach keys. To check on a device: switch the app to the "Blue" (classic) theme with the switch on and compare the chat list, chat, settings and sheets with 12.1.1 and Graph 12.1.1.0.
 Compare `Theme` color keys 12.1.1 vs 13.1.1 (`git diff 9cbf0333 3de37c8c -- …/ActionBar/Theme.java`); restore dropped
 `key_chats_menu*` values for built-in themes; make sure the default theme set and wallpapers equal 12.1.1.
 
