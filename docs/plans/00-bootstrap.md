@@ -167,6 +167,9 @@ Also check that nothing in `src/main` imports a class that exists only in `src/p
 > - **First runs (2026-11-07):** unit tests (which compile all Java/Kotlin) pass in ~7 min; the all-ABI debug APK build was killed by
 >   a runner shutdown after 38 min in the native step. Branch pushes now build `arm64-v8a` only (like PRs), with a 120 min job timeout;
 >   tags and manual runs still build every ABI.
+> - **Run 12 (2026-11-07, commit `20325c48`): unit tests passed, `assembleNormalDebug` succeeded (30 min, arm64 only, cold ccache), 110 MB debug APK.**
+>   The run still went red at `upload-artifact`: "Artifact storage quota has been hit" (account-wide; this repo has no artifacts). The upload is now
+>   `continue-on-error` off tags, with a 7-day retention and a warning step. To get APKs again: free storage under the account's Actions artifacts, or wait 6-12 h.
 > - Unverified assumptions: `--depth=1` submodule updates work for the pinned commits; `testNormalDebugUnitTest` exists
 >   under the `normal` flavor; `NATIVE_TARGET` alone is enough for a one-ABI build.
 

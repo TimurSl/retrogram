@@ -223,12 +223,21 @@ jobs:
           echo "dir=$dir" >> "$GITHUB_OUTPUT"
           ls -l "$dir"
 
+      # The build itself is the result that matters; an account-wide artifact storage quota
+      # ("Artifact storage quota has been hit") must not turn a successful build red.
+      # Tags still fail on a missing upload because the release job needs the APKs.
       - uses: actions/upload-artifact@v4
+        id: upload
         if: github.event_name != 'workflow_dispatch' || inputs.upload
+        continue-on-error: ${{ env.IS_TAG != 'true' }}
         with:
           name: retrogram-${{ matrix.plugins && 'plugins' || 'normal' }}
           path: ${{ steps.apk.outputs.dir }}/*.apk
           if-no-files-found: error
+          retention-days: 7
+      - name: Warn when the APK could not be uploaded
+        if: steps.upload.outcome == 'failure'
+        run: echo "::warning::APK built but not uploaded (artifact storage quota?). The build log has the file name and size."
 
   release:
     name: GitHub release
