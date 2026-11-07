@@ -64,6 +64,7 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter imple
     public static int nkbtnWallet = 1013;
     public static int nkbtnInvite = 1014;
     public static int nkbtnFeatures = 1015;
+    public static int nkbtnQrCode = 1016;
     public static final int PLUGIN_ITEM_ID_BASE = 20000;
     public DrawerLayoutAdapter(Context context, SideMenultItemAnimator animator, DrawerLayoutContainer drawerLayoutContainer) {
         mContext = context;
@@ -382,6 +383,8 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter imple
             return new Item(nkbtnMainTabsCustomize, LocaleController.getString(R.string.MainTabsCustomize), R.drawable.tabs_reorder);
         } else if (id == nkbtnFeed) {
             return new Item(nkbtnFeed, LocaleController.getString(R.string.Feed), R.drawable.ic_feed);
+        } else if (id == nkbtnQrCode) {
+            return new Item(nkbtnQrCode, LocaleController.getString(R.string.QrCode), R.drawable.msg_qrcode);
         } else if (id == nkbtnInvite) {
             return new Item(nkbtnInvite, LocaleController.getString(R.string.InviteFriends), R.drawable.msg_invited);
         } else if (id == nkbtnFeatures) {

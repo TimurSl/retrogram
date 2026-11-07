@@ -93,6 +93,11 @@ object MainMenuActions {
                 fragment.presentFragment(MainTabsCustomizeActivity())
             id == DrawerLayoutAdapter.nkbtnFeed ->
                 com.exteragram.messenger.feed.ui.FeedActivity.presentFeed(fragment)
+            id == DrawerLayoutAdapter.nkbtnQrCode -> {
+                val qrArgs = Bundle()
+                qrArgs.putLong("user_id", UserConfig.getInstance(currentAccount).clientUserId)
+                fragment.presentFragment(org.telegram.ui.QrShare.QrShareActivity(qrArgs))
+            }
             id == DrawerLayoutAdapter.nkbtnInvite ->
                 fragment.presentFragment(org.telegram.ui.InviteContactsActivity())
             id == DrawerLayoutAdapter.nkbtnFeatures ->

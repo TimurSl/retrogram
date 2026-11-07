@@ -59,6 +59,7 @@ object DrawerMenuHelper {
         Entry(DrawerLayoutAdapter.nkbtnMainTabsCustomize, R.string.MainTabsCustomize, R.drawable.tabs_reorder),
         Entry(DrawerLayoutAdapter.nkbtnFeed, R.string.Feed, R.drawable.ic_feed),
         Entry(DrawerLayoutAdapter.nkbtnWallet, R.string.WalletAttachMoney, R.drawable.ic_gram),
+        Entry(DrawerLayoutAdapter.nkbtnQrCode, R.string.QrCode, R.drawable.msg_qrcode),
         Entry(DrawerLayoutAdapter.nkbtnInvite, R.string.InviteFriends, R.drawable.msg_invited),
         Entry(DrawerLayoutAdapter.nkbtnFeatures, R.string.TelegramFeatures, R.drawable.msg_help),
         Entry(DrawerLayoutAdapter.nkbtnRestartApp, R.string.RestartApp, R.drawable.msg_retry)
