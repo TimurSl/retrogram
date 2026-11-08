@@ -29,7 +29,7 @@ import app.retrogram.RetroConfig;
 public final class AutoReplyHook {
 
     private static final long MAX_AGE_SECONDS = 120;
-    private static final long SIX_HOURS_COOLDOWN = 6;
+    private static final int[] COOLDOWN_HOURS = {1, 3, 6, 12, 24};
 
     private static final SparseArray<AutoReplyEngine> engines = new SparseArray<>();
     private static final SparseArray<String> engineTexts = new SparseArray<>();
@@ -73,13 +73,25 @@ public final class AutoReplyHook {
     }
 
     private static synchronized boolean decide(int account, String text, long senderId, String incomingText, long nowMs) {
+        final String keywordsRaw = RetroConfig.graphAutoReplyKeywords.String();
+        final int startHour = Math.max(0, Math.min(23, RetroConfig.graphAutoReplyStart.Int()));
+        final int endHour = Math.max(0, Math.min(23, RetroConfig.graphAutoReplyEnd.Int()));
+        final int cooldownIndex = Math.max(0, Math.min(COOLDOWN_HOURS.length - 1, RetroConfig.graphAutoReplyCooldown.Int()));
+        // a changed setting starts a new engine, which also forgets who was answered
+        final String signature = text + "|" + keywordsRaw + "|" + startHour + "|" + endHour + "|" + cooldownIndex;
         AutoReplyEngine engine = engines.get(account);
-        if (engine == null || !text.equals(engineTexts.get(account))) {
+        if (engine == null || !signature.equals(engineTexts.get(account))) {
+            final java.util.ArrayList<String> keywords = new java.util.ArrayList<>();
+            for (String k : keywordsRaw.split("[,\\n]+")) {
+                if (!k.trim().isEmpty()) {
+                    keywords.add(k.trim());
+                }
+            }
             final AutoReplyEngine.Rule rule = new AutoReplyEngine.Rule("default", text, true, true, false,
-                Collections.<String>emptyList(), 0, 0, (int) SIX_HOURS_COOLDOWN);
+                keywords, startHour * 60, endHour * 60, COOLDOWN_HOURS[cooldownIndex]);
             engine = new AutoReplyEngine(Collections.singletonList(rule), 20, 3_600_000L, true);
             engines.put(account, engine);
-            engineTexts.put(account, text);
+            engineTexts.put(account, signature);
         }
         final Calendar c = Calendar.getInstance();
         final int minute = c.get(Calendar.HOUR_OF_DAY) * 60 + c.get(Calendar.MINUTE);

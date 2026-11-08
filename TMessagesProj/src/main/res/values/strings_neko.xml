@@ -57,6 +57,11 @@
     <string name="RetroGraphAutoReplyInfo">Answers the first private message from each person with your text, at most once per 6 hours per person, only while the app is in the background, never in groups or to bots. Off by default. Automatic replies can get an account limited if misused.</string>
     <string name="RetroGraphAutoReplyText">Auto-reply text</string>
     <string name="RetroGraphAutoReplyTextHint">Message to send</string>
+    <string name="RetroGraphAutoReplyKeywords">Auto-reply only for these words</string>
+    <string name="RetroGraphAutoReplyKeywordsHint">Words separated by commas; empty means every message</string>
+    <string name="RetroGraphAutoReplyStart">Auto-reply from (hour)</string>
+    <string name="RetroGraphAutoReplyEnd">Auto-reply until (hour)</string>
+    <string name="RetroGraphAutoReplyCooldown">Hours between replies to the same person</string>
     <string name="RetroGraphSpecialContacts">Special contacts log (experimental)</string>
     <string name="RetroGraphSpecialContactsInfo">Keeps a log on this device of when the people you list go online or offline and change their name, username, photo or phone. Only shows what Telegram already sends you. Off by default.</string>
     <string name="RetroGraphSpecialContactsNotify">Notify about changes</string>

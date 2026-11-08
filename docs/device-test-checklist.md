@@ -72,6 +72,7 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 
 **Auto-reply (Extra features; use a second account to write to yours)**
 - [ ] With the switch on and a text set, put the app in the background and send a private message from the second account: one reply arrives; a second message within 6 hours gets none
+- [ ] Set keywords: only a message containing one of them is answered; set the hours so that now is outside: no reply; set the hours between replies to 1 and check a second message after an hour
 - [ ] App in the foreground: no reply. Group message: no reply. Message to/from a bot: no reply. Switch off: no reply
 
 **Special contacts log (Extra features)**

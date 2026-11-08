@@ -43,6 +43,10 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
     private final AbstractConfigCell headerGraph = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.RetroGraphFeatures)));
     private final AbstractConfigCell graphAutoReplyRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.graphAutoReply, getString(R.string.RetroGraphAutoReplyInfo)));
     private final AbstractConfigCell graphAutoReplyTextRow = cellGroup.appendCell(new ConfigCellTextInput(getString(R.string.RetroGraphAutoReplyText), RetroConfig.graphAutoReplyText, getString(R.string.RetroGraphAutoReplyTextHint), null));
+    private final AbstractConfigCell graphAutoReplyKeywordsRow = cellGroup.appendCell(new ConfigCellTextInput(getString(R.string.RetroGraphAutoReplyKeywords), RetroConfig.graphAutoReplyKeywords, getString(R.string.RetroGraphAutoReplyKeywordsHint), null));
+    private final AbstractConfigCell graphAutoReplyStartRow = cellGroup.appendCell(new tw.nekomimi.nekogram.config.cell.ConfigCellSelectBox("RetroGraphAutoReplyStart", RetroConfig.graphAutoReplyStart, hourLabels(), null));
+    private final AbstractConfigCell graphAutoReplyEndRow = cellGroup.appendCell(new tw.nekomimi.nekogram.config.cell.ConfigCellSelectBox("RetroGraphAutoReplyEnd", RetroConfig.graphAutoReplyEnd, hourLabels(), null));
+    private final AbstractConfigCell graphAutoReplyCooldownRow = cellGroup.appendCell(new tw.nekomimi.nekogram.config.cell.ConfigCellSelectBox("RetroGraphAutoReplyCooldown", RetroConfig.graphAutoReplyCooldown, new String[]{"1", "3", "6", "12", "24"}, null));
     private final AbstractConfigCell graphContactsRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.graphSpecialContacts, getString(R.string.RetroGraphSpecialContactsInfo)));
     private final AbstractConfigCell graphContactsNotifyRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.graphSpecialContactsNotify, getString(R.string.RetroGraphSpecialContactsNotifyInfo)));
     private final AbstractConfigCell graphContactIdsRow = cellGroup.appendCell(new ConfigCellTextInput(getString(R.string.RetroGraphSpecialContactIds), RetroConfig.graphSpecialContactIds, getString(R.string.RetroGraphSpecialContactIdsHint), null));
@@ -97,6 +101,10 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
                 && !RetroConfig.sendUsageStats.getKey().equals(key)
                 && !RetroConfig.graphAutoReply.getKey().equals(key)
                 && !RetroConfig.graphAutoReplyText.getKey().equals(key)
+                && !RetroConfig.graphAutoReplyKeywords.getKey().equals(key)
+                && !RetroConfig.graphAutoReplyStart.getKey().equals(key)
+                && !RetroConfig.graphAutoReplyEnd.getKey().equals(key)
+                && !RetroConfig.graphAutoReplyCooldown.getKey().equals(key)
                 && !RetroConfig.graphSpecialContacts.getKey().equals(key)
                 && !RetroConfig.graphSpecialContactIds.getKey().equals(key)
                 && !RetroConfig.graphSpecialContactsNotify.getKey().equals(key)

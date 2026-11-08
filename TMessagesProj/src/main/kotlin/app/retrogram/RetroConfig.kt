@@ -103,6 +103,21 @@ object RetroConfig {
     @JvmField
     val graphAutoReply = ConfigItem("RetroGraphAutoReply", ConfigItem.configTypeBool, false)
 
+    /** Only messages containing one of these words (comma separated, case-insensitive) get the auto-reply; empty = every message. A string item, read in [init]. */
+    @JvmField
+    val graphAutoReplyKeywords = ConfigItem("RetroGraphAutoReplyKeywords", ConfigItem.configTypeString, "")
+
+    /** Auto-reply schedule in whole hours (start inclusive, end exclusive, may wrap midnight); equal hours = always. Int items, read in [init]. */
+    @JvmField
+    val graphAutoReplyStart = ConfigItem("RetroGraphAutoReplyStart", ConfigItem.configTypeInt, 0)
+
+    @JvmField
+    val graphAutoReplyEnd = ConfigItem("RetroGraphAutoReplyEnd", ConfigItem.configTypeInt, 0)
+
+    /** Index into [1, 3, 6, 12, 24] hours: at most one auto-reply per person in that time. Default 2 = 6 hours. */
+    @JvmField
+    val graphAutoReplyCooldown = ConfigItem("RetroGraphAutoReplyCooldown", ConfigItem.configTypeInt, 2)
+
     /** Text sent by the auto-reply. Empty text disables it even when [graphAutoReply] is on. A string item, so it is read in [init], not in [load]. */
     @JvmField
     val graphAutoReplyText = ConfigItem("RetroGraphAutoReplyText", ConfigItem.configTypeString, "")
@@ -209,6 +224,10 @@ object RetroConfig {
         load { key, default -> prefs.getBoolean(key, default) }
         graphAutoReplyText.value = prefs.getString(graphAutoReplyText.key, "") ?: ""
         graphSpecialContactIds.value = prefs.getString(graphSpecialContactIds.key, "") ?: ""
+        graphAutoReplyKeywords.value = prefs.getString(graphAutoReplyKeywords.key, "") ?: ""
+        graphAutoReplyStart.value = prefs.getInt(graphAutoReplyStart.key, 0)
+        graphAutoReplyEnd.value = prefs.getInt(graphAutoReplyEnd.key, 0)
+        graphAutoReplyCooldown.value = prefs.getInt(graphAutoReplyCooldown.key, 2)
         graphVoiceEffect.value = prefs.getInt(graphVoiceEffect.key, 0)
         graphDownloadWindowStart.value = prefs.getInt(graphDownloadWindowStart.key, 1)
         graphDownloadWindowEnd.value = prefs.getInt(graphDownloadWindowEnd.key, 6)
