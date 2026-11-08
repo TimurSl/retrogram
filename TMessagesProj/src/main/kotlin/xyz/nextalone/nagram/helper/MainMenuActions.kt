@@ -105,6 +105,10 @@ object MainMenuActions {
                     fragment.parentActivity,
                     org.telegram.messenger.LocaleController.getString(org.telegram.messenger.R.string.TelegramFeaturesUrl)
                 )
+            id == DrawerLayoutAdapter.nkbtnDownloads ->
+                (fragment as? org.telegram.ui.DialogsActivity
+                    ?: fragment.getParentLayout()?.getFragmentStack()?.firstOrNull { it is org.telegram.ui.DialogsActivity } as? org.telegram.ui.DialogsActivity)
+                    ?.openDownloads()
             id == DrawerLayoutAdapter.nkbtnWallet ->
                 fragment.presentFragment(org.telegram.ui.Wallet.WalletActivity())
             id == DrawerLayoutAdapter.nkbtnRestartApp -> AppRestartHelper.triggerRebirth(

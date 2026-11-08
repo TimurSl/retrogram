@@ -83,6 +83,9 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 - [ ] Settings → Retrogram → Show or hide hidden chats → PIN: the chat is back; going to the background hides it again. Unhide chat from its menu (PIN) puts it back for good
 - [ ] Note any place it still shows (search, folders' unread counters, app badge) and send it back
 
+**Downloads drawer entry**
+- [ ] Drawer editor (long-press the drawer header or Settings → Retrogram/Drawer): add "Downloads"; tapping it opens the search screen on the Downloads tab; pause/resume an active file and "Pause all"
+
 **Classic theme colors (switch on, restart, theme "Blue" / default)**
 - [ ] Chat list: blue action bar with white icons and title, white status text; search icon; folder tabs
 - [ ] Chat screen action bar, profile and settings pages, sheets and dialogs: nothing unreadable (dark text on dark, white on white)

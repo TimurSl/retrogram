@@ -7798,6 +7798,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         }
     }
 
+    /** Opens the search screen on its Downloads tab (the same as the downloads button in the action bar). Used by the drawer entry. */
+    public void openDownloads() {
+        showSearch(true, true, true);
+        fragmentSearchFieldWatcher.toggleSearch(true);
+    }
+
     private void showSearch(boolean show, boolean startFromDownloads, boolean animated) {
         showSearch(show, startFromDownloads, animated, false);
     }

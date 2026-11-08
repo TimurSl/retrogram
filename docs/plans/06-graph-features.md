@@ -89,11 +89,18 @@ Graph-style hidden chats.
 > Locked ids are stored per account. **Not covered:** the chat stays visible in the chat list with its last message (hiding is WP 6.2); chats shown as bottom sheets, widgets, share targets, and the notification's
 > reply action; a locked chat is let through if no PIN exists; no biometric; message storage is not encrypted.
 
-> **WP 6.2 wiring (2026-11-08, written, not build-verified, never run on a device):** Settings → Retrogram → "Extra features": "Hidden chats (experimental)" (off by default) and "Show or hide hidden chats".
+> **WP 6.2 wiring (2026-11-08, build-verified in CI run 35, never run on a device):** Settings → Retrogram → "Extra features": "Hidden chats (experimental)" (off by default) and "Show or hide hidden chats".
 > With it on, a chat's menu has "Hide chat" / "Unhide chat". `DialogsActivity.getDialogsArray` is now a wrapper that calls `HiddenChats.filter` (a filtered copy, or the original list when nothing is hidden, the feature is off or
 > chats are revealed); the old body is `getDialogsArrayUnfiltered`. Everything that builds the chat list, folder tabs and the forward/share picker goes through it. Revealing asks for the chat-lock PIN (the same PIN as WP 6.1)
 > and lasts until the app goes to the background; unhiding also asks for it. Hidden chats keep receiving messages; notification text for them reads "New message" (`ChatLockGate.shouldRedact`). **Not covered:** global search results,
 > contacts, the archive, widgets, unread-count badges of folders (they still count hidden chats), the app-icon badge, and calls. Hide + lock the same chat if opening it directly (a link) must also be gated.
+
+> **WP 6.5 finding and first step (2026-11-08, from reading `SearchDownloadsContainer`, `DialogsActivity`; written, not build-verified, never run on a device):** the plan's "`DownloadsActivity` listing `FileLoader` operations
+> with pause/resume" **already exists upstream**: the Downloads tab of the search screen (`SearchDownloadsContainer`, fed by `DownloadController.downloadingFiles` / `recentDownloadingFiles`) lists active and recent downloads,
+> pauses an item with `FileLoader.cancelLoadFile(document)` (the partial file is kept) and resumes it with `loadFile(...)`, and has "Pause all / Resume all". So pause/resume needs no new code and the open question above is answered
+> (cancel without delete is Telegram's own pause). Done: a **"Downloads" drawer entry** (`nkbtnDownloads` = 1017; available in the drawer layout editor, not in the default layout) that opens that tab through the new
+> `DialogsActivity.openDownloads()`. **Still open for 6.5:** Wi-Fi-only / scheduled downloads (`DownloadQueuePolicy` rules are the design; Telegram's own auto-download presets cover Wi-Fi vs mobile for automatic downloads but not for
+> manual ones), bulk "save to Downloads" (SAF/MediaStore), and the per-item size/queue-order view.
 
 Reuse as-is (no work beyond toggles/doc): 10 accounts, themes, player, ghost mode, anti-delete/edit history, forward without quote.
 

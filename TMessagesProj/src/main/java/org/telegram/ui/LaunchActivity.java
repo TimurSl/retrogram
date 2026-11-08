@@ -1960,6 +1960,14 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             }
             Browser.openUrl(LaunchActivity.this, LocaleController.getString(R.string.TelegramFeaturesUrl));
             drawerLayoutContainer.closeDrawer(false);
+        } else if (id == DrawerLayoutAdapter.nkbtnDownloads) {
+            for (BaseFragment f : actionBarLayout.getFragmentStack()) {
+                if (f instanceof DialogsActivity) {
+                    ((DialogsActivity) f).openDownloads();
+                    break;
+                }
+            }
+            drawerLayoutContainer.closeDrawer(false);
         } else if (id == DrawerLayoutAdapter.nkbtnWallet) {
             presentFragment(new org.telegram.ui.Wallet.WalletActivity());
             drawerLayoutContainer.closeDrawer(false);
