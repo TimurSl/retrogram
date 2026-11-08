@@ -94,4 +94,31 @@ public class VoiceEffectsTest {
         VoiceEffects.echo(in, RATE, 50, 0.4, 2);
         assertArrayEquals(copy, in);
     }
+
+    @Test
+    public void applyOffIsIdentityAndEchoOnlyExtendsTheFinalSegment() {
+        final short[] in = sine(500, 4000, 6000);
+        assertArrayEquals(in, VoiceEffects.apply(VoiceEffects.EFFECT_OFF, in, RATE, true, 0));
+        assertEquals(in.length, VoiceEffects.apply(VoiceEffects.EFFECT_ECHO, in, RATE, false, 0).length);
+        assertTrue(VoiceEffects.apply(VoiceEffects.EFFECT_ECHO, in, RATE, true, 0).length > in.length);
+    }
+
+    @Test
+    public void robotVoiceIsContinuousAcrossSegments() {
+        final short[] in = sine(700, 3200, 8000);
+        final short[] whole = VoiceEffects.apply(VoiceEffects.EFFECT_ROBOT, in, RATE, true, 0);
+        final short[] a = VoiceEffects.apply(VoiceEffects.EFFECT_ROBOT, java.util.Arrays.copyOfRange(in, 0, 1000), RATE, false, 0);
+        final short[] b = VoiceEffects.apply(VoiceEffects.EFFECT_ROBOT, java.util.Arrays.copyOfRange(in, 1000, 3200), RATE, true, 1000);
+        final short[] joined = new short[whole.length];
+        System.arraycopy(a, 0, joined, 0, a.length);
+        System.arraycopy(b, 0, joined, a.length, b.length);
+        assertArrayEquals(whole, joined);
+    }
+
+    @Test
+    public void higherAndDeeperVoicesKeepLength() {
+        final short[] in = sine(400, 8000, 8000);
+        assertEquals(in.length, VoiceEffects.apply(VoiceEffects.EFFECT_HIGHER, in, RATE, true, 0).length);
+        assertEquals(in.length, VoiceEffects.apply(VoiceEffects.EFFECT_DEEPER, in, RATE, true, 0).length);
+    }
 }

@@ -75,34 +75,13 @@ Graph-style hidden chats.
 > Changes are written to a 200-line text log in the `retro_contact_log` SharedPreferences (newest first). Changing the id list resets the baselines. Not done: SQLite store, notifications, a drawer screen, picking
 > contacts from a list instead of typing ids, and per-user options. The user must already receive updates for the id (shared chat or contact); Telegram's "last seen" privacy can hide status.
 
-> **WP 6.4 wiring: findings only (2026-11-08, from reading `MediaController`).** The recorder reads 16-bit PCM in `recordRunnable` in chunks of `recordBufferSize` and hands each chunk straight to the
-> `fileEncodingQueue`, which feeds the native Opus encoder through `writeFrame(...)`; the file is complete when `stopRecord()` runs. So (1) echo and ring modulation could be applied per chunk with state carried
-> between chunks, but `VoiceEffects` works on whole arrays today and the pitch shifter (WSOLA) needs overlap state across chunk boundaries; (2) the straightforward design is to keep the raw PCM in memory while an
-> effect is selected (48 kHz mono 16-bit is about 5.8 MB per minute), run `VoiceEffects` once at stop, and only then call `writeFrame`, which also gives the "preview before send" step. That moves encoding
-> from during to after recording, so the stop/send paths (`stopRecordingInternal`, `sendAfterDone*`) and the waveform/duration bookkeeping (`recordTimeCount`, `recordSamples`) must be reworked and tested on a device.
-> A post-recording alternative was also checked and rejected for now: `stopRecordingInternal` ends with the finished Ogg/Opus file (`recordingAudioFileToSend`, after `joinRecord`), but no Java-callable Opus-to-PCM decoder exists
-> in the app (playback goes through the media player, and `MediaController` only exposes `cropOpusFile`, `joinOpusFiles`, `isOpusFile`), so decoding would need `MediaExtractor`/`MediaCodec` plus a re-encode through the recorder natives.
-> Not wired for that reason; a chunk-streaming variant of `VoiceEffects` is the other option if the in-memory approach is too slow or too large.
-
-> **WP 6.1 wiring (2026-11-08, build-verified in CI run 34, never run on a device):** Settings → Retrogram → "Extra features": "Per-chat lock (experimental)" (off by default) and "Set chat lock PIN"
-> (at least 4 digits; salted SHA-256 in private preferences; no recovery, no biometrics). With it on, a chat's menu has "Lock chat" / "Unlock chat" (unlocking asks for the PIN). Hooks:
-> `ActionBarLayout.presentFragment` calls `ChatLockGate.intercept` first, so every normal way to open a `ChatActivity` (list, search, notifications opened in the app, links) shows a PIN dialog and presents the
-> chat after a correct PIN; `LaunchActivity.onPause` relocks everything; `NotificationsController.getStringForMessage` returns "New message" for locked chats. Decisions are `ChatLockPolicy` (60 s relock timeout).
-> Locked ids are stored per account. **Not covered:** the chat stays visible in the chat list with its last message (hiding is WP 6.2); chats shown as bottom sheets, widgets, share targets, and the notification's
-> reply action; a locked chat is let through if no PIN exists; no biometric; message storage is not encrypted.
-
-> **WP 6.2 wiring (2026-11-08, build-verified in CI run 35, never run on a device):** Settings → Retrogram → "Extra features": "Hidden chats (experimental)" (off by default) and "Show or hide hidden chats".
-> With it on, a chat's menu has "Hide chat" / "Unhide chat". `DialogsActivity.getDialogsArray` is now a wrapper that calls `HiddenChats.filter` (a filtered copy, or the original list when nothing is hidden, the feature is off or
-> chats are revealed); the old body is `getDialogsArrayUnfiltered`. Everything that builds the chat list, folder tabs and the forward/share picker goes through it. Revealing asks for the chat-lock PIN (the same PIN as WP 6.1)
-> and lasts until the app goes to the background; unhiding also asks for it. Hidden chats keep receiving messages; notification text for them reads "New message" (`ChatLockGate.shouldRedact`). **Not covered:** global search results,
-> contacts, the archive, widgets, unread-count badges of folders (they still count hidden chats), the app-icon badge, and calls. Hide + lock the same chat if opening it directly (a link) must also be gated.
-
-> **WP 6.5 finding and first step (2026-11-08, from reading `SearchDownloadsContainer`, `DialogsActivity`; drawer entry build-verified in CI run 36, never run on a device):** the plan's "`DownloadsActivity` listing `FileLoader` operations
-> with pause/resume" **already exists upstream**: the Downloads tab of the search screen (`SearchDownloadsContainer`, fed by `DownloadController.downloadingFiles` / `recentDownloadingFiles`) lists active and recent downloads,
-> pauses an item with `FileLoader.cancelLoadFile(document)` (the partial file is kept) and resumes it with `loadFile(...)`, and has "Pause all / Resume all". So pause/resume needs no new code and the open question above is answered
-> (cancel without delete is Telegram's own pause). Done: a **"Downloads" drawer entry** (`nkbtnDownloads` = 1017; available in the drawer layout editor, not in the default layout) that opens that tab through the new
-> `DialogsActivity.openDownloads()`. **Still open for 6.5:** Wi-Fi-only / scheduled downloads (`DownloadQueuePolicy` rules are the design; Telegram's own auto-download presets cover Wi-Fi vs mobile for automatic downloads but not for
-> manual ones), bulk "save to Downloads" (SAF/MediaStore), and the per-item size/queue-order view.
+> **WP 6.4 wiring (2026-11-08, written, JVM-tested DSP, not build-verified, never run on a device; supersedes the earlier "findings only" note):** Settings → Retrogram → "Extra features": "Voice changer (experimental)" with
+> Off (default) / Robot / Echo / Higher voice / Deeper voice, read when a recording starts. With an effect selected, `MediaController.recordRunnable` no longer sends each PCM chunk to the Opus encoder; the chunk goes to a
+> bounded buffer (`bufferForEffect`, at most 30 s = 2.9 MB), which `flushEffect` runs through `VoiceEffects.apply` and writes to the already-open encoder with `writeFrame` in 20 ms frames (zero-padded last frame). Full
+> segments flush while recording; the rest flushes in `stopRecordingInternal` before `stopRecord()` and, on pause, through `postAfterEffectFlush` before the pause path's `stopRecord()` / `joinRecord`. Recording time keeps counting as before
+> (echo adds its tail to `recordTimeCount` on the last segment). Cancelling drops the buffer. The robot carrier keeps its phase across segments (tested); pitch shift and echo are processed per segment, so a faint seam every 30 s is possible on very long
+> notes, and echo tails are cut at segment seams. The existing "locked recording, send as preview" flow uses the processed file, so it doubles as the preview. **Risks to check on a device:** CPU/battery (pitch shift is a plain WSOLA with a
+> correlation search, unoptimised; SM6375 is unmeasured), sound quality by ear, pause/resume, cancel, very short notes, the round-video recorder (not touched). No separate "preview effect before recording" screen was built.
 
 Reuse as-is (no work beyond toggles/doc): 10 accounts, themes, player, ghost mode, anti-delete/edit history, forward without quote.
 

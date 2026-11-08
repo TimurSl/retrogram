@@ -102,6 +102,12 @@ object RetroConfig {
     @JvmField
     val graphHiddenChats = ConfigItem("RetroGraphHiddenChats", ConfigItem.configTypeBool, false)
 
+    /**
+     * Voice changer (WP 6.4): 0 off, 1 robot, 2 echo, 3 higher, 4 deeper. Applied to voice notes while recording (read when a recording starts). An int item, read in [init].
+     */
+    @JvmField
+    val graphVoiceEffect = ConfigItem("RetroGraphVoiceEffect", ConfigItem.configTypeInt, 0)
+
     private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings, classicInput, classicChatHeader, classicEmojiPanel, classicRoundButtons, classicColors, graphAutoReply, graphSpecialContacts, graphChatLock, graphHiddenChats)
 
     // Snapshot taken once per process. Until init() runs, behave like the defaults.
@@ -139,6 +145,7 @@ object RetroConfig {
         load { key, default -> prefs.getBoolean(key, default) }
         graphAutoReplyText.value = prefs.getString(graphAutoReplyText.key, "") ?: ""
         graphSpecialContactIds.value = prefs.getString(graphSpecialContactIds.key, "") ?: ""
+        graphVoiceEffect.value = prefs.getInt(graphVoiceEffect.key, 0)
         captureColdStart()
         RetroShell.applyForcedConfig()
     }

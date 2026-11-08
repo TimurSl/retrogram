@@ -13,7 +13,7 @@ and an acceptance check.
 | [03-profile-settings.md](03-profile-settings.md) | 3 — old profile and settings | after Phase 1 |
 | [04-global-sweep.md](04-global-sweep.md) | 4 — blur3 choke point, remaining glass, `glass-guard.sh` | spike can start after 0.1 |
 | [05-feature-audit.md](05-feature-audit.md) | 5 — 12.2 → 13.1.1 feature matrix | can start after 0.1 |
-| [06-graph-features.md](06-graph-features.md) | 6 — Graph Messenger features, clean-room | spec step needs a phone; built from the plan's own designs, all off by default, CI-compiled, not run on a device: 6.1 chat lock, 6.2 hidden chats, 6.3 auto-reply, 6.6 special contacts log (+ JVM-tested cores for 6.4 voice effects and 6.5 queue rules); 6.5 reuses Telegram's Downloads tab via a drawer entry; 6.4 not wired (recorder rework) |
+| [06-graph-features.md](06-graph-features.md) | 6 — Graph Messenger features, clean-room | spec step needs a phone; built from the plan's own designs, all off by default, CI-compiled, not run on a device: 6.1 chat lock, 6.2 hidden chats, 6.3 auto-reply, 6.6 special contacts log (+ JVM-tested cores for 6.4 voice effects and 6.5 queue rules); 6.4 voice changer (recorder buffers PCM per segment); 6.5 reuses Telegram's Downloads tab via a drawer entry |
 | [07-validation-and-sync.md](07-validation-and-sync.md) | 7 + 8 — POCO gate, upstream sync | continuous |
 
 ## What was checked against the pinned code

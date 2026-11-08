@@ -46,6 +46,13 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
     private final AbstractConfigCell graphChatLockPinRow = cellGroup.appendCell(new tw.nekomimi.nekogram.config.cell.ConfigCellText("RetroGraphChatLockSetPin", () -> app.retrogram.graph.ChatLockGate.showSetPin(getParentActivity())));
     private final AbstractConfigCell graphHiddenChatsRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.graphHiddenChats, getString(R.string.RetroGraphHiddenChatsInfo)));
     private final AbstractConfigCell graphHiddenChatsRevealRow = cellGroup.appendCell(new tw.nekomimi.nekogram.config.cell.ConfigCellText("RetroGraphHiddenChatsReveal", () -> app.retrogram.graph.HiddenChats.toggleReveal(getParentActivity(), currentAccount)));
+    private final AbstractConfigCell graphVoiceEffectRow = cellGroup.appendCell(new tw.nekomimi.nekogram.config.cell.ConfigCellSelectBox("RetroGraphVoiceEffect", RetroConfig.graphVoiceEffect, new String[]{
+            getString(R.string.RetroGraphVoiceEffectOff),
+            getString(R.string.RetroGraphVoiceEffectRobot),
+            getString(R.string.RetroGraphVoiceEffectEcho),
+            getString(R.string.RetroGraphVoiceEffectHigher),
+            getString(R.string.RetroGraphVoiceEffectDeeper),
+    }, null));
     private final AbstractConfigCell dividerInterface = cellGroup.appendCell(new ConfigCellDivider());
 
     public RetrogramSettingsActivity() {
@@ -72,7 +79,8 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
                 && !RetroConfig.graphSpecialContacts.getKey().equals(key)
                 && !RetroConfig.graphSpecialContactIds.getKey().equals(key)
                 && !RetroConfig.graphChatLock.getKey().equals(key)
-                && !RetroConfig.graphHiddenChats.getKey().equals(key)) {
+                && !RetroConfig.graphHiddenChats.getKey().equals(key)
+                && !RetroConfig.graphVoiceEffect.getKey().equals(key)) {
                 tooltip.showWithAction(0, UndoView.ACTION_NEED_RESTART, null, null);
             }
         };

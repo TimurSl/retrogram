@@ -1148,6 +1148,81 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
 
     private ArrayList<ByteBuffer> recordBuffers = new ArrayList<>();
     private ByteBuffer fileBuffer;
+
+    // Voice changer (WP 6.4): while an effect is selected the recorded PCM is collected here (in segments of at most EFFECT_SEGMENT_BYTES),
+    // run through app.retrogram.graph.VoiceEffects and only then handed to the Opus encoder. Touched on fileEncodingQueue only, except being set at record start.
+    private static final int EFFECT_SEGMENT_BYTES = 48000 * 2 * 30;
+    private volatile java.io.ByteArrayOutputStream effectPcm;
+    private volatile int effectKind;
+    private long effectSamplesDone;
+
+    private void beginEffectCapture() {
+        effectKind = app.retrogram.RetroConfig.graphVoiceEffect.Int();
+        effectSamplesDone = 0;
+        effectPcm = effectKind != app.retrogram.graph.VoiceEffects.EFFECT_OFF ? new java.io.ByteArrayOutputStream() : null;
+    }
+
+    private void bufferForEffect(ByteBuffer buffer) {
+        final java.io.ByteArrayOutputStream out = effectPcm;
+        if (out == null) {
+            return;
+        }
+        final byte[] tmp = new byte[buffer.remaining()];
+        buffer.get(tmp);
+        out.write(tmp, 0, tmp.length);
+        recordTimeCount += tmp.length / 2 / (sampleRate / 1000);
+        writtenFrame++;
+        if (out.size() >= EFFECT_SEGMENT_BYTES) {
+            flushEffect(false);
+        }
+    }
+
+    /** Runs the effect over the collected PCM and writes it to the encoder. On fileEncodingQueue. */
+    private void flushEffect(boolean finalSegment) {
+        final java.io.ByteArrayOutputStream collected = effectPcm;
+        if (collected == null || collected.size() < 2) {
+            return;
+        }
+        try {
+            final byte[] bytes = collected.toByteArray();
+            collected.reset();
+            final short[] pcm = new short[bytes.length / 2];
+            ByteBuffer.wrap(bytes).order(ByteOrder.nativeOrder()).asShortBuffer().get(pcm);
+            final short[] processed = app.retrogram.graph.VoiceEffects.apply(effectKind, pcm, sampleRate, finalSegment, effectSamplesDone);
+            effectSamplesDone += pcm.length;
+            fileBuffer.order(ByteOrder.nativeOrder());
+            final int frameSamples = fileBuffer.capacity() / 2;
+            for (int i = 0; i < processed.length; i += frameSamples) {
+                fileBuffer.rewind();
+                final int n = Math.min(frameSamples, processed.length - i);
+                for (int j = 0; j < frameSamples; j++) {
+                    fileBuffer.putShort(j < n ? processed[i + j] : 0);
+                }
+                fileBuffer.rewind();
+                if (writeFrame(fileBuffer, frameSamples * 2) == 0) {
+                    FileLog.e("writing effect frame failed");
+                }
+            }
+            fileBuffer.rewind();
+            if (processed.length > pcm.length) {
+                recordTimeCount += (processed.length - pcm.length) * 1000L / sampleRate;
+            }
+        } catch (Throwable t) {
+            FileLog.e(t);
+        }
+    }
+
+    /** Posts {@code r} on recordQueue, after the effect buffer has been flushed when an effect is active. */
+    private void postAfterEffectFlush(Runnable r) {
+        if (effectPcm == null) {
+            recordQueue.postRunnable(r);
+            return;
+        }
+        fileEncodingQueue.postRunnable(() -> {
+            flushEffect(true);
+            recordQueue.postRunnable(r);
+        });
+    }
     public int recordBufferSize = 1280;
     public int sampleRate = 48000;
     private int sendAfterDone;
@@ -1223,6 +1298,11 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                     final ByteBuffer finalBuffer = buffer;
                     final boolean flush = len != buffer.capacity();
                     fileEncodingQueue.postRunnable(() -> {
+                        if (effectPcm != null) {
+                            bufferForEffect(finalBuffer);
+                            recordQueue.postRunnable(() -> recordBuffers.add(finalBuffer));
+                            return;
+                        }
                         while (finalBuffer.hasRemaining()) {
                             int oldLimit = -1;
                             if (finalBuffer.remaining() > fileBuffer.remaining()) {
@@ -5187,7 +5267,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                 audioRecorder.stop();
                 audioRecorder.release();
                 audioRecorder = null;
-                recordQueue.postRunnable(() -> {
+                postAfterEffectFlush(() -> {
                     stopRecord();
                     final TLRPC.TL_document audioToSend = recordingAudio;
                     final File recordingAudioFileToSend = joinRecord(recordingPrevAudioFile, recordingAudioFile, audioToSend);
@@ -5241,6 +5321,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                         }
                         return;
                     }
+                    beginEffectCapture();
 
                     AndroidUtilities.runOnUIThread(() -> {
                         requestRecordAudioFocus(true);
@@ -5347,6 +5428,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                     }
                     return;
                 }
+                beginEffectCapture();
 
                 audioRecorderPaused = false;
                 audioRecorder = new AudioRecord(MediaRecorder.AudioSource.DEFAULT, sampleRate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, recordBufferSize);
@@ -5489,6 +5571,8 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                 FileLog.d("stop recording internal filename " + (recordingAudioFile.getPath()));
             }
             fileEncodingQueue.postRunnable(() -> {
+                flushEffect(true);
+                effectPcm = null;
                 stopRecord();
                 final File recordingAudioFileToSend = joinRecord(recordingPrevAudioFileToSend_, recordingAudioFileToSend_, audioToSend);
                 if (recordingAudioFileToSend == null) {
@@ -5544,6 +5628,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                 });
             });
         } else {
+            effectPcm = null;
             AutoDeleteMediaTask.unlockFile(recordingAudioFile);
             if (recordingAudioFile != null) {
                 recordingAudioFile.delete();

@@ -85,6 +85,12 @@
     <string name="RetroGraphHiddenChatsUnhidden">Chat is shown in the list again</string>
     <string name="RetroGraphHiddenChatsShown">Hidden chats are shown until you leave the app</string>
     <string name="RetroGraphHiddenChatsHiddenAgain">Hidden chats are hidden again</string>
+    <string name="RetroGraphVoiceEffect">Voice changer (experimental)</string>
+    <string name="RetroGraphVoiceEffectOff">Off</string>
+    <string name="RetroGraphVoiceEffectRobot">Robot</string>
+    <string name="RetroGraphVoiceEffectEcho">Echo</string>
+    <string name="RetroGraphVoiceEffectHigher">Higher voice</string>
+    <string name="RetroGraphVoiceEffectDeeper">Deeper voice</string>
     <string name="RetroClassicColors">Classic theme colors (experimental)</string>
     <string name="RetroClassicColorsInfo">Telegram 12.1.1 colors for the default theme: blue action bar with white icons and the older text and link colors. Applied after restart. Dark themes are mostly unaffected.</string>
     <string name="RetroClassicSettingsInfo">Open Settings as the classic profile page of Telegram 12.1.1 instead of the new Settings screen. Takes effect the next time you open Settings.</string>

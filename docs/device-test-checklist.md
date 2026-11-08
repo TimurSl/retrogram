@@ -86,6 +86,10 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 **Downloads drawer entry**
 - [ ] Drawer editor (long-press the drawer header or Settings → Retrogram/Drawer): add "Downloads"; tapping it opens the search screen on the Downloads tab; pause/resume an active file and "Pause all"
 
+**Voice changer (Extra features)**
+- [ ] Pick Robot, record a short voice note and send it: plays back as a robot voice at normal speed and length; repeat with Echo (tail after the last word), Higher and Deeper
+- [ ] Pause and resume while recording, lock-record then preview before sending, and cancel: no crash, no garbage audio; a 2-minute note; note any phone heat or lag while recording
+
 **Classic theme colors (switch on, restart, theme "Blue" / default)**
 - [ ] Chat list: blue action bar with white icons and title, white status text; search icon; folder tabs
 - [ ] Chat screen action bar, profile and settings pages, sheets and dialogs: nothing unreadable (dark text on dark, white on white)

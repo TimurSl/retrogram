@@ -22,12 +22,46 @@ public final class VoiceEffects {
 
     /** "Robot": multiplies the signal by a sine carrier. */
     public static short[] ringModulate(short[] in, int sampleRate, double carrierHz) {
+        return ringModulate(in, sampleRate, carrierHz, 0);
+    }
+
+    /** Same, for a segment that starts {@code startSample} samples into the recording, so the carrier phase continues across segments. */
+    public static short[] ringModulate(short[] in, int sampleRate, double carrierHz, long startSample) {
         final short[] out = new short[in.length];
         final double step = 2 * Math.PI * carrierHz / sampleRate;
         for (int i = 0; i < in.length; i++) {
-            out[i] = clip(in[i] * Math.sin(step * i));
+            out[i] = clip(in[i] * Math.sin(step * (startSample + i)));
         }
         return out;
+    }
+
+    public static final int EFFECT_OFF = 0;
+    public static final int EFFECT_ROBOT = 1;
+    public static final int EFFECT_ECHO = 2;
+    public static final int EFFECT_HIGHER = 3;
+    public static final int EFFECT_DEEPER = 4;
+
+    /**
+     * One entry point for the recorder: applies the selected effect to one segment of a recording.
+     *
+     * @param finalSegment the last segment of the recording; only then may the echo tail extend the audio. Earlier segments keep their length
+     * @param startSample  samples already processed before this segment (carrier phase for the robot voice)
+     */
+    public static short[] apply(int effect, short[] segment, int sampleRate, boolean finalSegment, long startSample) {
+        switch (effect) {
+            case EFFECT_ROBOT:
+                return ringModulate(segment, sampleRate, 55, startSample);
+            case EFFECT_ECHO: {
+                final short[] withTail = echo(segment, sampleRate, 220, 0.45, 2);
+                return finalSegment ? withTail : java.util.Arrays.copyOf(withTail, segment.length);
+            }
+            case EFFECT_HIGHER:
+                return pitchShift(segment, sampleRate, 1.35);
+            case EFFECT_DEEPER:
+                return pitchShift(segment, sampleRate, 0.75);
+            default:
+                return segment;
+        }
     }
 
     /**
