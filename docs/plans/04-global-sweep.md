@@ -86,7 +86,11 @@ Per screen: before/after screenshots in `docs/sweep/`.
 > `SharedMediaLayout`; with the switch on (renamed "Classic sheets and panels") its clip path and background are square and run edge to edge (`checkBoundsAndClipping`, side extension and radius 0, the 7dp drawable inset of the four creators compensated).
 > **Read through, nothing changed:** `SelectAudioAlert` (only a search field and list; no floating bar), `StarGiftPreviewSheet` (its one pill is the tab selector, kept), `StatisticActivity` (`tabsView` pill, same pattern as `BookmarkManagerActivity`'s
 > `tabsContainer`), `PeerColorActivity` (bottom fade + button container, a bottom-bar candidate), `PhotoViewer` (glass round buttons built with `iBlur3FactoryFrostedLiquidGlass`, flat after WP 4.1; shape stays round), `ContactsActivity` and
-> `ChannelAdminLogActivity` (no own glass factories). These are listed as candidates for the next device round, one by one against screenshots. Next candidates are `StatisticActivity`/`BookmarkManagerActivity` tab pills (`docs/sweep/` stays empty until screenshots exist).
+> `ChannelAdminLogActivity` (no own glass factories). These are listed as candidates for the next device round, one by one against screenshots.
+> **Tab bars and bottom bars (2026-11-08, written, not build-verified), same switch:** `StatisticActivity`'s bottom tab bar (`MainTabsLayout`, which spreads its tabs over the width it gets) is full width with no rounding and no side padding
+> instead of the 328dp pill; `SearchTabsAndFiltersLayout` (shared by `BookmarkManagerActivity`, `ChatHistoryActivity` (recent chats) and the chat list's search filters) has a square clip path and forces radius/inset 0 on the background it is given
+> (`setBlurredBackground`), so those tab bars become flat strips; `PeerColorActivity`'s bottom button container is a solid bar instead of a fade over the list (the premium button itself keeps its pill shape). Not changed: the 4dp side margins around
+> `BookmarkManagerActivity`'s strip, the gift `Tabs` pill in `PeerColorActivity`. Next candidates (`docs/sweep/` stays empty until screenshots exist).
 
 ### WP 4.3 — Theme (M)
 > **Findings and first implementation (2026-11-07; checked by diffing, not yet seen on a device):**

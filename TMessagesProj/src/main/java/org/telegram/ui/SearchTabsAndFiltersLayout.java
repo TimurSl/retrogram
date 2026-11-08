@@ -24,8 +24,13 @@ public class SearchTabsAndFiltersLayout extends FrameLayout implements Theme.Col
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
         clipPath.rewind();
-        clipPath.addRoundRect(dp(9), dp(9), w - dp(9), h - dp(9),
-                dp(16), dp(16), Path.Direction.CW);
+        if (app.retrogram.RetroConfig.isClassicSheets()) {
+            // classic sheets and panels (WP 4.2): a flat full-width strip, no rounded clip
+            clipPath.addRect(0, 0, w, h, Path.Direction.CW);
+        } else {
+            clipPath.addRoundRect(dp(9), dp(9), w - dp(9), h - dp(9),
+                    dp(16), dp(16), Path.Direction.CW);
+        }
     }
 
     @Override
@@ -37,6 +42,10 @@ public class SearchTabsAndFiltersLayout extends FrameLayout implements Theme.Col
     }
 
     public void setBlurredBackground(BlurredBackgroundDrawable drawable) {
+        if (app.retrogram.RetroConfig.isClassicSheets()) {
+            drawable.setRadius(0);
+            drawable.setPadding(0);
+        }
         setBackground(blurredBackgroundDrawable = drawable);
     }
 

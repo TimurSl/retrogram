@@ -625,7 +625,10 @@ public class StatisticActivity extends BaseFragment implements NotificationCente
 
         tabs = tabViews.toArray(new GlassTabView[0]);
         tabsView = new MainTabsLayout(context, resourceProvider);
-        tabsView.setPadding(dp(DialogsActivity.MAIN_TABS_MARGIN + 4), dp(DialogsActivity.MAIN_TABS_MARGIN + 4), dp(DialogsActivity.MAIN_TABS_MARGIN + 4), dp(DialogsActivity.MAIN_TABS_MARGIN + 4));
+        // Classic sheets and panels (WP 4.2): full-width flat bottom bar instead of the 328dp floating pill
+        final boolean classicBar = app.retrogram.RetroConfig.isClassicSheets();
+        final int tabsSide = classicBar ? 0 : dp(DialogsActivity.MAIN_TABS_MARGIN + 4);
+        tabsView.setPadding(tabsSide, dp(DialogsActivity.MAIN_TABS_MARGIN + 4), tabsSide, dp(DialogsActivity.MAIN_TABS_MARGIN + 4));
 
         for (int index = 0; index < tabs.length; index++) {
             final GlassTabView view = tabs[index];
@@ -780,7 +783,7 @@ public class StatisticActivity extends BaseFragment implements NotificationCente
         contentLayout.addView(viewPagerFixed, LayoutHelper.createFrameMatchParent());
         contentLayout.addView(actionBar);
         if (showTabs) {
-            contentLayout.addView(tabsView, LayoutHelper.createFrame(328 + DialogsActivity.MAIN_TABS_MARGIN * 2, DialogsActivity.MAIN_TABS_HEIGHT_WITH_MARGINS, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL));
+            contentLayout.addView(tabsView, LayoutHelper.createFrame(app.retrogram.RetroConfig.isClassicSheets() ? LayoutHelper.MATCH_PARENT : 328 + DialogsActivity.MAIN_TABS_MARGIN * 2, DialogsActivity.MAIN_TABS_HEIGHT_WITH_MARGINS, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL));
             Bulletin.addDelegate(this, new Bulletin.Delegate() {
                 @Override
                 public int getBottomOffset(int tag) {
@@ -1046,8 +1049,8 @@ public class StatisticActivity extends BaseFragment implements NotificationCente
 
         if (tabViews != null) {
             BlurredBackgroundDrawable tabsViewBackground = iBlur3FactoryLiquidGlass.create(tabsView, BlurredBackgroundProviderImpl.mainTabs(resourceProvider));
-            tabsViewBackground.setRadius(dp(DialogsActivity.MAIN_TABS_HEIGHT / 2f));
-            tabsViewBackground.setPadding(dp(DialogsActivity.MAIN_TABS_MARGIN - 0.334f));
+            tabsViewBackground.setRadius(app.retrogram.RetroConfig.isClassicSheets() ? 0 : dp(DialogsActivity.MAIN_TABS_HEIGHT / 2f));
+            tabsViewBackground.setPadding(app.retrogram.RetroConfig.isClassicSheets() ? 0 : dp(DialogsActivity.MAIN_TABS_MARGIN - 0.334f));
             tabsView.setBackground(tabsViewBackground);
         }
 

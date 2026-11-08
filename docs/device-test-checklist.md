@@ -107,6 +107,9 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 **Top panels (classic sheets and panels on)**
 - [ ] Start a group call or play music, then open the chat list, Calls, a forum's topic list and a profile: the call/music bar under the action bar is a flat full-width strip, not a floating rounded card
 
+**Tab bars and bottom bars (classic sheets and panels on)**
+- [ ] Channel statistics: the bottom tab bar is full width and flat; Bookmarks and Recent chats (Nagram drawer entries): the tab strip under the action bar is flat; chat search with filters; Appearance → profile colors: the bottom button sits on a solid bar
+
 **Classic theme colors (switch on, restart, theme "Blue" / default)**
 - [ ] Chat list: blue action bar with white icons and title, white status text; search icon; folder tabs
 - [ ] Chat screen action bar, profile and settings pages, sheets and dialogs: nothing unreadable (dark text on dark, white on white)

@@ -1847,10 +1847,15 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
         buttonContainer = new FrameLayout(context);
         buttonContainer.addView(buttonContainerInternal, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48 + 8 + 8, Gravity.BOTTOM, 4, 0, 4, 0));
 
-        BlurredBackgroundWithFadeDrawable fade = new BlurredBackgroundWithFadeDrawable(iBlur3BackgroundFactory.create(buttonContainer));
-        fade.setFadeHeight(dp(40), true);
-        fade.setAlpha(220);
-        buttonContainer.setBackground(fade);
+        if (app.retrogram.RetroConfig.isClassicSheets()) {
+            // classic sheets and panels (WP 4.2): a solid bottom bar instead of a fade over the list
+            buttonContainer.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
+        } else {
+            BlurredBackgroundWithFadeDrawable fade = new BlurredBackgroundWithFadeDrawable(iBlur3BackgroundFactory.create(buttonContainer));
+            fade.setFadeHeight(dp(40), true);
+            fade.setAlpha(220);
+            buttonContainer.setBackground(fade);
+        }
         updateButtonState(false);
     }
 
