@@ -711,7 +711,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                                 break;
                             }
                             case "settings2": {
-                                actionBarLayout.addFragmentToStack(new SettingsActivity());
+                                actionBarLayout.addFragmentToStack(app.retrogram.RetroNav.settingsFragment());
                                 break;
                             }
                             case "group":

@@ -780,6 +780,9 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
                 return new ContactsActivity(args);
             }
             case SETTINGS: {
+                if (app.retrogram.RetroConfig.isClassicSettings()) {
+                    return app.retrogram.RetroNav.settingsFragment();
+                }
                 Bundle args = new Bundle();
                 args.putBoolean("hasMainTabs", shouldUseMainTabsPadding());
                 return new SettingsActivity(args);

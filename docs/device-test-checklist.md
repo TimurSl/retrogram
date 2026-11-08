@@ -21,6 +21,8 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 | Classic chat header (experimental) | off | chats opened afterwards |
 | Classic emoji panel (experimental) | off | chats opened afterwards |
 | Classic round buttons (experimental) | off | chats opened afterwards |
+| Classic profile tabs (experimental) | off | profiles opened afterwards |
+| Classic sheets (experimental) | off | sheets opened afterwards |
 | Classic theme colors (experimental) | off | after restart |
 
 ## Checks
@@ -92,6 +94,12 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 
 **Large files on Wi-Fi only (Extra features)**
 - [ ] On mobile data, tap download on a file of 25 MB or more: toast, nothing downloads; tap again: it starts. Hold another, switch to Wi-Fi: it starts by itself. On Wi-Fi, small files, videos you play and photos behave as before
+
+**Profile tabs (classic profile tabs on)**
+- [ ] Open a user, group and channel profile with media: full-width flat tab strip, underline under the selected tab, swipe between Media/Files/Links works, long tab lists scroll
+
+**Share sheet (classic sheets on)**
+- [ ] Share a message: the caption bar and the "Send" bar are flat and full width, keyboard open/close, selecting several chats, with and without a caption; note anything cut off or too tall
 
 **Classic theme colors (switch on, restart, theme "Blue" / default)**
 - [ ] Chat list: blue action bar with white icons and title, white status text; search icon; folder tabs

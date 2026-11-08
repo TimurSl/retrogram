@@ -76,6 +76,12 @@ CallLogActivity, TopicsFragment, PeerColorActivity, StatisticActivity, ChannelAd
 StarGiftPreviewSheet, NagramXF `BookmarkManagerActivity`, Bulletins, ItemOptions popups, `BlurSettingsBottomSheet`.
 Per screen: before/after screenshots in `docs/sweep/`.
 
+> **WP 4.2 first step (2026-11-08, written, not build-verified):** survey of the list by glass-line count (`ShareAlert` 69, `ChatAttachAlert` 146, `PhotoViewer` 75, `PeerColorActivity` 77, `BookmarkManagerActivity` 72,
+> `StatisticActivity` 69, `CallLogActivity` 58, `TopicsFragment` 59, `SelectAudioAlert` 55, `ChannelAdminLogActivity` 50, `ContactsActivity` 43, `StarGiftPreviewSheet` 39, `ItemOptions` 18; `Bulletin` and `BlurSettingsBottomSheet` 0).
+> Their backgrounds are already flat through WP 4.1; what is left is **geometry** (rounded pills with 9dp insets, fades). New opt-in switch **"Classic sheets (experimental)"** (Settings → Retrogram, off by default, applies to sheets opened
+> afterwards) with the share sheet first: caption bar, "Send" bar and timestamp bar lose their 22dp radius and 9dp insets, and the keyboard panel loses its 29dp top corners (`ShareAlert` ~1855-1880). The bottom fade is kept (it fades into
+> the opaque background). Next candidates are the same constants in `ChatAttachAlert`, `SelectAudioAlert` and `StarGiftPreviewSheet`, to be done one by one against owner screenshots (`docs/sweep/` stays empty until screenshots exist).
+
 ### WP 4.3 — Theme (M)
 > **Findings and first implementation (2026-11-07; checked by diffing, not yet seen on a device):**
 > - The plan's assumption was wrong: **no `key_chats_menu*` key was dropped.** Only 10 keys exist in 12.1.1 and not in 13.1.1 (attach-sheet colors

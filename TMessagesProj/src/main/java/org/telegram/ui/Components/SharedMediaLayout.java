@@ -3767,6 +3767,14 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                 setVisibleHeight(lastVisibleHeight);
             });
 
+            if (app.retrogram.RetroConfig.isClassicProfileTabs()) {
+                // 12.1.1 look: full-width flat strip with an underline selector (same 50dp height so the layout math is unchanged)
+                scrollSlidingTextTabStrip.setClassicStyle(true);
+                scrollSlidingTextTabStrip.setPadding(0, dp(7), 0, dp(7));
+                scrollSlidingTextTabStrip.setClipToPadding(false);
+                scrollSlidingTextTabStrip.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
+                addView(scrollSlidingTextTabStrip, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 50, Gravity.TOP));
+            } else {
             BlurredBackgroundDrawable filterTabsViewBackground = iBlur3FactoryLiquidGlass.create(scrollSlidingTextTabStrip, BlurredBackgroundProviderImpl.topPanel(resourcesProvider));
             filterTabsViewBackground.setRadius(dp(18));
             filterTabsViewBackground.setPadding(dp(6.666f));
@@ -3776,6 +3784,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
             scrollSlidingTextTabStrip.setBlurredBackground(filterTabsViewBackground);
             scrollSlidingTextTabStrip.setOpen(false);
             addView(scrollSlidingTextTabStrip, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 50, Gravity.CENTER_HORIZONTAL | Gravity.TOP, -2, 0, -2, 0));
+            }
             searchTagsList = new SearchTagsList(getContext(), profileActivity, profileActivity.getCurrentAccount(), includeSavedDialogs() ? 0 : dialog_id, resourcesProvider) {
                 @Override
                 protected boolean setFilter(ReactionsLayoutInBubble.VisibleReaction reaction) {

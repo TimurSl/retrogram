@@ -19,7 +19,6 @@ import org.telegram.ui.GroupCreateActivity
 import org.telegram.ui.LaunchActivity
 import org.telegram.ui.ProfileActivity
 import org.telegram.ui.SessionsActivity
-import org.telegram.ui.SettingsActivity
 import org.telegram.ui.web.WebBrowserSettings
 import org.telegram.ui.Adapters.DrawerLayoutAdapter
 import tw.nekomimi.nekogram.ChatHistoryActivity
@@ -70,7 +69,7 @@ object MainMenuActions {
                 fragment.presentFragment(CallLogActivity())
             id == DrawerMenuHelper.ID_SAVED -> openSavedMessages(fragment, currentAccount)
             id == DrawerMenuHelper.ID_SETTINGS ->
-                fragment.presentFragment(SettingsActivity())
+                fragment.presentFragment(app.retrogram.RetroNav.settingsFragment())
             id == DrawerMenuHelper.ID_MY_PROFILE -> {
                 val args = Bundle()
                 args.putLong("user_id", UserConfig.getInstance(currentAccount).clientUserId)

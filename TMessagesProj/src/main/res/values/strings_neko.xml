@@ -94,6 +94,10 @@
     <string name="RetroGraphWifiOnlyDownloads">Large files on Wi-Fi only (experimental)</string>
     <string name="RetroGraphWifiOnlyDownloadsInfo">Downloads you start by tapping a file of 25 MB or more wait until you are on Wi-Fi, then start by themselves. Tap the file again to download it over mobile data anyway. Videos you play, photos and automatic downloads are not affected. Off by default.</string>
     <string name="RetroGraphWifiOnlyHeld">Waiting for Wi-Fi. Tap again to download over mobile data.</string>
+    <string name="RetroClassicProfileTabs">Classic profile tabs (experimental)</string>
+    <string name="RetroClassicProfileTabsInfo">Flat full-width tab strip with an underline in profiles (Media, Files, Links, ...) instead of the floating rounded pill. Applies to profiles opened afterwards.</string>
+    <string name="RetroClassicSheets">Classic sheets (experimental)</string>
+    <string name="RetroClassicSheetsInfo">Flat full-width bars instead of floating rounded ones in bottom sheets. Covers the share sheet for now. Applies to sheets opened afterwards.</string>
     <string name="RetroClassicColors">Classic theme colors (experimental)</string>
     <string name="RetroClassicColorsInfo">Telegram 12.1.1 colors for the default theme: blue action bar with white icons and the older text and link colors. Applied after restart. Dark themes are mostly unaffected.</string>
     <string name="RetroClassicSettingsInfo">Open Settings as the classic profile page of Telegram 12.1.1 instead of the new Settings screen. Takes effect the next time you open Settings.</string>

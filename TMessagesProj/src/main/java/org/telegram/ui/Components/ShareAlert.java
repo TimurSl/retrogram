@@ -1854,29 +1854,33 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
 
         emojiViewChildBg = iBlur3FactoryFrostedLiquidGlass.create(sizeNotifierFrameLayout, BlurredBackgroundProviderImpl.inputFieldShareAlert(resourcesProvider));
         emojiViewChildBg.enableInAppKeyboardOptimization();
-        emojiViewChildBg.setRadius(dp(29), dp(29), 0, 0);
+        // Classic sheets (WP 4.2): flat full-width bars instead of the floating rounded pills
+        final boolean classicSheets = app.retrogram.RetroConfig.isClassicSheets();
+        final int pillRadius = classicSheets ? 0 : dp(22);
+        final int pillInset = classicSheets ? 0 : dp(9);
+        emojiViewChildBg.setRadius(classicSheets ? 0 : dp(29), classicSheets ? 0 : dp(29), 0, 0);
         emojiViewChildBg.setThickness(dp(32));
         emojiViewChildBg.setIntensity(0.4f);
 
         captionContainerBg = iBlur3FactoryLiquidGlass.create(frameLayout2, BlurredBackgroundProviderImpl.inputFieldShareAlert(resourcesProvider));
-        captionContainerBg.setRadius(dp(22));
-        captionContainerBg.setPadding(dp(9));
-        frameLayout2.setPadding(dp(9), dp(7), dp(9), dp(7));
+        captionContainerBg.setRadius(pillRadius);
+        captionContainerBg.setPadding(pillInset);
+        frameLayout2.setPadding(pillInset, classicSheets ? 0 : dp(7), pillInset, classicSheets ? 0 : dp(7));
 
         if (pickerBottomLayout != null) {
             BlurredBackgroundDrawable d = iBlur3FactoryLiquidGlass.create(pickerBottomLayout, BlurredBackgroundProviderImpl.inputFieldShareAlert(resourcesProvider));
-            d.setPadding(dp(9));
-            d.setRadius(dp(22));
+            d.setPadding(pillInset);
+            d.setRadius(pillRadius);
             pickerBottomLayout.setBackground(d);
-            pickerBottomLayout.setPadding(dp(9), dp(9), dp(9), dp(9));
+            pickerBottomLayout.setPadding(pillInset, pillInset, pillInset, pillInset);
         }
 
         if (timestampFrameLayout != null) {
             BlurredBackgroundDrawable d = iBlur3FactoryLiquidGlass.create(timestampFrameLayout, BlurredBackgroundProviderImpl.inputFieldShareAlert(resourcesProvider));
-            d.setPadding(dp(9));
-            d.setRadius(dp(22));
+            d.setPadding(pillInset);
+            d.setRadius(pillRadius);
             timestampFrameLayout.setBackground(d);
-            timestampFrameLayout.setPadding(dp(9), dp(9), dp(9), dp(9));
+            timestampFrameLayout.setPadding(pillInset, pillInset, pillInset, pillInset);
         }
 
         updateSelectedCount(0);

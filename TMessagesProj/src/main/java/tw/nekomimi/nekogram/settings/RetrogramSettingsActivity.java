@@ -35,6 +35,8 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
     private final AbstractConfigCell classicChatHeaderRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.classicChatHeader, getString(R.string.RetroClassicChatHeaderInfo)));
     private final AbstractConfigCell classicEmojiPanelRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.classicEmojiPanel, getString(R.string.RetroClassicEmojiPanelInfo)));
     private final AbstractConfigCell classicRoundButtonsRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.classicRoundButtons, getString(R.string.RetroClassicRoundButtonsInfo)));
+    private final AbstractConfigCell classicProfileTabsRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.classicProfileTabs, getString(R.string.RetroClassicProfileTabsInfo)));
+    private final AbstractConfigCell classicSheetsRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.classicSheets, getString(R.string.RetroClassicSheetsInfo)));
     private final AbstractConfigCell classicColorsRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.classicColors, getString(R.string.RetroClassicColorsInfo)));
     private final AbstractConfigCell headerGraph = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.RetroGraphFeatures)));
     private final AbstractConfigCell graphAutoReplyRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.graphAutoReply, getString(R.string.RetroGraphAutoReplyInfo)));
@@ -75,6 +77,8 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
                 && !RetroConfig.classicChatHeader.getKey().equals(key)
                 && !RetroConfig.classicEmojiPanel.getKey().equals(key)
                 && !RetroConfig.classicRoundButtons.getKey().equals(key)
+                && !RetroConfig.classicProfileTabs.getKey().equals(key)
+                && !RetroConfig.classicSheets.getKey().equals(key)
                 && !RetroConfig.graphAutoReply.getKey().equals(key)
                 && !RetroConfig.graphAutoReplyText.getKey().equals(key)
                 && !RetroConfig.graphSpecialContacts.getKey().equals(key)

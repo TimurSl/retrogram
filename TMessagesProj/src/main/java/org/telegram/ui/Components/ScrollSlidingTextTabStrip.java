@@ -100,6 +100,19 @@ public class ScrollSlidingTextTabStrip extends HorizontalScrollView implements T
     private GradientDrawable selectorDrawable;
 
     private int tabLineColorKey = Theme.key_actionBarTabLine;
+
+    // Classic profile tabs (WP 3.4): the 12.1.1 look, a flat strip with an underline-style selector instead of the 12.4 rounded pill. Off unless a screen asks for it.
+    private boolean classicStyle;
+
+    public void setClassicStyle(boolean classic) {
+        if (classicStyle == classic) {
+            return;
+        }
+        classicStyle = classic;
+        final float rad = AndroidUtilities.dpf2(14);
+        selectorDrawable.setCornerRadii(classic ? new float[]{rad, rad, rad, rad, 0, 0, 0, 0} : new float[]{rad, rad, rad, rad, rad, rad, rad, rad});
+        updateColors();
+    }
     private int activeTextColorKey = Theme.key_actionBarTabActiveText;
     private int unactiveTextColorKey = Theme.key_actionBarTabUnactiveText;
     private int selectorColorKey = Theme.key_actionBarTabSelector;
@@ -671,7 +684,11 @@ public class ScrollSlidingTextTabStrip extends HorizontalScrollView implements T
             );
         }
 //        selectorDrawable.setColor(processColor(Theme.getColor(tabLineColorKey, resourcesProvider)));
-        selectorDrawable.setColor(Theme.multAlpha(processColor(Theme.getColor(activeTextColorKey, resourcesProvider)), .15f));
+        if (classicStyle) {
+            selectorDrawable.setColor(processColor(Theme.getColor(tabLineColorKey, resourcesProvider)));
+        } else {
+            selectorDrawable.setColor(Theme.multAlpha(processColor(Theme.getColor(activeTextColorKey, resourcesProvider)), .15f));
+        }
         invalidate();
     }
 
@@ -763,13 +780,22 @@ public class ScrollSlidingTextTabStrip extends HorizontalScrollView implements T
 //                (int) r,
 //                height
 //            );
-            selectorDrawable.setBounds(
-                getPaddingLeft() + (int) l + dp(4),
-                getPaddingTop() + dp(4),
-                getPaddingLeft() + (int) r - dp(4),
-                height - getPaddingBottom() - dp(4)
-            );
-            if (NekoConfig.tabStyleStroke.Bool()) {
+            if (classicStyle) {
+                selectorDrawable.setBounds(
+                    getPaddingLeft() + (int) l,
+                    height - dp(4),
+                    getPaddingLeft() + (int) r,
+                    height
+                );
+            } else {
+                selectorDrawable.setBounds(
+                    getPaddingLeft() + (int) l + dp(4),
+                    getPaddingTop() + dp(4),
+                    getPaddingLeft() + (int) r - dp(4),
+                    height - getPaddingBottom() - dp(4)
+                );
+            }
+            if (NekoConfig.tabStyleStroke.Bool() && !classicStyle) {
                 selectorDrawable.setStroke(AndroidUtilities.dp(1), processColor(Theme.getColor(activeTextColorKey, resourcesProvider)));
             } else {
                 selectorDrawable.setStroke(0, 0);
