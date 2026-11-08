@@ -83,11 +83,14 @@ Graph-style hidden chats.
 > notes, and echo tails are cut at segment seams. The existing "locked recording, send as preview" flow uses the processed file, so it doubles as the preview. **Risks to check on a device:** CPU/battery (pitch shift is a plain WSOLA with a
 > correlation search, unoptimised; SM6375 is unmeasured), sound quality by ear, pause/resume, cancel, very short notes, the round-video recorder (not touched). No separate "preview effect before recording" screen was built.
 
-> **WP 6.5 remainder (2026-11-08, written, not build-verified, never run on a device): "Large files on Wi-Fi only (experimental)"** (Settings → Retrogram → Extra features, off by default). `FileLoader`'s private document `loadFile` first asks
+> **WP 6.5 remainder (2026-11-08, build-verified in CI run 38, never run on a device): "Large files on Wi-Fi only (experimental)"** (Settings → Retrogram → Extra features, off by default). `FileLoader`'s private document `loadFile` first asks
 > `app.retrogram.graph.WifiOnlyDownloads.maybeHold`: a document of 25 MB or more requested at normal or higher priority (a tap) while the phone is not on Wi-Fi is held with a toast ("Waiting for Wi-Fi. Tap again to download over mobile
 > data."), and `FileLoader.onNetworkChanged` starts the held downloads once Wi-Fi is connected. A second tap on a held file downloads it right away. Streaming, photos, stickers, voice notes, low-priority (auto) downloads and uploads are not
 > affected. The hold list is in memory only. **Decisions I took (change them if you disagree):** 25 MB threshold, fixed; the existing `DownloadQueuePolicy` rules (parallel limit, time window, roaming block) are *not* used by this hook yet;
-> a time-of-day schedule and bulk "save to Downloads" (SAF/MediaStore) are still not implemented.
+> a time-of-day schedule and bulk "save to Downloads" are not implemented, for these reasons. **Bulk save:** the chat's selection mode already has a multi-message "Save to downloads" / "Save to music" action
+> (`ChatActivity`, `saveItem`, ~20932), so saving many files at once from chats exists upstream; only saving from inside the Downloads tab itself is missing, which was judged not worth a second implementation without a spec. **Schedule:** a
+> window like "only 01:00-06:00" is only useful if downloads start while the app is not running, which needs a background alarm/WorkManager job plus a foreground service for large transfers (new permissions and battery behaviour); an in-process timer
+> dies with the app. The `DownloadQueuePolicy` window logic is ready for it if that is wanted later.
 
 Reuse as-is (no work beyond toggles/doc): 10 accounts, themes, player, ghost mode, anti-delete/edit history, forward without quote.
 
