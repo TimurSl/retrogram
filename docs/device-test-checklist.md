@@ -61,6 +61,9 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 - [ ] Page down, mentions and reactions buttons: solid circles with a soft shadow, counter badge still readable, icon visible in light and night themes
 - [ ] Reply / forward bar buttons when selecting messages, channel buttons (mute, discuss), loading spinner state on a button
 
+**Message list chrome (retro on)**
+- [ ] Sticky date pill while scrolling, "Unread messages" bar, service messages (joined, pinned) on a wallpaper: solid translucent pills like 12.1.1, light and night
+
 **Classic theme colors (switch on, restart, theme "Blue" / default)**
 - [ ] Chat list: blue action bar with white icons and title, white status text; search icon; folder tabs
 - [ ] Chat screen action bar, profile and settings pages, sheets and dialogs: nothing unreadable (dark text on dark, white on white)

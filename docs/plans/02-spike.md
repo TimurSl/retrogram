@@ -90,3 +90,10 @@ instances of `ChatActivityBlurredRoundButton` (page down / mentions / reactions 
 solid circle filled with `key_chat_messagePanelBackground` plus three faint rings as a hardware-safe shadow; the icon uses `key_chat_messagePanelIcons` instead of `key_glass_defaultIcon`.
 The 13.x theme no longer has the 12.1.1 `key_chat_goDownButton*` colors for these, so the panel colors stand in (white/dark panel, grey icons).
 Not covered: the counter badge keeps its own colors (`CounterView`); stacking of extra 13.x buttons ("live comments", AI) uses the same class, so they also turn solid.
+
+## WP 2.5: message list chrome — nothing to change (read from the code, 2026-11-08, not seen on a device)
+
+`grep -ci "blur3|BlurredBackground|GlassEngine|isLiquidGlass"` is 0 in `ChatMessageCell`, `ChatActionCell` (date pill, service messages, `floatingDateView`) and `ChatUnreadCell`.
+They draw with `Theme.key_paint_chatActionBackground*` (the 12.1.1 `chat_actionBackgroundPaint` family), so the sticky date, "unread messages" bar and service bubbles are already classic
+and need no retro branch. The only chat-list glass is the edge/scroll blur invalidation in `ChatActivity` (`invalidateMergedVisibleBlurredPositionsAndSources`), which WP 4.1 already
+stops in retro mode. Remaining to verify on a device: the date pill on a wallpaper in light and night themes (checklist item added).
