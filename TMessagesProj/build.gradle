@@ -37,7 +37,8 @@ idea {
 
 def buildTimestamp = System.getenv('BUILD_TIMESTAMP') ?: '0'
 def commitId = System.getenv('COMMIT_ID')
-def verName = "${APP_VERSION_NAME}${commitId?.take(7) ? "-${commitId.take(7)}" : ''}"
+def retroRev = project.findProperty('RETROGRAM_REV')?.toString()?.trim()
+def verName = "${APP_VERSION_NAME}${retroRev ? ".r${retroRev}" : ''}${commitId?.take(7) ? "-${commitId.take(7)}" : ''}"
 def verCode = 1252
 
 def officialVer = APP_VERSION_NAME

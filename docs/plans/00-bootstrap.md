@@ -54,8 +54,16 @@ The repo already has 3 commits of its own (`PLAN.md`, README, submodule pins).
 >   non-null delegate) unless `RetroConfig.remoteMetadata` is on, so `UpdateHelper`, `EmojiHelper`, trusted-plugins and
 >   page-preview rules make no requests to the NagramXF metadata channel by default. Consequence: remote emoji packs and
 >   update prompts are off until a Retrogram channel exists (decide per feature, see risks below).
-> - Still open: app name/strings (`NagramX` string resource used in ~10 places), launcher icons, `RETROGRAM_REV`,
->   `google-services.json`.
+> - **Done 2026-11-08 (CI-verified with the next build):** the visible app name is "Retrogram" (`AppName` in `values/strings.xml`; the launcher label uses it) and the dialog-title string `NagramX` (used in ~60 places, mostly
+>   `ChatActivity` and `TwoStepVerificationSetupActivity`) now reads "Retrogram"; both exist only in the default locale (`NagramX` is `translatable="false"`). `RETROGRAM_REV` exists in `gradle.properties` (value `1`):
+>   the version name becomes `13.1.1.r1` (plus `-<commit>` in CI) and so does the APK file name; `OFFICIAL_VERSION` is untouched. The first-start prompt that looked up the `@NagramXF` channel and asked the user to join it
+>   (`JoinOfficialChannelHelper.postCheck`, called from `DialogsActivity`) is now gated behind `RetroConfig.remoteMetadata` (off by default), so a fresh install makes no lookup of a channel Retrogram does not own.
+>   Audit of other NagramXF-owned endpoints: the About screen links (`github.com/Keeperorowner/NagramXF`, `@NagramXF`, `@NagramXF_Chat`) stay as attribution/credit, they only open when tapped; the regex-filter export
+>   uploads to `dpaste.com` only when the user taps share. No other hard-coded NagramXF endpoint was found in `java/` or `kotlin/`.
+> - **Ruled out for now: `applicationIdSuffix` for `.debug`/`.beta`.** No suffixed build type exists in CI (it builds `normal` debug), and making `res/xml/{auth,contacts,sync_contacts,auth_menu}.xml` and the contact MIME types follow the
+>   application id (resource placeholders instead of static strings, plus `ContactsController`) cannot be tested without a device and a signed-in account; a wrong value silently breaks contact sync. Revisit when a second installable
+>   variant is needed.
+> - **Needs you:** launcher icons and the adaptive/monochrome layers (artwork), `google-services.json` (your own Firebase project, open decision 2), the `api_id`/`api_hash` pair.
 > - `.github/workflows/*` still use the NagramXF artifact names (handled in WP 0.4).
 
 Only identity changes; keep `org.telegram.*` and `tw.nekomimi.*` Java packages untouched

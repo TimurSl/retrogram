@@ -23,6 +23,8 @@ public class JoinOfficialChannelHelper {
 
     public static void postCheck(Context ctx, int currentAccount) {
         if (ctx == null) return;
+        // Retrogram does not own the @NagramXF channel: no lookup and no prompt unless the user allowed remote metadata/channels
+        if (!app.retrogram.RetroConfig.remoteMetadata.Bool()) return;
         if (NekoConfig.getPreferences().getBoolean(SHOWN_KEY, false)) return;
 
         MessagesController messagesController = MessagesController.getInstance(currentAccount);
