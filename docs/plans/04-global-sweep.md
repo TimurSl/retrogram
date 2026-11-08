@@ -92,8 +92,8 @@ Per screen: before/after screenshots in `docs/sweep/`.
 > | `ChatAttachAlert` | flat bottom tab bar, caption bar, top-comment bar, keyboard panel (run 40). The sheet's own top corners and drag handle are the standard `BottomSheet` ones, which 12.1.1 also had, so they stay; the Gram/Rich/Poll tab layouts are content, not floating bars |
 > | Top panels (chat list, `CallLogActivity`, `TopicsFragment`, profile `SharedMediaLayout`) | one shared class, `DialogsActivityTopPanelLayout`, now flat and full width (run 41) |
 > | `StatisticActivity` | full-width flat bottom tab bar (run 42) |
-> | `BookmarkManagerActivity`, `ChatHistoryActivity`, chat-list search filters | flat strips through `SearchTabsAndFiltersLayout` (run 42); the 4dp side margins around the Bookmarks strip are now 0 too (this change, not yet built) |
-> | `PeerColorActivity` | solid bottom bar instead of the fade (run 42); the gift tab pill is square (this change, not yet built); the premium button keeps its pill shape on purpose (it is the primary action) |
+> | `BookmarkManagerActivity`, `ChatHistoryActivity`, chat-list search filters | flat strips through `SearchTabsAndFiltersLayout` (run 42); the 4dp side margins around the Bookmarks strip are now 0 too (CI run 50) |
+> | `PeerColorActivity` | solid bottom bar instead of the fade (run 42); the gift tab pill is square (CI run 50); the premium button keeps its pill shape on purpose (it is the primary action) |
 > | `SelectAudioAlert` | read through: search field and list only, no floating bar, nothing to change |
 > | `StarGiftPreviewSheet` | read through: its one pill is the tab selector, kept |
 > | `PhotoViewer` | read through: its glass round buttons are flat after WP 4.1 and stay round, like the classic viewer's buttons |
