@@ -56,6 +56,12 @@ Apply the classic top-of-profile layout: no floating pill buttons; action button
 (call/video/mute/search) or as 13.x equivalents drawn solid. Gift rows, wallet address, business info,
 music, rating inserted as `TextCell` / `TextDetailCell` rows in the "info" section.
 
+> **WP 3.3 findings (code reading, 2026-11-08, nothing run):** `ProfileActivity` builds its glass factory `iBlur3FactoryLiquidGlass` (~2192) but the liquid-glass effect
+> flag is forced off in retro mode (`LiteMode.isEnabled(FLAG_LIQUID_GLASS)` returns false), and the other profile surfaces are plain classic views (`TextCell`/`TextDetailCell` rows, the
+> classic avatar header and action row). The remaining glass sites are the three-dot menu (`otherItem.setBlurredBackgroundFactory(scrimBlur3Factory, ...)`, ~4217: popup, handled by the
+> central blur stop of WP 4.1) and the bottom "add post" buttons of the own profile (~3681), which use a solid `BlurredBackgroundSourceColor` already. So no code branch is planned until a
+> device screenshot of a user, group and channel profile shows a leftover. Added to `docs/device-test-checklist.md`.
+
 ### WP 3.4 — Shared media / tabs (S)
 `SharedMediaLayout` references `ProfileActivity2`; make sure the classic profile uses the plain
 tab strip, not the 12.4 glass tab strip (`ProfileStoriesCollectionTabs` is the new stories-collections tabs; keep
