@@ -76,11 +76,13 @@ CallLogActivity, TopicsFragment, PeerColorActivity, StatisticActivity, ChannelAd
 StarGiftPreviewSheet, NagramXF `BookmarkManagerActivity`, Bulletins, ItemOptions popups, `BlurSettingsBottomSheet`.
 Per screen: before/after screenshots in `docs/sweep/`.
 
-> **WP 4.2 first step (2026-11-08, written, not build-verified):** survey of the list by glass-line count (`ShareAlert` 69, `ChatAttachAlert` 146, `PhotoViewer` 75, `PeerColorActivity` 77, `BookmarkManagerActivity` 72,
+> **WP 4.2 first step (2026-11-08, build-verified in CI run 39):** survey of the list by glass-line count (`ShareAlert` 69, `ChatAttachAlert` 146, `PhotoViewer` 75, `PeerColorActivity` 77, `BookmarkManagerActivity` 72,
 > `StatisticActivity` 69, `CallLogActivity` 58, `TopicsFragment` 59, `SelectAudioAlert` 55, `ChannelAdminLogActivity` 50, `ContactsActivity` 43, `StarGiftPreviewSheet` 39, `ItemOptions` 18; `Bulletin` and `BlurSettingsBottomSheet` 0).
 > Their backgrounds are already flat through WP 4.1; what is left is **geometry** (rounded pills with 9dp insets, fades). New opt-in switch **"Classic sheets (experimental)"** (Settings → Retrogram, off by default, applies to sheets opened
 > afterwards) with the share sheet first: caption bar, "Send" bar and timestamp bar lose their 22dp radius and 9dp insets, and the keyboard panel loses its 29dp top corners (`ShareAlert` ~1855-1880). The bottom fade is kept (it fades into
-> the opaque background). Next candidates are the same constants in `ChatAttachAlert`, `SelectAudioAlert` and `StarGiftPreviewSheet`, to be done one by one against owner screenshots (`docs/sweep/` stays empty until screenshots exist).
+> the opaque background). **Attach sheet (2026-11-08, written, not build-verified):** with the same switch `ChatAttachAlert` draws its bottom tab bar (Gallery, File, Location, ...) as a flat full-width bar (radius 0, no 7dp inset, no side padding in the
+> recycler, square outline) instead of the 28dp pill, and its caption bar, top-comment bar and keyboard panel lose their 22/29dp rounding (`ChatAttachAlert` ~2783, ~3128, ~3133, ~3545). Not covered there: the sheet's own top
+> corners and drag handle, the fade (kept), the per-tab layouts (Gram/Rich/Poll). Next candidates are `SelectAudioAlert` and `StarGiftPreviewSheet`, to be done one by one against owner screenshots (`docs/sweep/` stays empty until screenshots exist).
 
 ### WP 4.3 — Theme (M)
 > **Findings and first implementation (2026-11-07; checked by diffing, not yet seen on a device):**

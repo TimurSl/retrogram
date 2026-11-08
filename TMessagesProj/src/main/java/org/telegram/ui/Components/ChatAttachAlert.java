@@ -2779,12 +2779,14 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
         containerView.addView(bottomFadeView, LayoutHelper.createFrameMatchParent());
 
         BlurredBackgroundDrawable tabsViewBackground = iBlur3FactoryLiquidGlass.create(buttonsRecyclerViewWrapper, BlurredBackgroundProviderImpl.mainTabs(resourcesProvider));
-        tabsViewBackground.setRadius(dp(56 / 2f));
-        tabsViewBackground.setPadding(dp(7));
+        // Classic sheets (WP 4.2): the bottom tab bar as a flat full-width bar instead of a floating rounded pill
+        final boolean classicSheets = app.retrogram.RetroConfig.isClassicSheets();
+        tabsViewBackground.setRadius(classicSheets ? 0 : dp(56 / 2f));
+        tabsViewBackground.setPadding(classicSheets ? 0 : dp(7));
         buttonsRecyclerViewWrapper.setBackground(tabsViewBackground);
-        buttonsRecyclerView.setPadding(dp(11), dp(11), dp(11), dp(11));
+        buttonsRecyclerView.setPadding(classicSheets ? 0 : dp(11), dp(11), classicSheets ? 0 : dp(11), dp(11));
         buttonsRecyclerView.setClipToOutline(true);
-        buttonsRecyclerView.setOutlineProvider(ViewOutlineProviderImpl.boundsWithPaddingRoundRect(dp(11), dp(56 / 2f)));
+        buttonsRecyclerView.setOutlineProvider(ViewOutlineProviderImpl.boundsWithPaddingRoundRect(classicSheets ? 0 : dp(11), classicSheets ? 0 : dp(56 / 2f)));
 
         buttonsRecyclerView.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
         buttonsRecyclerViewWrapper.addView(buttonsRecyclerView, LayoutHelper.createFrameMatchParent());
@@ -3125,14 +3127,15 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
 
         emojiViewChildBg = iBlur3FactoryFrostedLiquidGlass.create(sizeNotifierFrameLayout, BlurredBackgroundProviderImpl.inputFieldDialogActivity(resourcesProvider));
         emojiViewChildBg.enableInAppKeyboardOptimization();
-        emojiViewChildBg.setRadius(dp(29), dp(29), 0, 0);
+        emojiViewChildBg.setRadius(app.retrogram.RetroConfig.isClassicSheets() ? 0 : dp(29), app.retrogram.RetroConfig.isClassicSheets() ? 0 : dp(29), 0, 0);
         emojiViewChildBg.setThickness(dp(32));
         emojiViewChildBg.setIntensity(0.4f);
 
         captionContainerBg = iBlur3FactoryLiquidGlass.create(captionContainer, BlurredBackgroundProviderImpl.inputFieldDialogActivity(resourcesProvider));
-        captionContainerBg.setRadius(dp(22));
-        captionContainerBg.setPadding(dp(7));
-        captionContainer.setPadding(dp(7), dp(5), dp(7), dp(5));
+        final boolean classicCaption = app.retrogram.RetroConfig.isClassicSheets();
+        captionContainerBg.setRadius(classicCaption ? 0 : dp(22));
+        captionContainerBg.setPadding(classicCaption ? 0 : dp(7));
+        captionContainer.setPadding(classicCaption ? 0 : dp(7), dp(5), classicCaption ? 0 : dp(7), dp(5));
 
         frameLayout2.setWillNotDraw(false);
         frameLayout2.setVisibility(View.INVISIBLE);
@@ -3542,8 +3545,8 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
         commentTextView.addView(moveCaptionButton, LayoutHelper.createFrame(40, 40, Gravity.BOTTOM | Gravity.RIGHT, 0, 0, 0, 4));
 
         BlurredBackgroundDrawable drawable2 = iBlur3FactoryLiquidGlass.create(topCommentContainer, BlurredBackgroundProviderImpl.inputFieldDialogActivity(resourcesProvider));
-        drawable2.setRadius(dp(22));
-        drawable2.setPadding(dp(7));
+        drawable2.setRadius(app.retrogram.RetroConfig.isClassicSheets() ? 0 : dp(22));
+        drawable2.setPadding(app.retrogram.RetroConfig.isClassicSheets() ? 0 : dp(7));
         topCommentContainer.setBackground(drawable2);
         topCommentContainer.setPadding(dp(11), dp(9), dp(11), dp(9));
 

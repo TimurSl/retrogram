@@ -101,6 +101,9 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 **Share sheet (classic sheets on)**
 - [ ] Share a message: the caption bar and the "Send" bar are flat and full width, keyboard open/close, selecting several chats, with and without a caption; note anything cut off or too tall
 
+**Attach sheet (classic sheets on)**
+- [ ] Tap the paperclip: the Gallery/File/Location/... row is a flat full-width bar at the bottom (not a floating pill); pick photos so the caption bar appears: flat and full width, keyboard open/close; every tab still opens
+
 **Classic theme colors (switch on, restart, theme "Blue" / default)**
 - [ ] Chat list: blue action bar with white icons and title, white status text; search icon; folder tabs
 - [ ] Chat screen action bar, profile and settings pages, sheets and dialogs: nothing unreadable (dark text on dark, white on white)

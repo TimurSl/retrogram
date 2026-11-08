@@ -62,7 +62,7 @@ music, rating inserted as `TextCell` / `TextDetailCell` rows in the "info" secti
 > central blur stop of WP 4.1) and the bottom "add post" buttons of the own profile (~3681), which use a solid `BlurredBackgroundSourceColor` already. So no code branch is planned until a
 > device screenshot of a user, group and channel profile shows a leftover. Added to `docs/device-test-checklist.md`.
 
-> **WP 3.5 (2026-11-08, written, not build-verified):** `ProfileActivity2` has no constructor call anywhere outside its own file, so it is already unreachable. The remaining direct constructions of `SettingsActivity`
+> **WP 3.5 (2026-11-08, build-verified in CI run 39):** `ProfileActivity2` has no constructor call anywhere outside its own file, so it is already unreachable. The remaining direct constructions of `SettingsActivity`
 > now go through `RetroNav.settingsFragment()`: the drawer-helper "Settings" item (`MainMenuActions`), the saved-state restore ("settings2" in `LaunchActivity`) and the Settings tab of `MainTabsActivity` (when classic settings is on).
 > `SettingsActivity` itself stays reachable only with the "Classic settings page" switch off. **WP 3.2 (header): no code.** The classic page is `ProfileActivity`'s own header (the same avatar/collapsing header as other
 > profiles, with peer-color background); what differs from 12.1.1's header can only be judged against a screenshot, so it is not changed blind. Send a screenshot of Settings next to a 12.1.1 one if the header should change.
@@ -72,7 +72,7 @@ music, rating inserted as `TextCell` / `TextDetailCell` rows in the "info" secti
 tab strip, not the 12.4 glass tab strip (`ProfileStoriesCollectionTabs` is the new stories-collections tabs; keep
 the feature, restyle).
 
-> **WP 3.4 (2026-11-08, written, not build-verified):** the profile's shared-media tab strip (`ScrollSlidingTextTabStrip` inside `SharedMediaLayout`) was the 12.4 rounded floating pill (clip path, glass background, pill selector).
+> **WP 3.4 (2026-11-08, build-verified in CI run 39):** the profile's shared-media tab strip (`ScrollSlidingTextTabStrip` inside `SharedMediaLayout`) was the 12.4 rounded floating pill (clip path, glass background, pill selector).
 > New opt-in switch **Settings → Retrogram → "Classic profile tabs (experimental)"** (off by default, applies to profiles opened afterwards): `ScrollSlidingTextTabStrip.setClassicStyle(true)` restores the commented-out 12.1.1
 > drawing (underline selector with `key_actionBarTabLine`, no pill, no stroke), and `SharedMediaLayout` adds the strip full width with a solid `windowBackgroundWhite` background at the same 50dp height. Only strips that ask for it
 > change; the chat-list folder tabs and others using the class are untouched. Not covered: the pill-shaped `topPanelLayout` (call/music bar) and the search-tags list in `SharedMediaLayout`, which keep their glass drawables.
