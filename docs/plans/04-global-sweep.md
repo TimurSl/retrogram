@@ -84,13 +84,24 @@ Per screen: before/after screenshots in `docs/sweep/`.
 > recycler, square outline) instead of the 28dp pill, and its caption bar, top-comment bar and keyboard panel lose their 22/29dp rounding (`ChatAttachAlert` ~2783, ~3128, ~3133, ~3545). Not covered there: the sheet's own top
 > corners and drag handle, the fade (kept), the per-tab layouts (Gram/Rich/Poll). **Top panels (2026-11-08, build-verified in CI run 41):** `DialogsActivityTopPanelLayout` (the panel under the action bar that holds the call/music bar, hints and pinned items) is shared by the chat list, `CallLogActivity`, `TopicsFragment` and
 > `SharedMediaLayout`; with the switch on (renamed "Classic sheets and panels") its clip path and background are square and run edge to edge (`checkBoundsAndClipping`, side extension and radius 0, the 7dp drawable inset of the four creators compensated).
-> **Read through, nothing changed:** `SelectAudioAlert` (only a search field and list; no floating bar), `StarGiftPreviewSheet` (its one pill is the tab selector, kept), `StatisticActivity` (`tabsView` pill, same pattern as `BookmarkManagerActivity`'s
-> `tabsContainer`), `PeerColorActivity` (bottom fade + button container, a bottom-bar candidate), `PhotoViewer` (glass round buttons built with `iBlur3FactoryFrostedLiquidGlass`, flat after WP 4.1; shape stays round), `ContactsActivity` and
-> `ChannelAdminLogActivity` (no own glass factories). These are listed as candidates for the next device round, one by one against screenshots.
-> **Tab bars and bottom bars (2026-11-08, build-verified in CI run 42), same switch:** `StatisticActivity`'s bottom tab bar (`MainTabsLayout`, which spreads its tabs over the width it gets) is full width with no rounding and no side padding
-> instead of the 328dp pill; `SearchTabsAndFiltersLayout` (shared by `BookmarkManagerActivity`, `ChatHistoryActivity` (recent chats) and the chat list's search filters) has a square clip path and forces radius/inset 0 on the background it is given
-> (`setBlurredBackground`), so those tab bars become flat strips; `PeerColorActivity`'s bottom button container is a solid bar instead of a fade over the list (the premium button itself keeps its pill shape). Not changed: the 4dp side margins around
-> `BookmarkManagerActivity`'s strip, the gift `Tabs` pill in `PeerColorActivity`. Next candidates (`docs/sweep/` stays empty until screenshots exist).
+> **Per-screen status of the WP 4.2 list (2026-11-08, code only: nothing was seen on a device; `docs/sweep/` stays empty until screenshots exist).** Everything below is behind "Classic sheets and panels" unless stated.
+>
+> | Screen | State |
+> | :--- | :--- |
+> | `ShareAlert` | flat caption, "Send" and timestamp bars, square keyboard panel (CI run 39) |
+> | `ChatAttachAlert` | flat bottom tab bar, caption bar, top-comment bar, keyboard panel (run 40). The sheet's own top corners and drag handle are the standard `BottomSheet` ones, which 12.1.1 also had, so they stay; the Gram/Rich/Poll tab layouts are content, not floating bars |
+> | Top panels (chat list, `CallLogActivity`, `TopicsFragment`, profile `SharedMediaLayout`) | one shared class, `DialogsActivityTopPanelLayout`, now flat and full width (run 41) |
+> | `StatisticActivity` | full-width flat bottom tab bar (run 42) |
+> | `BookmarkManagerActivity`, `ChatHistoryActivity`, chat-list search filters | flat strips through `SearchTabsAndFiltersLayout` (run 42); the 4dp side margins around the Bookmarks strip are now 0 too (this change, not yet built) |
+> | `PeerColorActivity` | solid bottom bar instead of the fade (run 42); the gift tab pill is square (this change, not yet built); the premium button keeps its pill shape on purpose (it is the primary action) |
+> | `SelectAudioAlert` | read through: search field and list only, no floating bar, nothing to change |
+> | `StarGiftPreviewSheet` | read through: its one pill is the tab selector, kept |
+> | `PhotoViewer` | read through: its glass round buttons are flat after WP 4.1 and stay round, like the classic viewer's buttons |
+> | `ContactsActivity`, `ChannelAdminLogActivity` | read through: no glass factories of their own |
+> | `Bulletin`, `BlurSettingsBottomSheet` | no glass code (0 matches) |
+> | `ItemOptions` popups | 18 glass lines, popup backgrounds handled by the central blur stop of WP 4.1; no geometry of their own to change |
+>
+> What is left for this WP is only the before/after screenshots, which need a device.
 
 ### WP 4.3 — Theme (M)
 > **Findings and first implementation (2026-11-07; checked by diffing, not yet seen on a device):**

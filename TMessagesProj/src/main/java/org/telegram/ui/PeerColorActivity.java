@@ -826,7 +826,7 @@ public class PeerColorActivity extends BaseFragment implements NotificationCente
             giftTabsView.backgroundDrawableGlass =
             giftTabsView.backgroundDrawableNoGlass = iBlur3ButtonFactory.create(giftTabsView)
                     .setColorProvider(BlurredBackgroundProviderImpl.tabsPanelNoShadow(resourceProvider))
-                    .setRadius(dp(18))
+                    .setRadius(app.retrogram.RetroConfig.isClassicSheets() ? 0 : dp(18))
                     .setHasPadding(true);
 
             giftTabsView.setExternalInvalidate(() -> {

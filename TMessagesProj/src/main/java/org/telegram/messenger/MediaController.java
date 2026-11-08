@@ -1150,16 +1150,28 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
     private ByteBuffer fileBuffer;
 
     // Voice changer (WP 6.4): while an effect is selected the recorded PCM is collected here (in segments of at most EFFECT_SEGMENT_BYTES),
-    // run through app.retrogram.graph.VoiceEffects and only then handed to the Opus encoder. Touched on fileEncodingQueue only, except being set at record start.
+    // run through app.retrogram.graph.VoiceEffectStream (which keeps its state across segments, so there are no seams) and only then handed to the
+    // Opus encoder. Touched on fileEncodingQueue only, except being set at record start.
     private static final int EFFECT_SEGMENT_BYTES = 48000 * 2 * 30;
     private volatile java.io.ByteArrayOutputStream effectPcm;
     private volatile int effectKind;
-    private long effectSamplesDone;
+    private app.retrogram.graph.VoiceEffectStream effectStream;
+    private short[] effectCarry = new short[0];   // processed samples that do not fill a whole 20 ms frame yet
+    private long effectSamplesIn;
+    private long effectSamplesOut;
 
     private void beginEffectCapture() {
         effectKind = app.retrogram.RetroConfig.graphVoiceEffect.Int();
-        effectSamplesDone = 0;
-        effectPcm = effectKind != app.retrogram.graph.VoiceEffects.EFFECT_OFF ? new java.io.ByteArrayOutputStream() : null;
+        effectCarry = new short[0];
+        effectSamplesIn = 0;
+        effectSamplesOut = 0;
+        if (effectKind != app.retrogram.graph.VoiceEffects.EFFECT_OFF) {
+            effectStream = new app.retrogram.graph.VoiceEffectStream(effectKind, sampleRate);
+            effectPcm = new java.io.ByteArrayOutputStream();
+        } else {
+            effectStream = null;
+            effectPcm = null;
+        }
     }
 
     private void bufferForEffect(ByteBuffer buffer) {
@@ -1177,35 +1189,58 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
         }
     }
 
-    /** Runs the effect over the collected PCM and writes it to the encoder. On fileEncodingQueue. */
+    private static short[] joinShorts(short[] a, short[] b) {
+        final short[] out = new short[a.length + b.length];
+        System.arraycopy(a, 0, out, 0, a.length);
+        System.arraycopy(b, 0, out, a.length, b.length);
+        return out;
+    }
+
+    /**
+     * Runs the effect over the collected PCM and writes whole 20 ms frames to the encoder; with {@code finalSegment} it also drains what the effect
+     * held back (echo tail, crossfade region) and pads the last frame with silence. On fileEncodingQueue.
+     */
     private void flushEffect(boolean finalSegment) {
         final java.io.ByteArrayOutputStream collected = effectPcm;
-        if (collected == null || collected.size() < 2) {
+        final app.retrogram.graph.VoiceEffectStream stream = effectStream;
+        if (collected == null || stream == null) {
             return;
         }
         try {
-            final byte[] bytes = collected.toByteArray();
-            collected.reset();
-            final short[] pcm = new short[bytes.length / 2];
-            ByteBuffer.wrap(bytes).order(ByteOrder.nativeOrder()).asShortBuffer().get(pcm);
-            final short[] processed = app.retrogram.graph.VoiceEffects.apply(effectKind, pcm, sampleRate, finalSegment, effectSamplesDone);
-            effectSamplesDone += pcm.length;
+            short[] processed = new short[0];
+            if (collected.size() >= 2) {
+                final byte[] bytes = collected.toByteArray();
+                collected.reset();
+                final short[] pcm = new short[bytes.length / 2];
+                ByteBuffer.wrap(bytes).order(ByteOrder.nativeOrder()).asShortBuffer().get(pcm);
+                effectSamplesIn += pcm.length;
+                processed = stream.push(pcm);
+            }
+            if (finalSegment) {
+                processed = joinShorts(processed, stream.finish());
+            }
+            effectSamplesOut += processed.length;
+            final short[] all = joinShorts(effectCarry, processed);
             fileBuffer.order(ByteOrder.nativeOrder());
             final int frameSamples = fileBuffer.capacity() / 2;
-            for (int i = 0; i < processed.length; i += frameSamples) {
+            int pos = 0;
+            while (all.length - pos >= frameSamples || (finalSegment && pos < all.length)) {
                 fileBuffer.rewind();
-                final int n = Math.min(frameSamples, processed.length - i);
+                final int n = Math.min(frameSamples, all.length - pos);
                 for (int j = 0; j < frameSamples; j++) {
-                    fileBuffer.putShort(j < n ? processed[i + j] : 0);
+                    fileBuffer.putShort(j < n ? all[pos + j] : 0);
                 }
                 fileBuffer.rewind();
                 if (writeFrame(fileBuffer, frameSamples * 2) == 0) {
                     FileLog.e("writing effect frame failed");
                 }
+                pos += frameSamples;
             }
+            effectCarry = pos >= all.length ? new short[0] : java.util.Arrays.copyOfRange(all, pos, all.length);
             fileBuffer.rewind();
-            if (processed.length > pcm.length) {
-                recordTimeCount += (processed.length - pcm.length) * 1000L / sampleRate;
+            if (finalSegment && effectSamplesOut > effectSamplesIn) {
+                recordTimeCount += (effectSamplesOut - effectSamplesIn) * 1000L / sampleRate; // the echo tail
+                effectSamplesIn = effectSamplesOut;
             }
         } catch (Throwable t) {
             FileLog.e(t);

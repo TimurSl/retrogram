@@ -334,7 +334,7 @@ public class BookmarkManagerActivity extends BaseFragment {
         final int topContentOffset = getTopContentOffset();
         final int tabsHeight = dp(TABS_CONTAINER_HEIGHT_DP);
         contentLayout.addView(emptyView, LayoutHelper.createFrameMarginPx(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.TOP, 0, topContentOffset + tabsHeight, 0, 0));
-        contentLayout.addView(tabsContainer, LayoutHelper.createFrameMarginPx(LayoutHelper.MATCH_PARENT, TABS_CONTAINER_HEIGHT_DP, Gravity.TOP, dp(4), topContentOffset, dp(4), 0));
+        contentLayout.addView(tabsContainer, LayoutHelper.createFrameMarginPx(LayoutHelper.MATCH_PARENT, TABS_CONTAINER_HEIGHT_DP, Gravity.TOP, app.retrogram.RetroConfig.isClassicSheets() ? 0 : dp(4), topContentOffset, app.retrogram.RetroConfig.isClassicSheets() ? 0 : dp(4), 0));
         contentLayout.addView(actionBar, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP));
         updateTabsStyle();
         setPageTab(viewPages[0], selectedTabId, false);
