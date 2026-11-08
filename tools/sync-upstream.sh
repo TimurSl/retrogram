@@ -68,6 +68,11 @@ new=$(sed -n 's/.*int LAYER = \([0-9]*\);.*/\1/p' "$JAVA/org/telegram/tgnet/TLRP
 echo "layer: ${old:-?} -> ${new:-?}"
 
 echo
+echo ">> new TL classes (API requests and types the merge added; the user-visible features among them need a row in docs/feature-matrix.md)"
+tl_names() { git grep -h -o -E "class TL_[A-Za-z0-9_]+ extends" "$1" -- "$JAVA/org/telegram/tgnet" 2>/dev/null | sed -E 's/class (TL_[A-Za-z0-9_]+) extends/\1/' | sort -u; }
+comm -13 <(tl_names "$before") <(tl_names HEAD) | grep -E "^TL_[a-z]+_[a-z]" | grep -v -E "_layer[0-9]+$" | head -150
+
+echo
 echo ">> new top-level classes (candidates for docs/feature-matrix.md)"
 git diff --diff-filter=A --name-only "$before..HEAD" -- "$JAVA" | sed "s#^$JAVA/##" | grep -v '^org/telegram/tgnet/' | head -80
 

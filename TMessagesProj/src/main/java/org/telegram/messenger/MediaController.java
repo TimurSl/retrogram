@@ -7701,6 +7701,12 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
 
             final long ms = getTotalListened();
             if (ms < 3_000) return;
+            // Retrogram privacy switch: listening statistics are not sent to Telegram unless the user allows it
+            if (!app.retrogram.RetroConfig.sendUsageStats.Bool()) {
+                rangeStart = C.TIME_UNSET;
+                ranges.clear();
+                return;
+            }
 
             final TLRPC.TL_messages_reportMusicListen req = new TLRPC.TL_messages_reportMusicListen();
             req.id = audio;

@@ -105,7 +105,14 @@ live on the tab bar: **Archived chats** (if not elsewhere), **Wallet**, **QR sha
 (`com.exteragram.messenger.feed.ui.FeedActivity` is NagramXF's). Add each new item with a feature flag so
 Phase 5 can tick it off.
 
+> **WP 1.4 decision (2026-11-08):** the drawer layout for new installs stays NagramXF's list plus Wallet/Invite/Features (the owner's screenshots of the run 17 build show the classic rows); a separate "retro default" would only
+> reorder entries and every entry can be moved in the sidebar manager, so none was added. The entries added since then (Downloads, Special contacts log) are available in the manager, not in the default layout.
+
 ### WP 1.5 — Cleanup of 12.4 leftovers on this screen (S)
+> **Done through the existing switches (2026-11-08, code reading, not seen on a device):** with the bottom bar hidden (`RetroShell` pins `mainTabsDisplayMode = HIDE`), `MainTabsActivity.shouldUseMainTabsPadding()` is false, so the chat list is
+> created with `hasMainTabs = false` and `additionNavigationBarHeight` / `additionFloatingButtonOffset` are 0 (`DialogsActivity` ~3075, ~3345, ~6047); with `hideHomeSearchField` pinned on, `getSearchFieldReservedHeight()` is 0, so no space is reserved at the top
+> for the pill. Acceptance grep: `MainTabsLayout` no longer appears in `DialogsActivity`; `FragmentSearchField` has 4 references (the search pill while searching) and `FragmentFloatingButton` 15 (the restyled FAB of WP 1.3). Only the screenshot-based
+> checks of the acceptance list remain (device).
 Hide in retro mode the search/FAB glass layers that remain in the layout `onMeasure/onLayout` code
 (lines ~1073, ~1102, ~1353) so no empty offsets remain at the top or bottom.
 

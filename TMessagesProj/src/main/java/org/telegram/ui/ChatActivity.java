@@ -9523,7 +9523,8 @@ public class ChatActivity extends BaseFragment implements
 
         contentView.addView(fireworksOverlay = new FireworksOverlay(context), LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
 
-        if (getDialogId() < 0 && chatMode == MODE_DEFAULT && !isInsideContainer && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        // Retrogram privacy switch: per-message reading metrics (time in view, active time, viewport share) go to Telegram only when allowed
+        if (getDialogId() < 0 && chatMode == MODE_DEFAULT && !isInsideContainer && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && app.retrogram.RetroConfig.sendUsageStats.Bool()) {
             messageMetricsView = new ChatActivityMessageMetricsView(context);
             messageMetricsView.init(currentAccount, getDialogId(), contentView, chatListView);
             messageMetricsView.setIsUserActive();

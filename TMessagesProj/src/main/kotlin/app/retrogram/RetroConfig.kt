@@ -81,6 +81,14 @@ object RetroConfig {
     val plainProfileHeader = ConfigItem("RetroPlainProfileHeader", ConfigItem.configTypeBool, false)
 
     /**
+     * Privacy: send usage statistics to Telegram. Telegram 13.x reports, in groups and channels, how long each message was on screen, for how long you
+     * were active and how much of the screen it took (`messages.reportReadMetrics`), and how long you listened to music (`messages.reportMusicListen`).
+     * Off by default in Retrogram: nothing of that is sent unless this is on. Applies to chats opened and tracks played afterwards.
+     */
+    @JvmField
+    val sendUsageStats = ConfigItem("RetroSendUsageStats", ConfigItem.configTypeBool, false)
+
+    /**
      * Experimental: the 12.1.1 default-theme palette (blue action bar, white icons, ...) for the keys whose default
      * changed in 13.1.1 (see [RetroThemeColors]). Off by default; applied at process start, so it needs a restart.
      * `RetroThemeColors.enabled()` reads the stored value itself because `Theme` can load before [init].
@@ -152,7 +160,7 @@ object RetroConfig {
     @JvmField
     val graphDownloadWindowEnd = ConfigItem("RetroGraphDownloadWindowEnd", ConfigItem.configTypeInt, 6)
 
-    private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings, classicInput, classicChatHeader, classicEmojiPanel, classicRoundButtons, classicProfileTabs, classicSheets, plainProfileHeader, classicColors, graphAutoReply, graphSpecialContacts, graphSpecialContactsNotify, graphChatLock, graphHiddenChats, graphWifiOnlyDownloads, graphDownloadWindow)
+    private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings, classicInput, classicChatHeader, classicEmojiPanel, classicRoundButtons, classicProfileTabs, classicSheets, plainProfileHeader, sendUsageStats, classicColors, graphAutoReply, graphSpecialContacts, graphSpecialContactsNotify, graphChatLock, graphHiddenChats, graphWifiOnlyDownloads, graphDownloadWindow)
 
     // Snapshot taken once per process. Until init() runs, behave like the defaults.
     @Volatile

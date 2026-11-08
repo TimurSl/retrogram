@@ -29,6 +29,7 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
 
     private final AbstractConfigCell headerInterface = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.RetrogramInterface)));
     private final AbstractConfigCell retroUiRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.retroUi, getString(R.string.RetroUiInfo)));
+    private final AbstractConfigCell sendUsageStatsRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.sendUsageStats, getString(R.string.RetroSendUsageStatsInfo)));
     private final AbstractConfigCell remoteMetadataRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.remoteMetadata, getString(R.string.RetroRemoteMetadataInfo)));
     private final AbstractConfigCell classicSettingsRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.classicSettings, getString(R.string.RetroClassicSettingsInfo)));
     private final AbstractConfigCell classicInputRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.classicInput, getString(R.string.RetroClassicInputInfo)));
@@ -93,6 +94,7 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
                 && !RetroConfig.classicProfileTabs.getKey().equals(key)
                 && !RetroConfig.classicSheets.getKey().equals(key)
                 && !RetroConfig.plainProfileHeader.getKey().equals(key)
+                && !RetroConfig.sendUsageStats.getKey().equals(key)
                 && !RetroConfig.graphAutoReply.getKey().equals(key)
                 && !RetroConfig.graphAutoReplyText.getKey().equals(key)
                 && !RetroConfig.graphSpecialContacts.getKey().equals(key)

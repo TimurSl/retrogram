@@ -43,7 +43,7 @@ CI green for plugins off and on.
 > additions because it diffed from the merge-base; fixed to diff from the pre-merge commit), and on a conflict it stops with exit 2, names the file and pushes nothing. Never run against a real new NagramXF release (`nagramxf/dev` is still at the import base).
 > Earlier status: written, `bash -n` only. `tools/sync-upstream.sh <name> [<ref>]` adds the `nagramxf`/`telegram`
 > remotes if missing, fetches blobless, creates `sync/<name>`, merges (stops with a conflict list and exit 2; never resolves, never pushes), then prints
-> glass-guard hits for `merge-base..HEAD`, the TL `LAYER` change and new top-level classes. Steps 1-5 below; step 6 (PR) stays manual.
+> glass-guard hits for the merge, the TL `LAYER` change, the new TL request/type names and new top-level classes. Steps 1-5 below; step 6 (PR) stays manual.
 1. `git fetch nagramxf dev --tags` (and `telegram master` for the fallback path).
 2. Create `sync/<X>` from `main`; `git merge nagramxf/<tag-or-sha>`.
 3. Conflict policy: conflicts live almost entirely in the files with Retrogram hooks (`LaunchActivity`,

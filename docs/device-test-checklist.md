@@ -122,6 +122,9 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 - [ ] A hidden chat does not show in search (type its name, and a word from its messages), recent searches or the share sheet; a hidden or locked chat is missing from a home-screen chats widget and from the system share sheet's direct-share targets; its notification has no Reply button
 - [ ] Contacts log: turn on "Notify about changes", change the watched account's name: a notification appears (silence it from the system channel); the drawer entry "Special contacts log" (add it in the drawer editor) opens the log
 
+**Privacy: usage statistics (off by default)**
+- [ ] With "Send usage statistics to Telegram" off, open a group, scroll, play a music file for more than 3 s: with a proxy/traffic log there is no `messages.reportReadMetrics` or `messages.reportMusicListen` request; switch it on: both appear (needs a debug build with `LOGS_ENABLED` or an MTProto-aware proxy)
+
 **Classic theme colors (switch on, restart, theme "Blue" / default)**
 - [ ] Chat list: blue action bar with white icons and title, white status text; search icon; folder tabs
 - [ ] Chat screen action bar, profile and settings pages, sheets and dialogs: nothing unreadable (dark text on dark, white on white)
