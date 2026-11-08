@@ -1,6 +1,6 @@
 # Licensing and compliance record (PLAN.md section 4)
 
-State on 2026-11-08. Everything here comes from reading the tree and running `tools/provenance.sh`; it is **not legal advice and not a traffic capture**: the network section lists hosts found in the code, not hosts seen on the wire.
+State on 2026-11-08 (the code changes below compile in CI run 56). Everything here comes from reading the tree and running `tools/provenance.sh`; it is **not legal advice and not a traffic capture**: the network section lists hosts found in the code, not hosts seen on the wire.
 Open legal questions are marked **Owner**.
 
 ## 1. License of the combined work
