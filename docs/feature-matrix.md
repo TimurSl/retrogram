@@ -62,5 +62,7 @@ Ghost mode, recent chats, bookmarks manager, in-app browser, devices, feed, N-se
 ## Still to do for WP 5.1
 
 1. Done 2026-11-08: the `?` rows above were traced (launch sites by grep), and the TL layer diff was done by comparing the sets of `TL_*` classes in `org/telegram/tgnet` at 12.1.1 and 13.1.1 (306 new classes; the request types are listed in the new rows). Remaining: Telegram Wallet fragments, and everything still `unverified`, which needs a device (docs/device-test-checklist.md).
-2. Most entry points live *inside* screens that Phases 2 and 3 re-skin (chat, profile, Settings, Privacy): the Phase 3 checklist must keep every row listed above.
-3. Add per-release notes from Telegram's public changelogs.
+2. Closed 2026-11-08: most entry points live *inside* screens that Phases 2 and 3 re-skin (chat, profile, Settings, Privacy). The classic Settings page is `ProfileActivity`'s own self mode, which contains every row of `docs/settings-rows.md`
+   (checked on the owner's run 17 screenshots), and the chat and profile entries are untouched by the opt-in re-skins (they only change drawing and geometry). Whether each entry still opens on a device is the checklist's job.
+3. **Ruled out 2026-11-08:** per-release notes from Telegram's public changelogs. The matrix is built from what the code can launch (launch sites and the TL class-set diff), and changelog prose would only add features that have no client entry point, which by
+   the matrix's own definition cannot be reachable or unreachable.

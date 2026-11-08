@@ -45,8 +45,8 @@ so "built" never means "seen working". **Device** = what is left can only be che
 | 4.3 theme | Built: 123 default-theme colors and the five built-in theme files of 12.1.1 (run 45), behind "Classic theme colors". **Device:** looks right in Day, Night, Dark Blue. Not changed: which theme a new install starts with, wallpaper presets |
 | 4.4 glass-guard | Built; strict mode wired for `sync/*` branches |
 
-## Phase 5: feature audit ([05-feature-audit.md](05-feature-audit.md))
-5.1 matrix, 5.2 entry points, 5.3 automated in the sync script: Built. 5.4: the manual checklist stands in for an instrumentation test (needs a device farm and a logged-in test account). **Device:** every "reachable (unverified)" row.
+## Phase 5: feature audit ([05-feature-audit.md](05-feature-audit.md), [../feature-matrix.md](../feature-matrix.md))
+5.1 matrix, 5.2 entry points, 5.3 automated in the sync script: Built. 5.1's last item (per-release changelog notes) is **ruled out** (it adds nothing the code-based matrix can use). 5.4: the manual checklist stands in for an instrumentation test (needs a device farm and a logged-in test account). **Device:** every "reachable (unverified)" row.
 
 ## Phase 6: Graph features ([06-graph-features.md](06-graph-features.md))
 Step 1 (behaviour specs from a phone, `docs/graph-spec/`): **You**; all eleven spec files exist as stubs with the concrete questions to answer on the phone (including Retrogram's current behaviour next to each question), so the session only records observations. Step 2 was built from the plan's own designs, everything off by default; where a spec later disagrees with an option or default, the spec wins.

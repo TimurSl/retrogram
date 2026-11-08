@@ -45,9 +45,9 @@ The repo already has 3 commits of its own (`PLAN.md`, README, submodule pins).
 > contact MIME types, `auth_menu` target package and `:retrogram` process in manifest/`res/xml`; output file name is
 > `retrogram-<ver>-<abi>.apk`; official-app API credentials removed (`build.gradle` now fails release/staging/bundle
 > tasks without `TELEGRAM_APP_ID/HASH`, and uses a no-login placeholder for debug); hard-coded pair removed from `BuildVars`.
-> Open:
-> - The debug fallback is a placeholder, not a working dev pair: needs the project's own `api_id` (open decision 2).
-> - `applicationIdSuffix` for `.debug`/`.beta` is **deferred**: the account type and contact MIME types in
+> Open (each item with its state on 2026-11-08 in square brackets):
+> - The debug fallback is a placeholder, not a working dev pair: needs the project's own `api_id` (open decision 2). [owner input, listed in STATUS.md]
+> - [ruled out for now, reasons in the notes below] `applicationIdSuffix` for `.debug`/`.beta` is **deferred**: the account type and contact MIME types in
 >   `res/xml/{auth,contacts,sync_contacts,auth_menu}.xml` are static strings while `ContactsController:2313` builds the MIME type from
 >   `BuildConfig.APPLICATION_ID`; template them with manifest placeholders first, otherwise contact sync breaks on suffixed builds.
 > - Done (not build-verified): remote update/metadata switch. `BaseRemoteHelper.load()` returns early (calling `onError` for a
@@ -64,7 +64,7 @@ The repo already has 3 commits of its own (`PLAN.md`, README, submodule pins).
 >   application id (resource placeholders instead of static strings, plus `ContactsController`) cannot be tested without a device and a signed-in account; a wrong value silently breaks contact sync. Revisit when a second installable
 >   variant is needed.
 > - **Needs you:** launcher icons and the adaptive/monochrome layers (artwork), `google-services.json` (your own Firebase project, open decision 2), the `api_id`/`api_hash` pair.
-> - `.github/workflows/*` still use the NagramXF artifact names (handled in WP 0.4).
+> - [done in WP 0.4: `build.yml` replaced the NagramXF workflows] `.github/workflows/*` still use the NagramXF artifact names (handled in WP 0.4).
 
 Only identity changes; keep `org.telegram.*` and `tw.nekomimi.*` Java packages untouched
 (renaming them would make every future merge conflict).

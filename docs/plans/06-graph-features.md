@@ -45,20 +45,20 @@ Graph-style hidden chats.
 
 > **WP 6.3 progress (2026-11-08): decision core only.** `app.retrogram.graph.AutoReplyEngine` (pure Java, no Android deps) implements the design above: per-rule chat kind
 > (groups only when explicitly on), schedule window with midnight wrap, case-insensitive keywords, once per sender per N hours, a global sliding-window rate limit, "only when away", and
-> never answers itself, bots or service messages. `AutoReplyEngineTest` (7 tests) compiled and passed on the JVM with `javac` + JUnit 4.13.2 (not through Gradle). **Not done:** rule storage,
+> never answers itself, bots or service messages. `AutoReplyEngineTest` (7 tests) compiled and passed on the JVM with `javac` + JUnit 4.13.2 (not through Gradle). **Not done at that time (superseded: the settings, hook and rule options were added later, see the 6.3 notes below and STATUS.md):** rule storage,
 > the `SendMessagesHelper` hook, the settings screen and enable-time banner, the Business quick-replies comparison, and reconciling options/defaults with `docs/graph-spec/auto-reply.md`
 > (not written, needs the phone). Nothing in the app calls it, so the feature is not reachable yet.
 
 > **WP 6.1 and 6.6 progress (2026-11-08): decision cores only, same status as 6.3.** `app.retrogram.graph.ChatLockPolicy` (locked set, gate needed or not, relock on timeout / chat closed / app
 > background, preview redaction flag) and `app.retrogram.graph.ContactChangeDetector` (per watched user snapshot diff: online/offline, name, username, photo, phone; first snapshot is a baseline).
-> `ChatLockAndContactsTest` (6 tests) passes on the JVM together with the auto-reply tests (13 in total; `javac` + JUnit, not Gradle). **Not done:** Keystore-backed storage, `PasscodeView` gate and the
+> `ChatLockAndContactsTest` (6 tests) passes on the JVM together with the auto-reply tests (13 in total; `javac` + JUnit, not Gradle). **Not done at that time (superseded: 6.1 was wired in run 34 and its gaps closed in run 48, see below; no Keystore: the PIN is a salted hash in private preferences, decided in the wiring note):** Keystore-backed storage, `PasscodeView` gate and the
 > `presentFragment` / notification / share / widget hooks (6.1); `NotificationCenter` feed, SQLite log, notifications and the drawer screen (6.6); toggles; specs. None of it is reachable from the app.
 
 > **WP 6.4 and 6.5 progress (2026-11-08): cores only.** `app.retrogram.graph.VoiceEffects` (pure Java, 16-bit mono PCM): ring modulator ("robot"), echo with decay/repeats and clipping, pitch shift by WSOLA time-stretch +
 > linear resampling (length-preserving). `VoiceEffectsTest` checks them with golden signals (Goertzel power: the ring modulator moves a 1 kHz tone to 700/1300 Hz, a 400 Hz tone shifted by 1.5 lands at 600 Hz,
 > an echoed impulse has exact decaying copies). `app.retrogram.graph.DownloadQueuePolicy` holds the queue rules: parallel limit, priority, pause/resume/cancel, Wi-Fi only, roaming block, scheduled window
 > (wraps midnight), running entries returned to the queue when the network or window stops allowing them. 24 JVM tests pass in total (`javac` + JUnit, not Gradle).
-> **Not done:** the `MediaController` recording hook, preview and setting (6.4); CPU cost on SM6375 is unmeasured and the pitch shifter is unoptimised (quality by ear is unjudged). For 6.5, finding from the code:
+> **Not done at that time (superseded: 6.4 was wired in run 37 and made seamless in run 50, 6.5 got its drawer entry, Wi-Fi-only, window and schedule in runs 36-46; see below):** the `MediaController` recording hook, preview and setting (6.4); CPU cost on SM6375 is unmeasured and the pitch shifter is unoptimised (quality by ear is unjudged). For 6.5, finding from the code:
 > `FileLoader` has `cancelLoadFile(..., deleteFile)` and `isLoadingFile` but no public pause; `FileLoadOperation` has an internal `pause()`/resume that keeps its partial file. Whether cancel-without-delete resumes from
 > the partial file must be tested before wiring pause/resume. The `DownloadsActivity` list, the drawer entry and saving to Downloads are also not done. Nothing is reachable from the app.
 
@@ -66,13 +66,13 @@ Graph-style hidden chats.
 > `app.retrogram.graph.AutoReplyHook.onNewMessages` is called at the top of `NotificationsController.processNewMessages` (so it also runs for push-delivered messages in the background) and feeds
 > `AutoReplyEngine` with one rule: private chats only, groups off, any text, always, once per sender per 6 hours, at most 20 replies per hour per account, only while `ApplicationLoader.mainInterfacePaused`.
 > Extra guards in the hook: real users only (no bots, service/support accounts, yourself, deleted), only messages from the last 120 s (no replies to a backlog after reconnecting), no edited, scheduled or service messages.
-> The reply goes out through `SendMessagesHelper.sendMessage(SendMessageParams.of(text, dialogId))` on the UI thread. Not done: keyword/schedule rule editing UI, per-chat exceptions, the one-time warning
+> The reply goes out through `SendMessagesHelper.sendMessage(SendMessageParams.of(text, dialogId))` on the UI thread. Not done at that time (superseded: keywords, hours and cooldown settings exist since run 51; group replies and per-chat exceptions are ruled out, see the 6.3 rule-settings note and STATUS.md): the one-time warning
 > banner when enabling, a Business quick-replies comparison, and the reply is not marked as automatic. Cooldowns live in memory, so a process restart forgets who was already answered.
 
 > **WP 6.6 wiring (2026-11-08, build-verified in CI run 33, never run on a device):** Settings → Retrogram → "Extra features": "Special contacts log (experimental)" (off by default), "Contact user IDs"
 > (comma-separated numeric ids) and a "Special contacts log" row that opens the log in a dialog (with a Clear button). `app.retrogram.graph.ContactWatchHook` is installed at startup (`ApplicationLoader`, after
 > `RetroConfig.init()`), observes `NotificationCenter.updateInterfaces` on every account and, when the mask has name/avatar/status/phone, feeds each listed user's current fields to `ContactChangeDetector`.
-> Changes are written to a 200-line text log in the `retro_contact_log` SharedPreferences (newest first). Changing the id list resets the baselines. Not done: SQLite store, notifications, a drawer screen, picking
+> Changes are written to a 200-line text log in the `retro_contact_log` SharedPreferences (newest first). Changing the id list resets the baselines. Not done at that time (superseded: the notification and drawer entry exist since run 48; the SQLite store is ruled out, see the 6.6 gap-closing note): a drawer screen, picking
 > contacts from a list instead of typing ids, and per-user options. The user must already receive updates for the id (shared chat or contact); Telegram's "last seen" privacy can hide status.
 
 > **WP 6.4 wiring (2026-11-08, build-verified in CI run 37, JVM-tested DSP, never run on a device; supersedes the earlier "findings only" note):** Settings → Retrogram → "Extra features": "Voice changer (experimental)" with
