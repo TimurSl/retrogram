@@ -42,4 +42,11 @@ head -c 1100000 /dev/zero > "$apks/a-arm64-v8a.apk"
 expect "apk-size fails above +5 percent"       1 bash "$apks/tools/apk-size.sh" "$apks"
 expect "apk-size rejects an empty directory"   2 bash "$apks/tools/apk-size.sh" "$(mktemp -d)"
 
+# check-plan-status.sh: passes on the real docs, fails when a work package loses its STATUS row
+chk=$(mktemp -d); mkdir -p "$chk/tools" "$chk/docs/plans"
+cp "$root/tools/check-plan-status.sh" "$chk/tools/"; cp "$root"/docs/plans/0*.md "$root/docs/plans/STATUS.md" "$chk/docs/plans/"
+expect "check-plan-status passes on the real docs" 0 bash "$chk/tools/check-plan-status.sh"
+grep -v -E '^\| 6\.8 ' "$root/docs/plans/STATUS.md" > "$chk/docs/plans/STATUS.md"
+expect "check-plan-status fails when 6.8 has no row" 1 bash "$chk/tools/check-plan-status.sh"
+
 exit $fail
