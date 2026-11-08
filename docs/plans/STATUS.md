@@ -49,7 +49,7 @@ so "built" never means "seen working". **Device** = what is left can only be che
 5.1 matrix, 5.2 entry points, 5.3 automated in the sync script: Built. 5.4: the manual checklist stands in for an instrumentation test (needs a device farm and a logged-in test account). **Device:** every "reachable (unverified)" row.
 
 ## Phase 6: Graph features ([06-graph-features.md](06-graph-features.md))
-Step 1 (behaviour specs from a phone, `docs/graph-spec/`): **You**. Step 2 was built from the plan's own designs, everything off by default; where a spec later disagrees with an option or default, the spec wins.
+Step 1 (behaviour specs from a phone, `docs/graph-spec/`): **You**; all eleven spec files exist as stubs with the concrete questions to answer on the phone (including Retrogram's current behaviour next to each question), so the session only records observations. Step 2 was built from the plan's own designs, everything off by default; where a spec later disagrees with an option or default, the spec wins.
 | WP | State |
 | :--- | :--- |
 | 6.1 per-chat lock | Built (run 34, gaps closed in run 48). Not covered: contacts widget, chats opened as sheets, biometrics, message-storage encryption |
@@ -66,7 +66,7 @@ Step 1 (behaviour specs from a phone, `docs/graph-spec/`): **You**. Step 2 was b
 ## Phases 7 and 8 ([07-validation-and-sync.md](07-validation-and-sync.md))
 | WP | State |
 | :--- | :--- |
-| 7 device gate | Tooling built (`tools/perf/perf-gate.sh`, frame-time parser with tests, `tools/apk-size.sh`, release template). **Device:** running the gate. 7.1 baseline profile: **Device** (it has to be recorded on a phone) |
+| 7 device gate | Tooling built (`tools/perf/perf-gate.sh`, frame-time parser with tests, `tools/apk-size.sh`, release template). **Device:** running the gate. 7.1 baseline profile: **Device** (recorded on a phone; a hand-written profile was **ruled out** because its syntax cannot be validated here and a wrong rule would only fail on the first release build, details in the plan) |
 | 8.1 sync script | Built and run in a scratch clone: report, conflict stop, TL-class report. First real run needs a NagramXF release newer than the import (`nagramxf/dev` is still at the import base) |
 | 8.2 release flow | Documented; needs the first sync PR and the device gate |
 

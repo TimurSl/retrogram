@@ -30,7 +30,10 @@ Also: one Android 15/16 Pixel-class phone and one Android 10 low-end phone (minS
 > `tools/perf/gfxinfo_p95.py` (parses the gfxinfo percentiles; unit-tested by `tools/perf/test_gfxinfo_p95.py`, which CI runs), `tools/apk-size.sh` (sizes of every APK, arm64 compared with
 > `docs/release/apk-size-baseline.txt`, fails above +5%; CI runs it after the build and writes the sizes to the job summary; no baseline exists yet, so today it only reports; create one with `--update-baseline` on the first
 > release build) and `docs/release/TEMPLATE.md` (the gate table to copy per tag). The shell scripts were syntax-checked and the parsers and size logic exercised with fake input; **the adb scripts have never run against a device; the Python test and the APK size step ran green in CI run 47.**
-> `FrameMetricsOverlayView` exists in the tree. **Not done (WP 7.1):** a baseline profile / Macrobenchmark module: a profile has to be recorded on a device.
+> `FrameMetricsOverlayView` exists in the tree. **WP 7.1 (baseline profile), decision 2026-11-08: not added.** Two options were checked. (1) A hand-written `src/main/baseline-prof.txt` with wildcard rules for the startup classes: AGP would package it for release builds only, CI never builds release
+> (only tags do), and the profile compiler (`profgen`, hosted on `dl.google.com`) is not reachable from the sandbox, so the rule syntax could not be validated here; a wrong line would break the first release build instead of CI. (2) A Macrobenchmark module generating
+> the profile: it needs a device or emulator and a logged-in account to reach the chat list (startup alone only exercises the login screen). Both are therefore left for the device round, in this order: record with Macrobenchmark on the POCO against a
+> signed-in test account, add `androidx.profileinstaller` and the generated `baseline-prof.txt`, build a release once and compare cold start with `tools/perf/perf-gate.sh`.
 
 ### Gate
 A release tag requires: all rows green or an explicit waiver in `docs/release/<tag>.md`; `glass-guard` clean;
