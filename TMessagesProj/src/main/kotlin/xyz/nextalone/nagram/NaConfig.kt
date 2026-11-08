@@ -1184,11 +1184,12 @@ object NaConfig {
             ConfigItem.configTypeInt,
             1
         )
+    // Retrogram: crash reporting is off by default (PLAN.md section 4: no third-party analytics). NagramXF collected unless this was set.
     val disableCrashlyticsCollection =
         addConfig(
             "DisableCrashlyticsCollection",
             ConfigItem.configTypeBool,
-            false
+            true
         )
     val showStickersRowToplevel =
         addConfig(

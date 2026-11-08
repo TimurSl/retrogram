@@ -126,6 +126,11 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 **Privacy: usage statistics (off by default)**
 - [ ] With "Send usage statistics to Telegram" off, open a group, scroll, play a music file for more than 3 s: with a proxy/traffic log there is no `messages.reportReadMetrics` or `messages.reportMusicListen` request; switch it on: both appear (needs a debug build with `LOGS_ENABLED` or an MTProto-aware proxy)
 
+**Compliance defaults (fresh install)**
+- [ ] In a group or channel with "restrict saving content" on: forward, copy and save are blocked (stock behaviour); switching on Settings > Retrogram > "Bypass restrict saving content" shows the warning, and with it on they work again; "Turn off" in the dialog switches it back
+- [ ] Maps: with no `MAPS_API_KEY` the location picker has no map (expected); with your key set in `local.properties` it loads
+- [ ] Crash reporting is off by default (NagramX settings > "disable crashlytics collection" is on); nothing is sent to Firebase
+
 **Classic theme colors (switch on, restart, theme "Blue" / default)**
 - [ ] Chat list: blue action bar with white icons and title, white status text; search icon; folder tabs
 - [ ] Chat screen action bar, profile and settings pages, sheets and dialogs: nothing unreadable (dark text on dark, white on white)

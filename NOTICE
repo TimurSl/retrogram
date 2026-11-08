@@ -18,6 +18,7 @@ Do not remove them when editing or reviving code.
 Provenance notes
 ----------------
 
+  * See docs/compliance.md for the provenance map (which namespace comes from which upstream project), the restriction-bypass defaults, analytics and credentials.
   * Nagram XF states that it contains code reverse-engineered from closed-source
     forks. Retrogram tracks the affected modules as a legal risk (PLAN.md §4) and
     prefers clean-room replacements.

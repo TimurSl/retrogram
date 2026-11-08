@@ -15670,7 +15670,7 @@ public class ChatActivity extends BaseFragment implements
     }
 
     private boolean shouldShowDirectForwardHint(MessageObject messageObject) {
-        if (messageObject == null || messageObject.messageOwner == null) {
+        if (messageObject == null || messageObject.messageOwner == null || !app.retrogram.RetroConfig.bypassSavingRestrictions.Bool()) {
             return false;
         }
         if (chatMode == MODE_SCHEDULED || chatMode == MODE_SAVED || getDialogId() == UserObject.VERIFY) {

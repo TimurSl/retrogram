@@ -196,6 +196,8 @@ android {
         // (Telegram's API terms do not allow reusing another app's api_id/api_hash).
         def appId = properties?.getProperty('TELEGRAM_APP_ID') ?: System.getenv('TELEGRAM_APP_ID')
         def appHash = properties?.getProperty('TELEGRAM_APP_HASH') ?: System.getenv('TELEGRAM_APP_HASH')
+        // Retrogram: your own Google Maps key (MAPS_API_KEY in local.properties or the environment). Empty means maps do not load; NagramXF's key is no longer shipped.
+        manifestPlaceholders = [MAPS_API_KEY: (properties?.getProperty('MAPS_API_KEY') ?: System.getenv('MAPS_API_KEY') ?: '')]
         if (!appId || !appHash) {
             // Release/staging/bundle tasks must not silently ship without credentials.
             def requestedTasks = gradle.startParameter.taskNames.collect { it.toLowerCase() }

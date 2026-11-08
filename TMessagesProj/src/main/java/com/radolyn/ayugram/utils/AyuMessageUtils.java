@@ -280,6 +280,10 @@ public abstract class AyuMessageUtils {
         if (messageObject == null || messageObject.messageOwner == null) {
             return false;
         }
+        // Retrogram: re-sending protected, secret, self-destructing and paid media is the "bypass saving restrictions" feature, opt-in
+        if (!app.retrogram.RetroConfig.bypassSavingRestrictions.Bool()) {
+            return false;
+        }
         TLRPC.Message message = messageObject.messageOwner;
         if (message.noforwards) {
             return true;
@@ -322,7 +326,7 @@ public abstract class AyuMessageUtils {
     }
 
     public static boolean isFullAyuForwardsNeeded(MessageObject messageObject) {
-        return isChatNoForwards(messageObject);
+        return app.retrogram.RetroConfig.bypassSavingRestrictions.Bool() && isChatNoForwards(messageObject);
     }
 
     public static boolean isAyuForwardNeeded(MessageObject messageObject) {

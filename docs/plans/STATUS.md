@@ -85,6 +85,16 @@ Step 1 (behaviour specs from a phone, `docs/graph-spec/`): **You**; all eleven s
 | 8.1 sync script | Built and run in a scratch clone: report, conflict stop, TL-class report. First real run needs a NagramXF release newer than the import (`nagramxf/dev` is still at the import base) |
 | 8.2 release flow | Documented; needs the first sync PR and the device gate |
 
+## PLAN.md section 4: licensing and compliance ([../compliance.md](../compliance.md))
+| Commitment | State |
+| :--- | :--- |
+| GPL-3.0 combined work, keep headers, NOTICE | Built: NOTICE exists, own files carry SPDX headers. **You:** confirm "or later" |
+| Record the reverse-engineered NagramXF modules | Documented as a provenance map (`tools/provenance.sh`); the file-level list does not exist in the repo. **You:** ask the NagramXF maintainer or have counsel review |
+| Graph Messenger clean-room | Built (spec stubs, no Graph code); observations: **You** |
+| No ads, no third-party analytics | Built: crash reporting now off by default, usage reports to Telegram off by default; hosts audited by code reading, a proxy capture is **Device** |
+| Own api_id, package, FCM, signing, Maps key | NagramXF's Maps key and Firebase file removed from the tree, release builds fail without an api_id; the owner's own values: **You** |
+| Restriction-bypass features off by default with a warning | Built for "restrict saving content" (off, opt-in, confirmation dialog) and content restrictions (off); wording of warnings for ghost mode, anti-delete: **You** |
+
 ## What only the owner can supply
 1. Final package and app name (placeholder `app.retrogram.messenger`). 2. Own `api_id`/`api_hash`, Firebase project (`google-services.json`), signing keystore, Maps key.
 3. A phone with Graph Messenger and a throwaway account (specs for Phase 6 step 1). 4. A decision on mirroring the `Keeperorowner/*` forks. 5. Launcher icon artwork.

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 package app.retrogram
 
 import tw.nekomimi.nekogram.config.ConfigItem
@@ -79,6 +80,14 @@ object RetroConfig {
      */
     @JvmField
     val plainProfileHeader = ConfigItem("RetroPlainProfileHeader", ConfigItem.configTypeBool, false)
+
+    /**
+     * Compliance (PLAN.md section 4): bypass "restrict saving content". NagramXF ignores a group's or channel's no-forwards flag unconditionally and re-sends
+     * protected, self-destructing and paid media through its "AyuForward" engine; Retrogram ships that **off**: protected content cannot be forwarded, copied or saved
+     * (stock Telegram behaviour) unless this is switched on, and turning it on shows a warning that the account can be limited. Applies to chats opened afterwards.
+     */
+    @JvmField
+    val bypassSavingRestrictions = ConfigItem("RetroBypassSavingRestrictions", ConfigItem.configTypeBool, false)
 
     /**
      * Privacy: send usage statistics to Telegram. Telegram 13.x reports, in groups and channels, how long each message was on screen, for how long you
@@ -175,7 +184,7 @@ object RetroConfig {
     @JvmField
     val graphDownloadWindowEnd = ConfigItem("RetroGraphDownloadWindowEnd", ConfigItem.configTypeInt, 6)
 
-    private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings, classicInput, classicChatHeader, classicEmojiPanel, classicRoundButtons, classicProfileTabs, classicSheets, plainProfileHeader, sendUsageStats, classicColors, graphAutoReply, graphSpecialContacts, graphSpecialContactsNotify, graphChatLock, graphHiddenChats, graphWifiOnlyDownloads, graphDownloadWindow)
+    private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings, classicInput, classicChatHeader, classicEmojiPanel, classicRoundButtons, classicProfileTabs, classicSheets, plainProfileHeader, sendUsageStats, bypassSavingRestrictions, classicColors, graphAutoReply, graphSpecialContacts, graphSpecialContactsNotify, graphChatLock, graphHiddenChats, graphWifiOnlyDownloads, graphDownloadWindow)
 
     // Snapshot taken once per process. Until init() runs, behave like the defaults.
     @Volatile

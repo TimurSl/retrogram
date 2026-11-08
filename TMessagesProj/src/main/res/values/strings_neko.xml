@@ -114,6 +114,12 @@
     <string name="RetroPlainProfileHeaderInfo">Profiles (your settings page, users, groups, channels) use the theme colors in the header, like Telegram 12.1.1, instead of the profile color or gift background the person picked. Applies to profiles opened afterwards.</string>
     <string name="RetroSendUsageStats">Send usage statistics to Telegram</string>
     <string name="RetroSendUsageStatsInfo">Telegram 13 reports to its servers, in groups and channels, how long each message was on your screen and how much of it you saw, and how long you listened to music. Off by default in Retrogram: nothing of that is sent unless you turn this on. Applies to chats opened afterwards.</string>
+    <string name="RetroBypassSavingRestrictions">Bypass \"restrict saving content\" (risky)</string>
+    <string name="RetroBypassSavingRestrictionsInfo">Lets you forward, copy and save content from chats whose owners restricted it, and re-sends protected, self-destructing and paid media. Off by default: protected content then behaves as in stock Telegram. Using it can get your account limited. Applies to chats opened afterwards.</string>
+    <string name="RetroBypassSavingRestrictionsWarningTitle">Account risk</string>
+    <string name="RetroBypassSavingRestrictionsWarning">Ignoring the owners\' content protection goes against Telegram\'s rules and can get your account limited or banned. It is also unfair to the people who protected their content. Keep it on only if you accept that.</string>
+    <string name="RetroBypassSavingRestrictionsKeep">Keep on</string>
+    <string name="RetroBypassSavingRestrictionsTurnOff">Turn off</string>
     <string name="RetroClassicColors">Classic theme colors (experimental)</string>
     <string name="RetroClassicColorsInfo">Telegram 12.1.1 colors for the default theme: blue action bar with white icons and the older text and link colors. Applied after restart. Dark themes are mostly unaffected.</string>
     <string name="RetroClassicSettingsInfo">Open Settings as the classic profile page of Telegram 12.1.1 instead of the new Settings screen. Takes effect the next time you open Settings.</string>

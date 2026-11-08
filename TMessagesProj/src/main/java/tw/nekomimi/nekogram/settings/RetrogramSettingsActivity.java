@@ -30,6 +30,7 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
     private final AbstractConfigCell headerInterface = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.RetrogramInterface)));
     private final AbstractConfigCell retroUiRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.retroUi, getString(R.string.RetroUiInfo)));
     private final AbstractConfigCell sendUsageStatsRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.sendUsageStats, getString(R.string.RetroSendUsageStatsInfo)));
+    private final AbstractConfigCell bypassSavingRestrictionsRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.bypassSavingRestrictions, getString(R.string.RetroBypassSavingRestrictionsInfo)));
     private final AbstractConfigCell remoteMetadataRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.remoteMetadata, getString(R.string.RetroRemoteMetadataInfo)));
     private final AbstractConfigCell classicSettingsRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.classicSettings, getString(R.string.RetroClassicSettingsInfo)));
     private final AbstractConfigCell classicInputRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.classicInput, getString(R.string.RetroClassicInputInfo)));
@@ -99,6 +100,7 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
                 && !RetroConfig.classicSheets.getKey().equals(key)
                 && !RetroConfig.plainProfileHeader.getKey().equals(key)
                 && !RetroConfig.sendUsageStats.getKey().equals(key)
+                && !RetroConfig.bypassSavingRestrictions.getKey().equals(key)
                 && !RetroConfig.graphAutoReply.getKey().equals(key)
                 && !RetroConfig.graphAutoReplyText.getKey().equals(key)
                 && !RetroConfig.graphAutoReplyKeywords.getKey().equals(key)
@@ -116,6 +118,25 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
                 && !RetroConfig.graphDownloadWindowStart.getKey().equals(key)
                 && !RetroConfig.graphDownloadWindowEnd.getKey().equals(key)) {
                 tooltip.showWithAction(0, UndoView.ACTION_NEED_RESTART, null, null);
+            }
+        };
+
+        // Turning the restriction bypass on asks for confirmation; "Turn off" restores the stock behaviour at once.
+        final CellGroup.CallBackSettingsChanged previousCallback = cellGroup.callBackSettingsChanged;
+        cellGroup.callBackSettingsChanged = (key, newValue) -> {
+            previousCallback.run(key, newValue);
+            if (RetroConfig.bypassSavingRestrictions.getKey().equals(key) && Boolean.TRUE.equals(newValue) && getParentActivity() != null) {
+                final org.telegram.ui.ActionBar.AlertDialog.Builder builder = new org.telegram.ui.ActionBar.AlertDialog.Builder(getParentActivity());
+                builder.setTitle(getString(R.string.RetroBypassSavingRestrictionsWarningTitle));
+                builder.setMessage(getString(R.string.RetroBypassSavingRestrictionsWarning));
+                builder.setPositiveButton(getString(R.string.RetroBypassSavingRestrictionsKeep), null);
+                builder.setNegativeButton(getString(R.string.RetroBypassSavingRestrictionsTurnOff), (d, w) -> {
+                    RetroConfig.bypassSavingRestrictions.setConfigBool(false);
+                    if (listAdapter != null) {
+                        listAdapter.notifyDataSetChanged();
+                    }
+                });
+                showDialog(builder.create());
             }
         };
 

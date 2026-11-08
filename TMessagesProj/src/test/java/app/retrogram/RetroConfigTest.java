@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 package app.retrogram;
 
 import static org.junit.Assert.assertFalse;

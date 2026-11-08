@@ -1,28 +1,21 @@
 {
   "project_info": {
-    "project_number": "446150425635",
-    "project_id": "project-7331853372972374607",
-    "storage_bucket": "project-7331853372972374607.firebasestorage.app"
+    "project_number": "000000000000",
+    "project_id": "retrogram-placeholder"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:446150425635:android:88638546dd888934298596",
+        "mobilesdk_app_id": "1:000000000000:android:0000000000000000",
         "android_client_info": {
-          "package_name": "fork.risin42.nagramx"
+          "package_name": "app.retrogram.messenger"
         }
       },
-      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAnHQcCSoIyCasmAbEbUrK5fys1SScP0DQ"
+          "current_key": "PLACEHOLDER"
         }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
+      ]
     }
   ],
   "configuration_version": "1"
