@@ -93,7 +93,7 @@ Graph-style hidden chats.
 > **Time-of-day window (2026-11-08, build-verified in CI run 43, never run on a device):** Settings → Retrogram → Extra features: "Download window for large files (experimental)" (off by default) with "Window starts at" / "Window ends at" (hour
 > pickers, default 01:00 to 06:00, may wrap midnight, equal hours mean all day). `WifiOnlyDownloads` now holds a tapped 25 MB+ download while *either* rule is unmet (Wi-Fi rule, window rule) and releases it when both are met: on network changes and
 > from an in-process timer (`AndroidUtilities.runOnUIThread` with the delay until the window opens, computed by the JVM-tested `DownloadWindow`). A second tap downloads right away.
-> **Background schedule that survives the app being killed (2026-11-08, written, not build-verified, never run on a device):** a held file is also registered in Telegram's own persistent download queue
+> **Background schedule that survives the app being killed (2026-11-08, build-verified in CI run 46, never run on a device):** a held file is also registered in Telegram's own persistent download queue
 > (`DownloadController.startDownloadFile`: it appears under "Downloading" in the Downloads tab and is stored in the `downloading_documents` table), and a note (account, time, file name) goes into the
 > `retro_held_downloads` preferences. An inexact alarm (`AlarmManager.setAndAllowWhileIdle`, no exact-alarm permission) is set for the window start and fires `DownloadWindowReceiver` (declared in the manifest), which starts the
 > held files; the same check runs a few seconds after every app start and on every network change. Starting a note means: load the account's download queue (Telegram only does this when the chat list opens), find the file by name,
