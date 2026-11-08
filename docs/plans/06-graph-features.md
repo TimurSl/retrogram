@@ -87,10 +87,13 @@ Graph-style hidden chats.
 > `app.retrogram.graph.WifiOnlyDownloads.maybeHold`: a document of 25 MB or more requested at normal or higher priority (a tap) while the phone is not on Wi-Fi is held with a toast ("Waiting for Wi-Fi. Tap again to download over mobile
 > data."), and `FileLoader.onNetworkChanged` starts the held downloads once Wi-Fi is connected. A second tap on a held file downloads it right away. Streaming, photos, stickers, voice notes, low-priority (auto) downloads and uploads are not
 > affected. The hold list is in memory only. **Decisions I took (change them if you disagree):** 25 MB threshold, fixed; the existing `DownloadQueuePolicy` rules (parallel limit, time window, roaming block) are *not* used by this hook yet;
-> a time-of-day schedule and bulk "save to Downloads" are not implemented, for these reasons. **Bulk save:** the chat's selection mode already has a multi-message "Save to downloads" / "Save to music" action
-> (`ChatActivity`, `saveItem`, ~20932), so saving many files at once from chats exists upstream; only saving from inside the Downloads tab itself is missing, which was judged not worth a second implementation without a spec. **Schedule:** a
-> window like "only 01:00-06:00" is only useful if downloads start while the app is not running, which needs a background alarm/WorkManager job plus a foreground service for large transfers (new permissions and battery behaviour); an in-process timer
-> dies with the app. The `DownloadQueuePolicy` window logic is ready for it if that is wanted later.
+> bulk "save to Downloads" is not implemented: the chat's selection mode already has a multi-message "Save to downloads" / "Save to music" action (`ChatActivity`, `saveItem`, ~20932), so saving many files at once from chats exists upstream; only saving
+> from inside the Downloads tab itself is missing, which was judged not worth a second implementation without a spec.
+> **Time-of-day window (2026-11-08, written, not build-verified, never run on a device):** Settings → Retrogram → Extra features: "Download window for large files (experimental)" (off by default) with "Window starts at" / "Window ends at" (hour
+> pickers, default 01:00 to 06:00, may wrap midnight, equal hours mean all day). `WifiOnlyDownloads` now holds a tapped 25 MB+ download while *either* rule is unmet (Wi-Fi rule, window rule) and releases it when both are met: on network changes and
+> from an in-process timer (`AndroidUtilities.runOnUIThread` with the delay until the window opens, computed by the JVM-tested `DownloadWindow`). A second tap downloads right away. **Limits (by design, not a bug):** this is an in-process timer, not a
+> background job, so a held file is lost if Android kills the app (tap again), a download that already started is not paused when the window closes, and no foreground service is used. A true background schedule would need WorkManager/alarms
+> plus persisting the document and its parent message; not built.
 
 Reuse as-is (no work beyond toggles/doc): 10 accounts, themes, player, ghost mode, anti-delete/edit history, forward without quote.
 

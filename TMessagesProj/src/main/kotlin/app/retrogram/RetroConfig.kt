@@ -128,7 +128,20 @@ object RetroConfig {
     @JvmField
     val graphWifiOnlyDownloads = ConfigItem("RetroGraphWifiOnlyDownloads", ConfigItem.configTypeBool, false)
 
-    private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings, classicInput, classicChatHeader, classicEmojiPanel, classicRoundButtons, classicProfileTabs, classicSheets, classicColors, graphAutoReply, graphSpecialContacts, graphChatLock, graphHiddenChats, graphWifiOnlyDownloads)
+    /**
+     * Download window for large files (WP 6.5): explicit downloads of 25 MB or more wait until the clock is inside the daily window
+     * [graphDownloadWindowStart]:00 to [graphDownloadWindowEnd]:00 (may wrap midnight; equal hours mean all day). Off by default. Hours are int items, read in [init].
+     */
+    @JvmField
+    val graphDownloadWindow = ConfigItem("RetroGraphDownloadWindow", ConfigItem.configTypeBool, false)
+
+    @JvmField
+    val graphDownloadWindowStart = ConfigItem("RetroGraphDownloadWindowStart", ConfigItem.configTypeInt, 1)
+
+    @JvmField
+    val graphDownloadWindowEnd = ConfigItem("RetroGraphDownloadWindowEnd", ConfigItem.configTypeInt, 6)
+
+    private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings, classicInput, classicChatHeader, classicEmojiPanel, classicRoundButtons, classicProfileTabs, classicSheets, classicColors, graphAutoReply, graphSpecialContacts, graphChatLock, graphHiddenChats, graphWifiOnlyDownloads, graphDownloadWindow)
 
     // Snapshot taken once per process. Until init() runs, behave like the defaults.
     @Volatile
@@ -174,6 +187,8 @@ object RetroConfig {
         graphAutoReplyText.value = prefs.getString(graphAutoReplyText.key, "") ?: ""
         graphSpecialContactIds.value = prefs.getString(graphSpecialContactIds.key, "") ?: ""
         graphVoiceEffect.value = prefs.getInt(graphVoiceEffect.key, 0)
+        graphDownloadWindowStart.value = prefs.getInt(graphDownloadWindowStart.key, 1)
+        graphDownloadWindowEnd.value = prefs.getInt(graphDownloadWindowEnd.key, 6)
         captureColdStart()
         RetroShell.applyForcedConfig()
     }

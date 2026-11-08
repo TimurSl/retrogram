@@ -56,7 +56,18 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
             getString(R.string.RetroGraphVoiceEffectDeeper),
     }, null));
     private final AbstractConfigCell graphWifiOnlyRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.graphWifiOnlyDownloads, getString(R.string.RetroGraphWifiOnlyDownloadsInfo)));
+    private final AbstractConfigCell graphDownloadWindowRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.graphDownloadWindow, getString(R.string.RetroGraphDownloadWindowInfo)));
+    private final AbstractConfigCell graphDownloadWindowStartRow = cellGroup.appendCell(new tw.nekomimi.nekogram.config.cell.ConfigCellSelectBox("RetroGraphDownloadWindowStart", RetroConfig.graphDownloadWindowStart, hourLabels(), null));
+    private final AbstractConfigCell graphDownloadWindowEndRow = cellGroup.appendCell(new tw.nekomimi.nekogram.config.cell.ConfigCellSelectBox("RetroGraphDownloadWindowEnd", RetroConfig.graphDownloadWindowEnd, hourLabels(), null));
     private final AbstractConfigCell dividerInterface = cellGroup.appendCell(new ConfigCellDivider());
+
+    private static String[] hourLabels() {
+        final String[] labels = new String[24];
+        for (int i = 0; i < 24; i++) {
+            labels[i] = String.format(java.util.Locale.US, "%02d:00", i);
+        }
+        return labels;
+    }
 
     public RetrogramSettingsActivity() {
         addRowsToMap(cellGroup);
@@ -86,7 +97,10 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
                 && !RetroConfig.graphChatLock.getKey().equals(key)
                 && !RetroConfig.graphHiddenChats.getKey().equals(key)
                 && !RetroConfig.graphVoiceEffect.getKey().equals(key)
-                && !RetroConfig.graphWifiOnlyDownloads.getKey().equals(key)) {
+                && !RetroConfig.graphWifiOnlyDownloads.getKey().equals(key)
+                && !RetroConfig.graphDownloadWindow.getKey().equals(key)
+                && !RetroConfig.graphDownloadWindowStart.getKey().equals(key)
+                && !RetroConfig.graphDownloadWindowEnd.getKey().equals(key)) {
                 tooltip.showWithAction(0, UndoView.ACTION_NEED_RESTART, null, null);
             }
         };
