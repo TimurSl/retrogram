@@ -54,6 +54,14 @@ Graph-style hidden chats.
 > `ChatLockAndContactsTest` (6 tests) passes on the JVM together with the auto-reply tests (13 in total; `javac` + JUnit, not Gradle). **Not done:** Keystore-backed storage, `PasscodeView` gate and the
 > `presentFragment` / notification / share / widget hooks (6.1); `NotificationCenter` feed, SQLite log, notifications and the drawer screen (6.6); toggles; specs. None of it is reachable from the app.
 
+> **WP 6.4 and 6.5 progress (2026-11-08): cores only.** `app.retrogram.graph.VoiceEffects` (pure Java, 16-bit mono PCM): ring modulator ("robot"), echo with decay/repeats and clipping, pitch shift by WSOLA time-stretch +
+> linear resampling (length-preserving). `VoiceEffectsTest` checks them with golden signals (Goertzel power: the ring modulator moves a 1 kHz tone to 700/1300 Hz, a 400 Hz tone shifted by 1.5 lands at 600 Hz,
+> an echoed impulse has exact decaying copies). `app.retrogram.graph.DownloadQueuePolicy` holds the queue rules: parallel limit, priority, pause/resume/cancel, Wi-Fi only, roaming block, scheduled window
+> (wraps midnight), running entries returned to the queue when the network or window stops allowing them. 24 JVM tests pass in total (`javac` + JUnit, not Gradle).
+> **Not done:** the `MediaController` recording hook, preview and setting (6.4); CPU cost on SM6375 is unmeasured and the pitch shifter is unoptimised (quality by ear is unjudged). For 6.5, finding from the code:
+> `FileLoader` has `cancelLoadFile(..., deleteFile)` and `isLoadingFile` but no public pause; `FileLoadOperation` has an internal `pause()`/resume that keeps its partial file. Whether cancel-without-delete resumes from
+> the partial file must be tested before wiring pause/resume. The `DownloadsActivity` list, the drawer entry and saving to Downloads are also not done. Nothing is reachable from the app.
+
 Reuse as-is (no work beyond toggles/doc): 10 accounts, themes, player, ghost mode, anti-delete/edit history, forward without quote.
 
 Each built feature needs: a toggle, a unit/instrumentation test for the core logic (lock store, hidden filter,
