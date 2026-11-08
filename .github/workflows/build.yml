@@ -204,6 +204,10 @@ jobs:
         if: ${{ !matrix.plugins }}
         run: ./gradlew :TMessagesProj:testNormalDebugUnitTest
 
+      - name: Perf script tests
+        if: ${{ !matrix.plugins }}
+        run: cd tools/perf && python3 -m unittest -q test_gfxinfo_p95
+
       # Baseline summary on every build; it never fails (2000+ legacy hits, see docs/plans/04-global-sweep.md).
       - name: Glass guard (baseline)
         if: ${{ !matrix.plugins && hashFiles('tools/glass-guard.sh') != '' }}
@@ -250,6 +254,11 @@ jobs:
           dir=$(ls -d TMessagesProj/build/outputs/apk/*/* | head -n1)
           echo "dir=$dir" >> "$GITHUB_OUTPUT"
           ls -l "$dir"
+
+      # Reports the APK sizes in the job summary; fails only when docs/release/apk-size-baseline.txt exists and the arm64 APK grew by more than 5%.
+      - name: APK size
+        if: ${{ !matrix.plugins }}
+        run: bash tools/apk-size.sh "${{ steps.apk.outputs.dir }}"
 
       # The build itself is the result that matters; an account-wide artifact storage quota
       # ("Artifact storage quota has been hit") must not turn a successful build red.

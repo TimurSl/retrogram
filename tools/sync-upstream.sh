@@ -51,25 +51,25 @@ Merge stopped with conflicts. Conflicts are expected in files that carry Retrogr
 ProfileActivity, TMessagesProj/build.gradle, blur3 sources). Re-apply each hook; then
   git add <files> && git commit
 and run the report below by hand:
-  tools/glass-guard.sh ${merge_base:0:8}..HEAD
+  tools/glass-guard.sh ${before:0:8}..HEAD
 MSG
   git diff --name-only --diff-filter=U >&2
   exit 2
 fi
 
 echo
-echo ">> glass-guard on what the merge brought in ($merge_base..HEAD)"
-bash tools/glass-guard.sh "$merge_base..HEAD" || echo "(each hit above is a to-do: guard it for retro mode, or allow-list it with a reason)"
+echo ">> glass-guard on what the merge brought in (${before:0:8}..HEAD)"
+bash tools/glass-guard.sh "$before..HEAD" || echo "(each hit above is a to-do: guard it for retro mode, or allow-list it with a reason)"
 
 echo
 echo ">> TL layer"
-old=$(git show "$merge_base:$JAVA/org/telegram/tgnet/TLRPC.java" 2>/dev/null | sed -n 's/.*int LAYER = \([0-9]*\);.*/\1/p' | head -1)
+old=$(git show "$before:$JAVA/org/telegram/tgnet/TLRPC.java" 2>/dev/null | sed -n 's/.*int LAYER = \([0-9]*\);.*/\1/p' | head -1)
 new=$(sed -n 's/.*int LAYER = \([0-9]*\);.*/\1/p' "$JAVA/org/telegram/tgnet/TLRPC.java" | head -1)
 echo "layer: ${old:-?} -> ${new:-?}"
 
 echo
 echo ">> new top-level classes (candidates for docs/feature-matrix.md)"
-git diff --diff-filter=A --name-only "$merge_base..HEAD" -- "$JAVA" | sed "s#^$JAVA/##" | grep -v '^org/telegram/tgnet/' | head -80
+git diff --diff-filter=A --name-only "$before..HEAD" -- "$JAVA" | sed "s#^$JAVA/##" | grep -v '^org/telegram/tgnet/' | head -80
 
 echo
 echo "Next: open a PR from $branch; CI builds plugins off (and on for sync/* branches). Nothing was pushed."

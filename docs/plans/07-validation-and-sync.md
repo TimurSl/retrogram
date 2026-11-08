@@ -26,6 +26,12 @@ functional checks only; the numbers below are only valid on the device.
 
 Also: one Android 15/16 Pixel-class phone and one Android 10 low-end phone (minSdk 27 is the floor).
 
+> **Written (2026-11-08):** `tools/perf/perf-gate.sh` (cold start median of 10 via `am start -W`, a 30 s adb fling with `dumpsys gfxinfo`, PSS from `dumpsys meminfo`; prints PASS/FAIL per limit and exits 1 on a miss),
+> `tools/perf/gfxinfo_p95.py` (parses the gfxinfo percentiles; unit-tested by `tools/perf/test_gfxinfo_p95.py`, which CI runs), `tools/apk-size.sh` (sizes of every APK, arm64 compared with
+> `docs/release/apk-size-baseline.txt`, fails above +5%; CI runs it after the build and writes the sizes to the job summary; no baseline exists yet, so today it only reports; create one with `--update-baseline` on the first
+> release build) and `docs/release/TEMPLATE.md` (the gate table to copy per tag). The shell scripts were syntax-checked and the parsers and size logic exercised with fake input; **the adb scripts have never run against a device.**
+> `FrameMetricsOverlayView` exists in the tree. **Not done (WP 7.1):** a baseline profile / Macrobenchmark module: a profile has to be recorded on a device.
+
 ### Gate
 A release tag requires: all rows green or an explicit waiver in `docs/release/<tag>.md`; `glass-guard` clean;
 CI green for plugins off and on.
@@ -33,7 +39,9 @@ CI green for plugins off and on.
 ## Phase 8 — Upstream sync
 
 ### `tools/sync-upstream.sh` (WP 8.1, M)
-> **Status: written, `bash -n` only (not run: it fetches and branches).** `tools/sync-upstream.sh <name> [<ref>]` adds the `nagramxf`/`telegram`
+> **Status (2026-11-08): run end to end in a scratch clone** (merge into a no-op, a fake upstream commit with new glass code and a layer bump, and a conflicting hunk): the report lists only what the merge brought in (it used to list Retrogram's own
+> additions because it diffed from the merge-base; fixed to diff from the pre-merge commit), and on a conflict it stops with exit 2, names the file and pushes nothing. Never run against a real new NagramXF release (`nagramxf/dev` is still at the import base).
+> Earlier status: written, `bash -n` only. `tools/sync-upstream.sh <name> [<ref>]` adds the `nagramxf`/`telegram`
 > remotes if missing, fetches blobless, creates `sync/<name>`, merges (stops with a conflict list and exit 2; never resolves, never pushes), then prints
 > glass-guard hits for `merge-base..HEAD`, the TL `LAYER` change and new top-level classes. Steps 1-5 below; step 6 (PR) stays manual.
 1. `git fetch nagramxf dev --tags` (and `telegram master` for the fallback path).
