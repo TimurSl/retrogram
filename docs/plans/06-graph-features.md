@@ -75,6 +75,13 @@ Graph-style hidden chats.
 > Changes are written to a 200-line text log in the `retro_contact_log` SharedPreferences (newest first). Changing the id list resets the baselines. Not done: SQLite store, notifications, a drawer screen, picking
 > contacts from a list instead of typing ids, and per-user options. The user must already receive updates for the id (shared chat or contact); Telegram's "last seen" privacy can hide status.
 
+> **WP 6.4 wiring: findings only (2026-11-08, from reading `MediaController`).** The recorder reads 16-bit PCM in `recordRunnable` in chunks of `recordBufferSize` and hands each chunk straight to the
+> `fileEncodingQueue`, which feeds the native Opus encoder through `writeFrame(...)`; the file is complete when `stopRecord()` runs. So (1) echo and ring modulation could be applied per chunk with state carried
+> between chunks, but `VoiceEffects` works on whole arrays today and the pitch shifter (WSOLA) needs overlap state across chunk boundaries; (2) the straightforward design is to keep the raw PCM in memory while an
+> effect is selected (48 kHz mono 16-bit is about 5.8 MB per minute), run `VoiceEffects` once at stop, and only then call `writeFrame`, which also gives the "preview before send" step. That moves encoding
+> from during to after recording, so the stop/send paths (`stopRecordingInternal`, `sendAfterDone*`) and the waveform/duration bookkeeping (`recordTimeCount`, `recordSamples`) must be reworked and tested on a device.
+> Not wired for that reason; a chunk-streaming variant of `VoiceEffects` is the other option if the in-memory approach is too slow or too large.
+
 Reuse as-is (no work beyond toggles/doc): 10 accounts, themes, player, ghost mode, anti-delete/edit history, forward without quote.
 
 Each built feature needs: a toggle, a unit/instrumentation test for the core logic (lock store, hidden filter,
