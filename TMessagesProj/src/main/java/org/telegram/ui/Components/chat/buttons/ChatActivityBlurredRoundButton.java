@@ -7,6 +7,7 @@ import android.content.Context;
 import android.graphics.BlendMode;
 import android.graphics.BlendModeColorFilter;
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.os.Build;
@@ -57,8 +58,36 @@ public class ChatActivityBlurredRoundButton extends FrameLayout implements Facto
 
     @Override
     public void draw(@NonNull Canvas canvas) {
-        backgroundDrawable.draw(canvas);
+        if (classic) {
+            drawClassicCircle(canvas);
+        } else {
+            backgroundDrawable.draw(canvas);
+        }
         super.draw(canvas);
+    }
+
+    // Classic round button (WP 2.3): solid circle with a soft shadow like the 12.1.1 "go down" button, instead of the glass drawable.
+    private final boolean classic = app.retrogram.RetroConfig.isClassicRoundButtons();
+    private Paint classicPaint;
+
+    private void drawClassicCircle(Canvas canvas) {
+        if (classicPaint == null) {
+            classicPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        }
+        final float cx = getWidth() / 2f;
+        final float cy = getHeight() / 2f;
+        final float r = Math.max(Math.min(getWidth(), getHeight()) / 2f - dp(CLICK_ZONE_MARGIN) + dp(1), 0);
+        // Hardware-friendly shadow: a few faint rings below the circle (Paint.setShadowLayer is not drawn for shapes on hardware canvases before API 28).
+        classicPaint.setColor(0x0f000000);
+        for (int i = 3; i >= 1; i--) {
+            canvas.drawCircle(cx, cy + dp(1), r + dp(i * 0.7f), classicPaint);
+        }
+        classicPaint.setColor(Theme.getColor(Theme.key_chat_messagePanelBackground, resourcesProvider));
+        canvas.drawCircle(cx, cy, r, classicPaint);
+    }
+
+    private int iconColor(Theme.ResourcesProvider resourcesProvider) {
+        return Theme.getColor(classic ? Theme.key_chat_messagePanelIcons : Theme.key_glass_defaultIcon, resourcesProvider);
     }
 
     @Override
@@ -166,9 +195,9 @@ public class ChatActivityBlurredRoundButton extends FrameLayout implements Facto
     ) {
         ChatActivityBlurredRoundButton button;
 
-        final int color = Theme.getColor(Theme.key_glass_defaultIcon, resourcesProvider);
         button = new ChatActivityBlurredRoundButton(context);
         button.resourcesProvider = resourcesProvider;
+        final int color = button.iconColor(resourcesProvider);
         button.setBlurredBackgroundDrawable(factory.create(button, colorProvider));
         button.setIconColor(color);
         int rad = dp(22);
@@ -188,9 +217,9 @@ public class ChatActivityBlurredRoundButton extends FrameLayout implements Facto
     ) {
         ChatActivityBlurredRoundButton button;
 
-        final int color = Theme.getColor(Theme.key_glass_defaultIcon, resourcesProvider);
         button = new ChatActivityBlurredRoundButton(context);
         button.resourcesProvider = resourcesProvider;
+        final int color = button.iconColor(resourcesProvider);
         button.setBlurredBackgroundDrawable(factory.create(button, colorProvider));
         button.setIcon(res, iconSize);
         button.setIconColor(color);
@@ -207,8 +236,8 @@ public class ChatActivityBlurredRoundButton extends FrameLayout implements Facto
             invalidate();
         }
 
-        final int color = Theme.getColor(Theme.key_glass_defaultIcon, resourcesProvider);
-        setIconColor(Theme.getColor(Theme.key_glass_defaultIcon, resourcesProvider));
+        final int color = iconColor(resourcesProvider);
+        setIconColor(color);
         int rad = dp(22);
         int pressedColor = Theme.multAlpha(color, .15f);
         setBackground(Theme.createInsetRoundRectDrawable(pressedColor, rad, dp(6)));

@@ -33,6 +33,7 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
     private final AbstractConfigCell classicInputRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.classicInput, getString(R.string.RetroClassicInputInfo)));
     private final AbstractConfigCell classicChatHeaderRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.classicChatHeader, getString(R.string.RetroClassicChatHeaderInfo)));
     private final AbstractConfigCell classicEmojiPanelRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.classicEmojiPanel, getString(R.string.RetroClassicEmojiPanelInfo)));
+    private final AbstractConfigCell classicRoundButtonsRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.classicRoundButtons, getString(R.string.RetroClassicRoundButtonsInfo)));
     private final AbstractConfigCell classicColorsRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.classicColors, getString(R.string.RetroClassicColorsInfo)));
     private final AbstractConfigCell dividerInterface = cellGroup.appendCell(new ConfigCellDivider());
 
@@ -53,7 +54,8 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
         cellGroup.callBackSettingsChanged = (key, newValue) -> {
             if (!RetroConfig.classicSettings.getKey().equals(key) && !RetroConfig.classicInput.getKey().equals(key)
                 && !RetroConfig.classicChatHeader.getKey().equals(key)
-                && !RetroConfig.classicEmojiPanel.getKey().equals(key)) {
+                && !RetroConfig.classicEmojiPanel.getKey().equals(key)
+                && !RetroConfig.classicRoundButtons.getKey().equals(key)) {
                 tooltip.showWithAction(0, UndoView.ACTION_NEED_RESTART, null, null);
             }
         };
