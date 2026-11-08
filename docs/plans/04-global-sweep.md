@@ -55,7 +55,7 @@ Two caveats the PLAN did not mention:
 >   Not covered: sites with their own render nodes (`GroupCallActivity`, `ProfileGalleryBlurView`, `QrShareView`, `CommunityPendingRequestCell`).
 >   Steps 1 (separate `noBlur` flag), 4 and 7 (`GlassEngine`) also remain; confirm with a GPU profile on the POCO.
 
-> **WP 4.1 closing notes (2026-11-08):** (a) step 5 is now done for `BlurredBackgroundColorProviderThemed` too: in retro mode its color is fully opaque instead of the 0.76/0.85 tint. (b) The sites that keep their own render nodes were
+> **WP 4.1 closing notes (2026-11-08, build-verified in CI run 52):** (a) step 5 is now done for `BlurredBackgroundColorProviderThemed` too: in retro mode its color is fully opaque instead of the 0.76/0.85 tint. (b) The sites that keep their own render nodes were
 > checked against 12.1.1 (`git cat-file` at `9cbf0333`): `ProfileGalleryBlurView` and `GroupCallActivity` already existed there, so their blur is a 12.1.1 look, not 12.4 glass, and stays; `QrShareView` is the QR feature's own effect; `CommunityPendingRequestCell`
 > is one small cell. **Ruled out as not needed:** step 1 (a separate `noBlur` flag: `isRetroUi()` is that flag) and step 4 (`setLiquidGlassEffectAllowed` follows `LiteMode.isEnabled(FLAG_LIQUID_GLASS)`, which is false in retro mode). **Device:** step 7 (`GlassEngine`),
 > to be decided from a GPU profile on the POCO.

@@ -98,7 +98,7 @@ They draw with `Theme.key_paint_chatActionBackground*` (the 12.1.1 `chat_actionB
 and need no retro branch. The only chat-list glass is the edge/scroll blur invalidation in `ChatActivity` (`invalidateMergedVisibleBlurredPositionsAndSources`), which WP 4.1 already
 stops in retro mode. Remaining to verify on a device: the date pill on a wallpaper in light and night themes (checklist item added).
 
-## Closing notes on the "not handled" items above (2026-11-08)
+## Closing notes on the "not handled" items above (2026-11-08, build-verified in CI run 52)
 - **Providers with the default alpha 0.76:** done, `BlurredBackgroundColorProviderThemed` is opaque in retro mode (see WP 4.1 closing notes).
 - **Theme change while a chat is open (classic chat header):** the chat's `getThemeDescriptions` now has a background description for the action bar when the classic header is on, so a theme switch re-colors the bar (written, not seen on a device).
 - **Forum/topic chats and the `MODE_*` chats (pinned, welcome, comments):** re-read: the classic branch replaces `setupGlass` for every mode (it sits before the `MODE_*` handling), so none of them gets the glass pill menu or fade any more; the leftovers in those branches
