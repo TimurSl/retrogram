@@ -82,7 +82,7 @@ reply/edit bars, voice/video record overlay, attach button and AI/rich-text butt
 - **Still 12.4 in that panel:** the inline search field with reaction icons at the top (12.1.1 had a search button in the bottom bar instead).
 
 
-## WP 2.3: opt-in "Classic round buttons" (2026-11-08, not build-verified, not yet run on a device)
+## WP 2.3: opt-in "Classic round buttons" (2026-11-08, build-verified in CI run 31 with the unit tests, not yet run on a device)
 
 Settings → Retrogram → "Classic round buttons (experimental)", **off by default**, read when a button is created (chats opened afterwards). All chat round buttons are
 instances of `ChatActivityBlurredRoundButton` (page down / mentions / reactions via `ChatActivityBlurredRoundPageDownButton`; reply/forward in `ChatActivityActionsButtonsLayout`;
