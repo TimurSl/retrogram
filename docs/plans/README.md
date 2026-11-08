@@ -1,5 +1,7 @@
 # Retrogram — implementation plans
 
+**Current state of every work package: [STATUS.md](STATUS.md).**
+
 `PLAN.md` (repo root) is the strategy: what Retrogram is, why it starts from NagramXF,
 and the phase list. The files here turn each phase into **work packages (WPs)** that
 can be picked up one at a time. Each WP has a goal, the exact files it touches, steps,
