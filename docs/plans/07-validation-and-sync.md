@@ -33,7 +33,7 @@ Also: one Android 15/16 Pixel-class phone and one Android 10 low-end phone (minS
 > `FrameMetricsOverlayView` exists in the tree. **WP 7.1 (baseline profile), decision 2026-11-08: not added.** Two options were checked. (1) A hand-written `src/main/baseline-prof.txt` with wildcard rules for the startup classes: AGP would package it for release builds only, CI never builds release
 > (only tags do), and the profile compiler (`profgen`, hosted on `dl.google.com`) is not reachable from the sandbox, so the rule syntax could not be validated here; a wrong line would break the first release build instead of CI. (2) A Macrobenchmark module generating
 > the profile: it needs a device or emulator and a logged-in account to reach the chat list (startup alone only exercises the login screen). Both are therefore left for the device round, in this order: record with Macrobenchmark on the POCO against a
-> signed-in test account, add `androidx.profileinstaller` and the generated `baseline-prof.txt`, build a release once and compare cold start with `tools/perf/perf-gate.sh`.
+> signed-in test account, add `androidx.profileinstaller` and the generated `baseline-prof.txt`, build a release once and compare cold start with `tools/perf/perf-gate.sh`. The steps are written down in `docs/release/baseline-profile.md`.
 
 ### Gate
 A release tag requires: all rows green or an explicit waiver in `docs/release/<tag>.md`; `glass-guard` clean;

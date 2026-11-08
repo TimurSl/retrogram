@@ -106,7 +106,7 @@ Per screen: before/after screenshots in `docs/sweep/`.
 > | `Bulletin`, `BlurSettingsBottomSheet` | no glass code (0 matches) |
 > | `ItemOptions` popups | 18 glass lines, popup backgrounds handled by the central blur stop of WP 4.1; no geometry of their own to change |
 >
-> What is left for this WP is only the before/after screenshots, which need a device.
+> What is left for this WP is only the before/after screenshots, which need a device: the screen list, how to open each one and what the "after" should show is in `docs/sweep/README.md`, and `tools/sweep/capture.sh <screen> <light|night> <off|on>` saves each shot into `docs/sweep/`.
 
 ### WP 4.3 — Theme (M)
 > **Findings and first implementation (2026-11-07; checked by diffing, not yet seen on a device):**

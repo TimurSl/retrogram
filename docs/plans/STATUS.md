@@ -41,7 +41,7 @@ so "built" never means "seen working". **Device** = what is left can only be che
 | WP | State |
 | :--- | :--- |
 | 4.1 choke point | Built (run 52); step 5 complete (opaque provider), steps 1 and 4 not needed, own-render-node sites checked against 12.1.1 and kept. **Device:** `GlassEngine` (step 7) from a GPU profile |
-| 4.2 sweep list | Built or read through for every screen of the list (per-screen table in the plan); **Device:** the before/after screenshots |
+| 4.2 sweep list | Built or read through for every screen of the list (per-screen table in the plan); **Device:** the before/after screenshots (screen list in `docs/sweep/README.md`, capture helper `tools/sweep/capture.sh`) |
 | 4.3 theme | Built: 123 default-theme colors and the five built-in theme files of 12.1.1 (run 45), behind "Classic theme colors". **Device:** looks right in Day, Night, Dark Blue. Not changed: which theme a new install starts with, wallpaper presets |
 | 4.4 glass-guard | Built; strict mode wired for `sync/*` branches |
 
@@ -66,7 +66,7 @@ Step 1 (behaviour specs from a phone, `docs/graph-spec/`): **You**; all eleven s
 ## Phases 7 and 8 ([07-validation-and-sync.md](07-validation-and-sync.md))
 | WP | State |
 | :--- | :--- |
-| 7 device gate | Tooling built (`tools/perf/perf-gate.sh`, frame-time parser with tests, `tools/apk-size.sh`, release template). **Device:** running the gate. 7.1 baseline profile: **Device** (recorded on a phone; a hand-written profile was **ruled out** because its syntax cannot be validated here and a wrong rule would only fail on the first release build, details in the plan) |
+| 7 device gate | Tooling built (`tools/perf/perf-gate.sh`, frame-time parser with tests, `tools/apk-size.sh`, release template). **Device:** running the gate. 7.1 baseline profile: **Device** (recorded on a phone; a hand-written profile was **ruled out** because its syntax cannot be validated here and a wrong rule would only fail on the first release build, details in the plan; the recording steps are in `docs/release/baseline-profile.md`) |
 | 8.1 sync script | Built and run in a scratch clone: report, conflict stop, TL-class report. First real run needs a NagramXF release newer than the import (`nagramxf/dev` is still at the import base) |
 | 8.2 release flow | Documented; needs the first sync PR and the device gate |
 
