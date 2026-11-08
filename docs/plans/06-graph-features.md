@@ -100,7 +100,7 @@ Graph-style hidden chats.
 > call `FileLoader.loadFile` for it; notes whose file is no longer queued are dropped after two days. **Remaining limits:** the alarm is inexact and may be late; Android may stop a background process during a long download (no foreground service
 > is used); a download that already started is not paused when the window closes; only downloads whose parent is a `MessageObject` (chat files) are persisted, other held loads stay in memory only.
 
-> **Gap closing for 6.1, 6.2 and 6.6 (2026-11-08, written, not build-verified, never run on a device):**
+> **Gap closing for 6.1, 6.2 and 6.6 (2026-11-08, build-verified in CI run 48, never run on a device):**
 > - *6.2 hidden chats:* `DialogsSearchAdapter.filter` (the single filter for local results, global results and recent searches) and the message-search result loop now drop concealed chats; `ShareAlert.fetchDialogs` leaves them out of the share sheet;
 >   the archive was already covered because folder 1 also goes through `getDialogsArray`. Contacts are not part of the plan's row (it names dialog lists, search, forward and share lists), so a hidden person stays in the Contacts list by design.
 > - *6.1 chat lock and 6.2 together:* no reply action in notifications of locked or hidden chats (`NotificationsController`, the reply action would bypass the PIN); the home-screen chats widget (`ChatsWidgetService`) and the direct-share

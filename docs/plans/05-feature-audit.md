@@ -35,7 +35,7 @@ Add NagramXF-only entries too (feed, ghost mode, bookmarks, AyuGram features): t
 - **WP 5.3:** automated in `tools/sync-upstream.sh`: after a merge it prints the new TL request/type names (same class-set comparison, legacy `_layer<N>` classes filtered out) next to the new top-level classes; tested in a scratch clone against a fake upstream commit.
 - **WP 5.4:** `docs/device-test-checklist.md` is the manual script (one block per switch plus the shell, chat, profile and settings checks). An instrumentation test that opens each entry point needs a device farm and a logged-in test account, so it
   is not written; the checklist is the substitute.
-- **Privacy finding from the audit:** Telegram 13.x reports reading metrics (`messages.reportReadMetrics`, groups and channels) and music listening time (`messages.reportMusicListen`) to its servers. Retrogram now sends neither unless
+- **Privacy finding from the audit (build-verified in CI run 48):** Telegram 13.x reports reading metrics (`messages.reportReadMetrics`, groups and channels) and music listening time (`messages.reportMusicListen`) to its servers. Retrogram now sends neither unless
   Settings → Retrogram → "Send usage statistics to Telegram" is on (off by default).
 
 ## Acceptance
