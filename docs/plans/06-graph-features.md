@@ -80,6 +80,8 @@ Graph-style hidden chats.
 > between chunks, but `VoiceEffects` works on whole arrays today and the pitch shifter (WSOLA) needs overlap state across chunk boundaries; (2) the straightforward design is to keep the raw PCM in memory while an
 > effect is selected (48 kHz mono 16-bit is about 5.8 MB per minute), run `VoiceEffects` once at stop, and only then call `writeFrame`, which also gives the "preview before send" step. That moves encoding
 > from during to after recording, so the stop/send paths (`stopRecordingInternal`, `sendAfterDone*`) and the waveform/duration bookkeeping (`recordTimeCount`, `recordSamples`) must be reworked and tested on a device.
+> A post-recording alternative was also checked and rejected for now: `stopRecordingInternal` ends with the finished Ogg/Opus file (`recordingAudioFileToSend`, after `joinRecord`), but no Java-callable Opus-to-PCM decoder exists
+> in the app (playback goes through the media player, and `MediaController` only exposes `cropOpusFile`, `joinOpusFiles`, `isOpusFile`), so decoding would need `MediaExtractor`/`MediaCodec` plus a re-encode through the recorder natives.
 > Not wired for that reason; a chunk-streaming variant of `VoiceEffects` is the other option if the in-memory approach is too slow or too large.
 
 > **WP 6.1 wiring (2026-11-08, build-verified in CI run 34, never run on a device):** Settings → Retrogram → "Extra features": "Per-chat lock (experimental)" (off by default) and "Set chat lock PIN"
