@@ -76,6 +76,15 @@
     <string name="RetroGraphChatLockLocked">Chat locked</string>
     <string name="RetroGraphChatLockLockItem">Lock chat</string>
     <string name="RetroGraphChatLockUnlockItem">Unlock chat</string>
+    <string name="RetroGraphHiddenChats">Hidden chats (experimental)</string>
+    <string name="RetroGraphHiddenChatsInfo">Hide chats from the chat list from their menu; show them again with the chat lock PIN (set it under Per-chat lock). Hidden chats still receive messages, with no text in their notifications. They can still appear in search. Off by default.</string>
+    <string name="RetroGraphHiddenChatsReveal">Show or hide hidden chats</string>
+    <string name="RetroGraphHiddenChatsHideItem">Hide chat</string>
+    <string name="RetroGraphHiddenChatsUnhideItem">Unhide chat</string>
+    <string name="RetroGraphHiddenChatsHidden">Chat hidden from the list</string>
+    <string name="RetroGraphHiddenChatsUnhidden">Chat is shown in the list again</string>
+    <string name="RetroGraphHiddenChatsShown">Hidden chats are shown until you leave the app</string>
+    <string name="RetroGraphHiddenChatsHiddenAgain">Hidden chats are hidden again</string>
     <string name="RetroClassicColors">Classic theme colors (experimental)</string>
     <string name="RetroClassicColorsInfo">Telegram 12.1.1 colors for the default theme: blue action bar with white icons and the older text and link colors. Applied after restart. Dark themes are mostly unaffected.</string>
     <string name="RetroClassicSettingsInfo">Open Settings as the classic profile page of Telegram 12.1.1 instead of the new Settings screen. Takes effect the next time you open Settings.</string>

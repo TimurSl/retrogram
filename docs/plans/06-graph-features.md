@@ -82,12 +82,18 @@ Graph-style hidden chats.
 > from during to after recording, so the stop/send paths (`stopRecordingInternal`, `sendAfterDone*`) and the waveform/duration bookkeeping (`recordTimeCount`, `recordSamples`) must be reworked and tested on a device.
 > Not wired for that reason; a chunk-streaming variant of `VoiceEffects` is the other option if the in-memory approach is too slow or too large.
 
-> **WP 6.1 wiring (2026-11-08, written, not build-verified, never run on a device):** Settings → Retrogram → "Extra features": "Per-chat lock (experimental)" (off by default) and "Set chat lock PIN"
+> **WP 6.1 wiring (2026-11-08, build-verified in CI run 34, never run on a device):** Settings → Retrogram → "Extra features": "Per-chat lock (experimental)" (off by default) and "Set chat lock PIN"
 > (at least 4 digits; salted SHA-256 in private preferences; no recovery, no biometrics). With it on, a chat's menu has "Lock chat" / "Unlock chat" (unlocking asks for the PIN). Hooks:
 > `ActionBarLayout.presentFragment` calls `ChatLockGate.intercept` first, so every normal way to open a `ChatActivity` (list, search, notifications opened in the app, links) shows a PIN dialog and presents the
 > chat after a correct PIN; `LaunchActivity.onPause` relocks everything; `NotificationsController.getStringForMessage` returns "New message" for locked chats. Decisions are `ChatLockPolicy` (60 s relock timeout).
 > Locked ids are stored per account. **Not covered:** the chat stays visible in the chat list with its last message (hiding is WP 6.2); chats shown as bottom sheets, widgets, share targets, and the notification's
 > reply action; a locked chat is let through if no PIN exists; no biometric; message storage is not encrypted.
+
+> **WP 6.2 wiring (2026-11-08, written, not build-verified, never run on a device):** Settings → Retrogram → "Extra features": "Hidden chats (experimental)" (off by default) and "Show or hide hidden chats".
+> With it on, a chat's menu has "Hide chat" / "Unhide chat". `DialogsActivity.getDialogsArray` is now a wrapper that calls `HiddenChats.filter` (a filtered copy, or the original list when nothing is hidden, the feature is off or
+> chats are revealed); the old body is `getDialogsArrayUnfiltered`. Everything that builds the chat list, folder tabs and the forward/share picker goes through it. Revealing asks for the chat-lock PIN (the same PIN as WP 6.1)
+> and lasts until the app goes to the background; unhiding also asks for it. Hidden chats keep receiving messages; notification text for them reads "New message" (`ChatLockGate.shouldRedact`). **Not covered:** global search results,
+> contacts, the archive, widgets, unread-count badges of folders (they still count hidden chats), the app-icon badge, and calls. Hide + lock the same chat if opening it directly (a link) must also be gated.
 
 Reuse as-is (no work beyond toggles/doc): 10 accounts, themes, player, ghost mode, anti-delete/edit history, forward without quote.
 

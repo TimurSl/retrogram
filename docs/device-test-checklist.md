@@ -78,6 +78,11 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 - [ ] Switch on, set a PIN, open a chat menu → Lock chat. Leave and reopen the chat from the list, from search and from a notification: PIN dialog each time (after the first correct PIN, no prompt for 60 s); wrong PIN shows a message and does not open it
 - [ ] Put the app in the background and return: asked again. Notification text for the locked chat reads "New message". Unlock chat from the menu: opens freely again
 
+**Hidden chats (Extra features; needs the chat lock PIN)**
+- [ ] Switch on, open a chat → menu → Hide chat: it leaves the chat list and the forward picker; send it a message from another account: notification says "New message" and the chat stays hidden
+- [ ] Settings → Retrogram → Show or hide hidden chats → PIN: the chat is back; going to the background hides it again. Unhide chat from its menu (PIN) puts it back for good
+- [ ] Note any place it still shows (search, folders' unread counters, app badge) and send it back
+
 **Classic theme colors (switch on, restart, theme "Blue" / default)**
 - [ ] Chat list: blue action bar with white icons and title, white status text; search icon; folder tabs
 - [ ] Chat screen action bar, profile and settings pages, sheets and dialogs: nothing unreadable (dark text on dark, white on white)

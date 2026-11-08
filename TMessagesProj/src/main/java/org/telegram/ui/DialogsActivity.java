@@ -11435,6 +11435,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
     @NonNull
     public ArrayList<TLRPC.Dialog> getDialogsArray(int currentAccount, int dialogsType, int folderId, boolean frozen) {
+        return app.retrogram.graph.HiddenChats.filter(currentAccount, getDialogsArrayUnfiltered(currentAccount, dialogsType, folderId, frozen));
+    }
+
+    private ArrayList<TLRPC.Dialog> getDialogsArrayUnfiltered(int currentAccount, int dialogsType, int folderId, boolean frozen) {
         if (frozen && frozenDialogsList != null) {
             return frozenDialogsList;
         }

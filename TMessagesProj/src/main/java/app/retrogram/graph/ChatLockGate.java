@@ -83,11 +83,16 @@ public final class ChatLockGate {
     }
 
     /** Notification text, previews: true while the chat is locked (also right after unlocking, by design). */
-    public static synchronized boolean shouldRedact(int account, long dialogId) {
+    public static boolean shouldRedact(int account, long dialogId) {
+        return HiddenChats.isHidden(account, dialogId) || redactForLock(account, dialogId);
+    }
+
+    private static synchronized boolean redactForLock(int account, long dialogId) {
         return enabled() && policy(account).shouldRedactPreview(dialogId);
     }
 
     public static synchronized void onAppBackgrounded() {
+        HiddenChats.onAppBackgrounded();
         for (int i = 0; i < policies.size(); i++) {
             policies.valueAt(i).onAppBackgrounded();
         }
@@ -143,6 +148,22 @@ public final class ChatLockGate {
         builder.setPositiveButton(LocaleController.getString(R.string.OK), (d, w) -> onPin.accept(input.getText().toString()));
         builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
         builder.show();
+    }
+
+    /** Asks for the PIN and runs {@code onOk} when it is right; with no PIN yet it opens the set-PIN dialog instead. */
+    public static void requirePin(Context context, Runnable onOk) {
+        if (!hasPin()) {
+            showSetPin(context);
+            return;
+        }
+        askPin(context, LocaleController.getString(R.string.RetroGraphChatLockTitle),
+            LocaleController.getString(R.string.RetroGraphChatLockEnterPin), pin -> {
+                if (checkPin(pin)) {
+                    onOk.run();
+                } else {
+                    Toast.makeText(context, LocaleController.getString(R.string.RetroGraphChatLockWrongPin), Toast.LENGTH_SHORT).show();
+                }
+            });
     }
 
     /** Settings entry: sets the PIN, or changes it after asking for the old one. */
