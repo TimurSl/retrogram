@@ -109,7 +109,7 @@ Per screen: before/after screenshots in `docs/sweep/`.
 Compare `Theme` color keys 12.1.1 vs 13.1.1 (`git diff 9cbf0333 3de37c8c -- …/ActionBar/Theme.java`); restore dropped
 `key_chats_menu*` values for built-in themes; make sure the default theme set and wallpapers equal 12.1.1.
 
-> **WP 4.3, built-in themes (2026-11-08, written, not build-verified):** the built-in themes are not code tables but asset files (`assets/{arctic,bluebubbles,darkblue,day,night}.attheme`; `amoled.attheme` did not change), and they differ between
+> **WP 4.3, built-in themes (2026-11-08, build-verified in CI run 45):** the built-in themes are not code tables but asset files (`assets/{arctic,bluebubbles,darkblue,day,night}.attheme`; `amoled.attheme` did not change), and they differ between
 > 12.1.1 and 13.1.1 by 25 to 85 lines each (git diff stat, 150 insertions and 86 deletions in total). The 12.1.1 versions are now shipped as `assets/retro/*.attheme` (taken from commit `9cbf0333`), and with **"Classic theme colors"** on
 > `Theme.getAssetFile` loads `retro/<name>` through `RetroThemeColors.themeAssetPath` (cached in the files directory as `retro_<name>`, so switching the option never reuses the other copy). Needs the restart the option already needs.
 > Keys that only exist in 13.x fall back to the normal defaults, keys that only existed in 12.1.1 (the 10 removed attach-sheet keys, `key_dialogCameraIcon`, `key_chat_goDownButtonIcon`) are ignored by the theme parser. Not changed: which theme a *new
