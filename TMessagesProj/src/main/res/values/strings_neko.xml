@@ -59,6 +59,8 @@
     <string name="RetroGraphAutoReplyTextHint">Message to send</string>
     <string name="RetroGraphSpecialContacts">Special contacts log (experimental)</string>
     <string name="RetroGraphSpecialContactsInfo">Keeps a log on this device of when the people you list go online or offline and change their name, username, photo or phone. Only shows what Telegram already sends you. Off by default.</string>
+    <string name="RetroGraphSpecialContactsNotify">Notify about changes</string>
+    <string name="RetroGraphSpecialContactsNotifyInfo">Show a notification for each change that is recorded in the special contacts log. You can silence it in the system notification settings (channel "Special contacts log"). Off by default.</string>
     <string name="RetroGraphSpecialContactIds">Contact user IDs</string>
     <string name="RetroGraphSpecialContactIdsHint">Numeric user IDs separated by commas</string>
     <string name="RetroGraphContactsLog">Special contacts log</string>

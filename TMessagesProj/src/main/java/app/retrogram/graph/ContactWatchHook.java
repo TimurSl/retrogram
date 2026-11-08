@@ -1,10 +1,21 @@
 package app.retrogram.graph;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+
+import androidx.core.app.NotificationCompat;
 
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.FileLog;
+import org.telegram.messenger.LocaleController;
+import org.telegram.messenger.R;
+import org.telegram.ui.ActionBar.AlertDialog;
+import org.telegram.ui.LaunchActivity;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.UserConfig;
@@ -135,6 +146,56 @@ public final class ContactWatchHook implements NotificationCenter.NotificationCe
             lines++;
         }
         prefs.edit().putString(KEY_LOG, sb.toString()).apply();
+        if (RetroConfig.graphSpecialContactsNotify.Bool()) {
+            notifyChange(change, displayName);
+        }
+    }
+
+    private static final String CHANNEL_ID = "retro_contacts";
+
+    private static String describe(ContactChangeDetector.Change change) {
+        final StringBuilder sb = new StringBuilder(change.kind.toString().toLowerCase());
+        if (change.oldValue != null || change.newValue != null) {
+            sb.append(' ').append(change.oldValue == null ? "" : change.oldValue).append(" -> ").append(change.newValue == null ? "" : change.newValue);
+        }
+        return sb.toString();
+    }
+
+    /** One notification per change, in its own channel so the user can silence it in the system settings. Ignored when notifications are not allowed. */
+    private static void notifyChange(ContactChangeDetector.Change change, String displayName) {
+        try {
+            final Context context = ApplicationLoader.applicationContext;
+            final NotificationManager manager = context.getSystemService(NotificationManager.class);
+            if (manager == null) {
+                return;
+            }
+            manager.createNotificationChannel(new NotificationChannel(CHANNEL_ID, LocaleController.getString(R.string.RetroGraphContactsLog), NotificationManager.IMPORTANCE_DEFAULT));
+            final Intent open = new Intent(context, LaunchActivity.class);
+            final PendingIntent pending = PendingIntent.getActivity(context, 0, open, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+            final Notification notification = new NotificationCompat.Builder(context, CHANNEL_ID)
+                .setSmallIcon(R.drawable.notification)
+                .setContentTitle(displayName)
+                .setContentText(describe(change))
+                .setAutoCancel(true)
+                .setContentIntent(pending)
+                .build();
+            manager.notify(("retro_contact_" + change.userId).hashCode(), notification);
+        } catch (Throwable t) {
+            FileLog.e(t);
+        }
+    }
+
+    /** The log in a dialog (settings row and drawer entry). */
+    public static void showLog(Context context) {
+        final String log = readableLog();
+        final AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle(LocaleController.getString(R.string.RetroGraphContactsLog));
+        builder.setMessage(log.isEmpty() ? LocaleController.getString(R.string.RetroGraphContactsLogEmpty) : log);
+        builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
+        if (!log.isEmpty()) {
+            builder.setNegativeButton(LocaleController.getString(R.string.RetroGraphContactsLogClear), (d, w) -> clearLog());
+        }
+        builder.show();
     }
 
     /** Human-readable log, newest first. */

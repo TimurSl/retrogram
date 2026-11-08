@@ -2993,6 +2993,9 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
                 if (dialog.id == selfUserId) {
                     continue;
                 }
+                if (app.retrogram.graph.HiddenChats.isConcealed(currentAccount, dialog.id)) {
+                    continue; // hidden chats (WP 6.2) are not offered in the share sheet
+                }
                 if (!DialogObject.isEncryptedDialog(dialog.id)) {
                     if (DialogObject.isUserDialog(dialog.id)) {
                         if (dialog.folder_id == 1) {

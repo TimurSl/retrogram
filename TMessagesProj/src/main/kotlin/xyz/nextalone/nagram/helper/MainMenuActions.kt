@@ -104,6 +104,8 @@ object MainMenuActions {
                     fragment.parentActivity,
                     org.telegram.messenger.LocaleController.getString(org.telegram.messenger.R.string.TelegramFeaturesUrl)
                 )
+            id == DrawerLayoutAdapter.nkbtnContactsLog ->
+                app.retrogram.graph.ContactWatchHook.showLog(fragment.parentActivity)
             id == DrawerLayoutAdapter.nkbtnDownloads ->
                 (fragment as? org.telegram.ui.DialogsActivity
                     ?: fragment.getParentLayout()?.getFragmentStack()?.firstOrNull { it is org.telegram.ui.DialogsActivity } as? org.telegram.ui.DialogsActivity)

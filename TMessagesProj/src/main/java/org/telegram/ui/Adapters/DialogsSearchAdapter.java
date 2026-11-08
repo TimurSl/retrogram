@@ -285,6 +285,9 @@ public class DialogsSearchAdapter extends RecyclerListView.SelectionAdapter {
     }
 
     private boolean filter(Object obj) {
+        if (app.retrogram.graph.HiddenChats.isConcealedObject(currentAccount, obj)) {
+            return false; // hidden chats (WP 6.2): not in search results, recents or global results either
+        }
         if (dialogsType != DialogsActivity.DIALOGS_TYPE_START_ATTACH_BOT) {
             return true;
         }
@@ -643,6 +646,9 @@ public class DialogsSearchAdapter extends RecyclerListView.SelectionAdapter {
                                 if (foundDuplicate) {
                                     continue;
                                 }
+                            }
+                            if (app.retrogram.graph.HiddenChats.isConcealedObject(currentAccount, msg)) {
+                                continue; // hidden chats (WP 6.2): their messages are not found either
                             }
                             searchResultMessages.add(msg);
                             long dialog_id = MessageObject.getDialogId(message);

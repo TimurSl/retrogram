@@ -106,6 +106,10 @@ object RetroConfig {
     @JvmField
     val graphSpecialContacts = ConfigItem("RetroGraphSpecialContacts", ConfigItem.configTypeBool, false)
 
+    /** Also show an Android notification for each recorded change of a watched contact. Off by default. */
+    @JvmField
+    val graphSpecialContactsNotify = ConfigItem("RetroGraphSpecialContactsNotify", ConfigItem.configTypeBool, false)
+
     /** Comma-separated numeric user ids to watch. A string item, read in [init]. */
     @JvmField
     val graphSpecialContactIds = ConfigItem("RetroGraphSpecialContactIds", ConfigItem.configTypeString, "")
@@ -148,7 +152,7 @@ object RetroConfig {
     @JvmField
     val graphDownloadWindowEnd = ConfigItem("RetroGraphDownloadWindowEnd", ConfigItem.configTypeInt, 6)
 
-    private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings, classicInput, classicChatHeader, classicEmojiPanel, classicRoundButtons, classicProfileTabs, classicSheets, plainProfileHeader, classicColors, graphAutoReply, graphSpecialContacts, graphChatLock, graphHiddenChats, graphWifiOnlyDownloads, graphDownloadWindow)
+    private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings, classicInput, classicChatHeader, classicEmojiPanel, classicRoundButtons, classicProfileTabs, classicSheets, plainProfileHeader, classicColors, graphAutoReply, graphSpecialContacts, graphSpecialContactsNotify, graphChatLock, graphHiddenChats, graphWifiOnlyDownloads, graphDownloadWindow)
 
     // Snapshot taken once per process. Until init() runs, behave like the defaults.
     @Volatile

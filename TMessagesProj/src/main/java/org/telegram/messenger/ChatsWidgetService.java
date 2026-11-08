@@ -393,6 +393,14 @@ class ChatsRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
         ArrayList<TLRPC.Chat> chats = new ArrayList<>();
         LongSparseArray<TLRPC.Message> messages = new LongSparseArray<>();
         accountInstance.getMessagesStorage().getWidgetDialogs(appWidgetId, 0, dids, dialogs, messages, users, chats);
+        // locked or hidden chats (WP 6.1/6.2) never show on a home-screen widget
+        for (int i = dids.size() - 1; i >= 0; i--) {
+            final long did = dids.get(i);
+            if (app.retrogram.graph.ChatLockGate.shouldRedact(accountInstance.getCurrentAccount(), did)) {
+                messages.remove(did);
+                dids.remove(i);
+            }
+        }
         accountInstance.getMessagesController().putUsers(users, true);
         accountInstance.getMessagesController().putChats(chats, true);
         messageObjects.clear();

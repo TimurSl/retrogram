@@ -118,6 +118,10 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 **Plain profile header (switch on)**
 - [ ] Open your Settings page and the profile of someone with a profile color or a gift background: the header uses the theme's colors (no colored backdrop), name, status and icons are readable in light and night themes; avatar expand/collapse still works
 
+**Gap closing (hidden chats, chat lock, contacts log)**
+- [ ] A hidden chat does not show in search (type its name, and a word from its messages), recent searches or the share sheet; a hidden or locked chat is missing from a home-screen chats widget and from the system share sheet's direct-share targets; its notification has no Reply button
+- [ ] Contacts log: turn on "Notify about changes", change the watched account's name: a notification appears (silence it from the system channel); the drawer entry "Special contacts log" (add it in the drawer editor) opens the log
+
 **Classic theme colors (switch on, restart, theme "Blue" / default)**
 - [ ] Chat list: blue action bar with white icons and title, white status text; search icon; folder tabs
 - [ ] Chat screen action bar, profile and settings pages, sheets and dialogs: nothing unreadable (dark text on dark, white on white)

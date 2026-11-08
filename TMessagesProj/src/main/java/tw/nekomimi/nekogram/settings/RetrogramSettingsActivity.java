@@ -43,6 +43,7 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
     private final AbstractConfigCell graphAutoReplyRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.graphAutoReply, getString(R.string.RetroGraphAutoReplyInfo)));
     private final AbstractConfigCell graphAutoReplyTextRow = cellGroup.appendCell(new ConfigCellTextInput(getString(R.string.RetroGraphAutoReplyText), RetroConfig.graphAutoReplyText, getString(R.string.RetroGraphAutoReplyTextHint), null));
     private final AbstractConfigCell graphContactsRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.graphSpecialContacts, getString(R.string.RetroGraphSpecialContactsInfo)));
+    private final AbstractConfigCell graphContactsNotifyRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.graphSpecialContactsNotify, getString(R.string.RetroGraphSpecialContactsNotifyInfo)));
     private final AbstractConfigCell graphContactIdsRow = cellGroup.appendCell(new ConfigCellTextInput(getString(R.string.RetroGraphSpecialContactIds), RetroConfig.graphSpecialContactIds, getString(R.string.RetroGraphSpecialContactIdsHint), null));
     private final AbstractConfigCell graphContactsLogRow = cellGroup.appendCell(new tw.nekomimi.nekogram.config.cell.ConfigCellText("RetroGraphContactsLog", this::showContactsLog));
     private final AbstractConfigCell graphChatLockRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.graphChatLock, getString(R.string.RetroGraphChatLockInfo)));
@@ -96,6 +97,7 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
                 && !RetroConfig.graphAutoReplyText.getKey().equals(key)
                 && !RetroConfig.graphSpecialContacts.getKey().equals(key)
                 && !RetroConfig.graphSpecialContactIds.getKey().equals(key)
+                && !RetroConfig.graphSpecialContactsNotify.getKey().equals(key)
                 && !RetroConfig.graphChatLock.getKey().equals(key)
                 && !RetroConfig.graphHiddenChats.getKey().equals(key)
                 && !RetroConfig.graphVoiceEffect.getKey().equals(key)
@@ -111,18 +113,9 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
     }
 
     private void showContactsLog() {
-        if (getParentActivity() == null) {
-            return;
+        if (getParentActivity() != null) {
+            app.retrogram.graph.ContactWatchHook.showLog(getParentActivity());
         }
-        final String log = app.retrogram.graph.ContactWatchHook.readableLog();
-        final org.telegram.ui.ActionBar.AlertDialog.Builder builder = new org.telegram.ui.ActionBar.AlertDialog.Builder(getParentActivity());
-        builder.setTitle(getString(R.string.RetroGraphContactsLog));
-        builder.setMessage(log.isEmpty() ? getString(R.string.RetroGraphContactsLogEmpty) : log);
-        builder.setPositiveButton(getString(R.string.OK), null);
-        if (!log.isEmpty()) {
-            builder.setNegativeButton(getString(R.string.RetroGraphContactsLogClear), (d, w) -> app.retrogram.graph.ContactWatchHook.clearLog());
-        }
-        showDialog(builder.create());
     }
 
     @Override

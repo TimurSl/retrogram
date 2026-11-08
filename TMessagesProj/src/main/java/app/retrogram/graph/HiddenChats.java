@@ -42,6 +42,29 @@ public final class HiddenChats {
         return enabled() && prefs().getStringSet("hidden_" + account, java.util.Collections.emptySet()).contains(String.valueOf(dialogId));
     }
 
+    /** Hidden and not currently revealed: what lists, search and pickers must leave out. */
+    public static boolean isConcealed(int account, long dialogId) {
+        return !revealed && isHidden(account, dialogId);
+    }
+
+    /** {@link #isConcealed} for the objects search results are made of (user, chat, secret chat, recent-search entry, message). */
+    public static boolean isConcealedObject(int account, Object object) {
+        if (!enabled() || revealed || object == null) {
+            return false;
+        }
+        long id = 0;
+        if (object instanceof TLRPC.User) {
+            id = ((TLRPC.User) object).id;
+        } else if (object instanceof TLRPC.Chat) {
+            id = -((TLRPC.Chat) object).id;
+        } else if (object instanceof TLRPC.EncryptedChat) {
+            id = org.telegram.messenger.DialogObject.makeEncryptedDialogId(((TLRPC.EncryptedChat) object).id);
+        } else if (object instanceof org.telegram.messenger.MessageObject) {
+            id = ((org.telegram.messenger.MessageObject) object).getDialogId();
+        }
+        return id != 0 && isHidden(account, id);
+    }
+
     public static boolean isRevealed() {
         return revealed;
     }

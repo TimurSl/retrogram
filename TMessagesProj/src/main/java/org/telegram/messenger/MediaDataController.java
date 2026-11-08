@@ -5273,6 +5273,10 @@ public class MediaDataController extends BaseController {
                     if ((user == null || UserObject.isDeleted(user)) && chat == null) {
                         continue;
                     }
+                    // locked or hidden chats (WP 6.1/6.2) are not offered as direct-share targets
+                    if (app.retrogram.graph.ChatLockGate.shouldRedact(currentAccount, peerId)) {
+                        continue;
+                    }
 
                     String name;
                     TLRPC.FileLocation photo = null;

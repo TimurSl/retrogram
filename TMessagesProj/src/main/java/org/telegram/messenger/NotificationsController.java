@@ -5308,7 +5308,8 @@ public class NotificationsController extends BaseController implements Notificat
 
             NotificationCompat.Action wearReplyAction = null;
 
-            if ((!isChannel || isSupergroup) && canReply && !SharedConfig.isWaitingForPasscodeEnter && selfUserId != dialogId && !UserObject.isReplyUser(dialogId) && MessagesController.getInstance(currentAccount).getSendPaidMessagesStars(dialogId) <= 0) {
+            // locked or hidden chats (WP 6.1/6.2): no reply from the notification, that would bypass the PIN
+            if ((!isChannel || isSupergroup) && canReply && !SharedConfig.isWaitingForPasscodeEnter && !app.retrogram.graph.ChatLockGate.shouldRedact(currentAccount, dialogId) && selfUserId != dialogId && !UserObject.isReplyUser(dialogId) && MessagesController.getInstance(currentAccount).getSendPaidMessagesStars(dialogId) <= 0) {
                 Intent replyIntent = new Intent(ApplicationLoader.applicationContext, WearReplyReceiver.class);
                 replyIntent.putExtra("dialog_id", dialogId);
                 replyIntent.putExtra("max_id", maxId);
