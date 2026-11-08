@@ -412,6 +412,10 @@ public class ApplicationLoader extends Application {
         }
 
         applicationHandler = new Handler(applicationContext.getMainLooper());
+        // held large downloads (WP 6.5): check shortly after start whether the Wi-Fi/window rules allow them now
+        if (app.retrogram.graph.WifiOnlyDownloads.hasPersistedHolds()) {
+            app.retrogram.graph.WifiOnlyDownloads.releaseSoon();
+        }
 
         if (NekoConfig.useOpenFreeMap.Bool()) {
             MapLibre.getInstance(applicationContext);

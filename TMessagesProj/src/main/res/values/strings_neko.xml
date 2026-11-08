@@ -99,7 +99,7 @@
     <string name="RetroClassicSheets">Classic sheets and panels (experimental)</string>
     <string name="RetroClassicSheetsInfo">Flat full-width bars instead of floating rounded ones in bottom sheets and top panels. Covers the share sheet, the attach sheet and the panels under the action bar in the chat list, call log, topics and profiles. Applies to screens opened afterwards.</string>
     <string name="RetroGraphDownloadWindow">Download window for large files (experimental)</string>
-    <string name="RetroGraphDownloadWindowInfo">Downloads you start by tapping a file of 25 MB or more wait until the time window below, then start by themselves. Tap the file again to download it right away. The app has to stay running; if it is closed, tap the file again. Off by default.</string>
+    <string name="RetroGraphDownloadWindowInfo">Downloads you start by tapping a file of 25 MB or more wait until the time window below, then start by themselves. Tap the file again to download it right away. Held files also survive closing the app: an alarm starts them when the window opens (it can be a little late). Off by default.</string>
     <string name="RetroGraphDownloadWindowStart">Window starts at</string>
     <string name="RetroGraphDownloadWindowEnd">Window ends at</string>
     <string name="RetroGraphDownloadWindowHeld">Waiting for the download window (%1$02d:00 to %2$02d:00). Tap again to download now.</string>

@@ -767,6 +767,7 @@
         <receiver android:name=".NotificationCallbackReceiver" android:enabled="true" android:exported="false"/>
 
         <receiver android:name=".ShareBroadcastReceiver" android:enabled="true" android:exported="false"/>
+        <receiver android:name="app.retrogram.graph.DownloadWindowReceiver" android:exported="false"/>
 
         <receiver android:name=".CustomTabsCopyReceiver" android:enabled="true" android:exported="false"/>
 

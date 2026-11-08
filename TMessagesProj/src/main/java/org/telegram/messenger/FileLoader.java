@@ -1166,7 +1166,7 @@ public class FileLoader extends BaseController {
         } else {
             fileName = null;
         }
-        if (document != null && app.retrogram.graph.WifiOnlyDownloads.maybeHold(document, priority, fileName,
+        if (document != null && app.retrogram.graph.WifiOnlyDownloads.maybeHold(currentAccount, document, parentObject, priority, fileName,
             () -> loadFile(document, secureDocument, webDocument, location, imageLocation, parentObject, locationExt, locationSize, priority, cacheType))) {
             return;
         }
