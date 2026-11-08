@@ -69,7 +69,7 @@ Graph-style hidden chats.
 > The reply goes out through `SendMessagesHelper.sendMessage(SendMessageParams.of(text, dialogId))` on the UI thread. Not done: keyword/schedule rule editing UI, per-chat exceptions, the one-time warning
 > banner when enabling, a Business quick-replies comparison, and the reply is not marked as automatic. Cooldowns live in memory, so a process restart forgets who was already answered.
 
-> **WP 6.6 wiring (2026-11-08, written, not build-verified, never run on a device):** Settings → Retrogram → "Extra features": "Special contacts log (experimental)" (off by default), "Contact user IDs"
+> **WP 6.6 wiring (2026-11-08, build-verified in CI run 33, never run on a device):** Settings → Retrogram → "Extra features": "Special contacts log (experimental)" (off by default), "Contact user IDs"
 > (comma-separated numeric ids) and a "Special contacts log" row that opens the log in a dialog (with a Clear button). `app.retrogram.graph.ContactWatchHook` is installed at startup (`ApplicationLoader`, after
 > `RetroConfig.init()`), observes `NotificationCenter.updateInterfaces` on every account and, when the mask has name/avatar/status/phone, feeds each listed user's current fields to `ContactChangeDetector`.
 > Changes are written to a 200-line text log in the `retro_contact_log` SharedPreferences (newest first). Changing the id list resets the baselines. Not done: SQLite store, notifications, a drawer screen, picking
