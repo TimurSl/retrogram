@@ -1,0 +1,7 @@
+Stats since: 1ns
+Total frames rendered: 3600
+Janky frames: 100 (2.7%)
+50th percentile: 5ms
+90th percentile: 7ms
+95th percentile: 12ms
+99th percentile: 14ms

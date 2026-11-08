@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# fake adb for testing tools/perf/perf-gate.sh and tools/sweep/capture.sh
+args="$*"
+case "$args" in
+  "get-state") echo device ;;
+  *"resolve-activity"*) printf 'priority=0 preferredOrder=0\napp.retrogram.messenger/org.telegram.ui.LaunchActivity\n' ;;
+  *"am force-stop"*) ;;
+  *"am start -W"*) printf 'Status: ok\nTotalTime: %s\nWaitTime: 900\n' "${FAKE_COLD:-1200}" ;;
+  *"gfxinfo"*"reset"*) ;;
+  *"dumpsys gfxinfo"*) cat "${FAKE_GFX:-/dev/null}" ;;
+  *"wm size"*) printf 'Physical size: 1080x2400\n' ;;
+  *"input swipe"*) ;;
+  *"dumpsys meminfo"*) printf '** MEMINFO in pid 1 [app.retrogram.messenger] **\n  TOTAL PSS: %s TOTAL RSS: 1\n' "${FAKE_PSS:-300000}" ;;
+  *"exec-out screencap"*) printf '\x89PNG fake screenshot' ;;
+  *) echo "fake adb: unhandled: $args" >&2 ;;
+esac

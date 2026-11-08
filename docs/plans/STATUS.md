@@ -66,7 +66,7 @@ Step 1 (behaviour specs from a phone, `docs/graph-spec/`): **You**; all eleven s
 ## Phases 7 and 8 ([07-validation-and-sync.md](07-validation-and-sync.md))
 | WP | State |
 | :--- | :--- |
-| 7 device gate | Tooling built (`tools/perf/perf-gate.sh`, frame-time parser with tests, `tools/apk-size.sh`, release template). **Device:** running the gate. 7.1 baseline profile: **Device** (recorded on a phone; a hand-written profile was **ruled out** because its syntax cannot be validated here and a wrong rule would only fail on the first release build, details in the plan; the recording steps are in `docs/release/baseline-profile.md`) |
+| 7 device gate | Tooling built and tested against a fake adb (`tools/perf/perf-gate.sh`, frame-time parser, `tools/apk-size.sh`, `tools/sweep/capture.sh`, release template; `tools/perf/test_perf_scripts.sh` runs in CI). **Device:** running the gate. 7.1 baseline profile: **Device** (recorded on a phone; a hand-written profile was **ruled out** because its syntax cannot be validated here and a wrong rule would only fail on the first release build, details in the plan; the recording steps are in `docs/release/baseline-profile.md`) |
 | 8.1 sync script | Built and run in a scratch clone: report, conflict stop, TL-class report. First real run needs a NagramXF release newer than the import (`nagramxf/dev` is still at the import base) |
 | 8.2 release flow | Documented; needs the first sync PR and the device gate |
 

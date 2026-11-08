@@ -5,13 +5,14 @@
 #
 # Steps (each prints one line and the script exits 1 when a hard limit is missed):
 #   1. cold start: 10 x `am start -W`, median TotalTime, limit 1500 ms
-#   2. fling:      30 s of swipes in whatever screen is open (open a long chat or the chat list first), p95 frame time limit 8.3 ms
+#   2. fling:      30 s of swipes (FLING_SECONDS=n shortens it, used by the script's own test) in whatever screen is open (open a long chat or the chat list first), p95 frame time limit 8.3 ms
 #   3. memory:     PSS after you let the app idle (run with IDLE_SECONDS=120 for the official check), limit 350 MB
 #   4. performance class and Lite Mode preset are not scriptable here: read them from the app log (SharedConfig.getDevicePerformanceClass).
 set -uo pipefail
 pkg=${1:-app.retrogram.messenger}
 here=$(cd "$(dirname "$0")" && pwd)
 out=${OUT_DIR:-$(mktemp -d)}
+mkdir -p "$out"
 fail=0
 
 command -v adb >/dev/null || { echo "adb not found" >&2; exit 2; }
@@ -32,9 +33,9 @@ median=$(printf '%s\n' "${times[@]}" | sort -n | awk '{a[NR]=$1} END {print a[in
 echo "cold start median: ${median} ms (limit 1500)"
 [ "${median:-99999}" -le 1500 ] || fail=1
 
-echo "== fling, 30 s"
+echo "== fling, ${FLING_SECONDS:-30} s"
 adb shell dumpsys gfxinfo "$pkg" reset >/dev/null
-end=$((SECONDS + 30))
+end=$((SECONDS + ${FLING_SECONDS:-30}))
 size=$(adb shell wm size | tr -d '\r' | sed -n 's/.*: *//p' | tail -1)
 w=${size%x*}; h=${size#*x}
 while [ $SECONDS -lt $end ]; do

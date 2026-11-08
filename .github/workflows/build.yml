@@ -206,7 +206,9 @@ jobs:
 
       - name: Perf script tests
         if: ${{ !matrix.plugins }}
-        run: cd tools/perf && python3 -m unittest -q test_gfxinfo_p95
+        run: |
+          cd tools/perf && python3 -m unittest -q test_gfxinfo_p95
+          cd ../.. && bash tools/perf/test_perf_scripts.sh
 
       # Baseline summary on every build; it never fails (2000+ legacy hits, see docs/plans/04-global-sweep.md).
       - name: Glass guard (baseline)
