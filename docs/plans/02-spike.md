@@ -97,3 +97,10 @@ Not covered: the counter badge keeps its own colors (`CounterView`); stacking of
 They draw with `Theme.key_paint_chatActionBackground*` (the 12.1.1 `chat_actionBackgroundPaint` family), so the sticky date, "unread messages" bar and service bubbles are already classic
 and need no retro branch. The only chat-list glass is the edge/scroll blur invalidation in `ChatActivity` (`invalidateMergedVisibleBlurredPositionsAndSources`), which WP 4.1 already
 stops in retro mode. Remaining to verify on a device: the date pill on a wallpaper in light and night themes (checklist item added).
+
+## Closing notes on the "not handled" items above (2026-11-08)
+- **Providers with the default alpha 0.76:** done, `BlurredBackgroundColorProviderThemed` is opaque in retro mode (see WP 4.1 closing notes).
+- **Theme change while a chat is open (classic chat header):** the chat's `getThemeDescriptions` now has a background description for the action bar when the classic header is on, so a theme switch re-colors the bar (written, not seen on a device).
+- **Forum/topic chats and the `MODE_*` chats (pinned, welcome, comments):** re-read: the classic branch replaces `setupGlass` for every mode (it sits before the `MODE_*` handling), so none of them gets the glass pill menu or fade any more; the leftovers in those branches
+  (`setForcedMenuWidth`, `doNotDrawGlassMenu`, `setActionBar`) are layout settings that are harmless with a solid bar. **Device:** look at a forum and at a pinned-messages screen.
+- **Counter badge and extra 13.x round buttons:** the badge keeps its own `CounterView` colors on purpose (it is not glass); extra buttons use the same class and turn solid with the rest.

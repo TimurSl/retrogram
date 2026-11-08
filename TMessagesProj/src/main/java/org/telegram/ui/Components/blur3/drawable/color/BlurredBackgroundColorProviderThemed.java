@@ -38,7 +38,8 @@ public class BlurredBackgroundColorProviderThemed implements BlurredBackgroundCo
 
     public void updateColors() {
         final int color = Theme.getColor(backgroundColorId, resourcesProvider);
-        backgroundColor = Theme.multAlpha(color, alpha);
+        // Retrogram retro mode: the glass is flat, so the panel color is fully opaque instead of the 0.76/0.85 translucent tint (WP 4.1, step 5)
+        backgroundColor = Theme.multAlpha(color, app.retrogram.RetroConfig.isRetroUi() ? 1f : alpha);
 
         if (isDark()) {
             strokeColorTop = 0x28FFFFFF;
