@@ -57,6 +57,13 @@
     <string name="RetroGraphAutoReplyInfo">Answers the first private message from each person with your text, at most once per 6 hours per person, only while the app is in the background, never in groups or to bots. Off by default. Automatic replies can get an account limited if misused.</string>
     <string name="RetroGraphAutoReplyText">Auto-reply text</string>
     <string name="RetroGraphAutoReplyTextHint">Message to send</string>
+    <string name="RetroGraphSpecialContacts">Special contacts log (experimental)</string>
+    <string name="RetroGraphSpecialContactsInfo">Keeps a log on this device of when the people you list go online or offline and change their name, username, photo or phone. Only shows what Telegram already sends you. Off by default.</string>
+    <string name="RetroGraphSpecialContactIds">Contact user IDs</string>
+    <string name="RetroGraphSpecialContactIdsHint">Numeric user IDs separated by commas</string>
+    <string name="RetroGraphContactsLog">Special contacts log</string>
+    <string name="RetroGraphContactsLogEmpty">Nothing recorded yet.</string>
+    <string name="RetroGraphContactsLogClear">Clear</string>
     <string name="RetroClassicColors">Classic theme colors (experimental)</string>
     <string name="RetroClassicColorsInfo">Telegram 12.1.1 colors for the default theme: blue action bar with white icons and the older text and link colors. Applied after restart. Dark themes are mostly unaffected.</string>
     <string name="RetroClassicSettingsInfo">Open Settings as the classic profile page of Telegram 12.1.1 instead of the new Settings screen. Takes effect the next time you open Settings.</string>

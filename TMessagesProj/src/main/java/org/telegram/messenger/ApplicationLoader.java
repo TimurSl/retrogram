@@ -302,6 +302,7 @@ public class ApplicationLoader extends Application {
         NekoConfig.init();
         NaConfig.init();
         app.retrogram.RetroConfig.init();
+        app.retrogram.graph.ContactWatchHook.install();
         LastSeenHelper.preload();
         ExteraConfig.init();
         installPluginCrashHandler();

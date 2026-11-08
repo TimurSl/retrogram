@@ -78,7 +78,18 @@ object RetroConfig {
     @JvmField
     val graphAutoReplyText = ConfigItem("RetroGraphAutoReplyText", ConfigItem.configTypeString, "")
 
-    private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings, classicInput, classicChatHeader, classicEmojiPanel, classicRoundButtons, classicColors, graphAutoReply)
+    /**
+     * Special contacts change log (WP 6.6): records online/offline, name, username, photo and phone changes of the users in
+     * [graphSpecialContactIds] that Telegram already sends updates for. Off by default; the log stays on the device.
+     */
+    @JvmField
+    val graphSpecialContacts = ConfigItem("RetroGraphSpecialContacts", ConfigItem.configTypeBool, false)
+
+    /** Comma-separated numeric user ids to watch. A string item, read in [init]. */
+    @JvmField
+    val graphSpecialContactIds = ConfigItem("RetroGraphSpecialContactIds", ConfigItem.configTypeString, "")
+
+    private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings, classicInput, classicChatHeader, classicEmojiPanel, classicRoundButtons, classicColors, graphAutoReply, graphSpecialContacts)
 
     // Snapshot taken once per process. Until init() runs, behave like the defaults.
     @Volatile
@@ -114,6 +125,7 @@ object RetroConfig {
         val prefs = tw.nekomimi.nekogram.NekoConfig.getPreferences()
         load { key, default -> prefs.getBoolean(key, default) }
         graphAutoReplyText.value = prefs.getString(graphAutoReplyText.key, "") ?: ""
+        graphSpecialContactIds.value = prefs.getString(graphSpecialContactIds.key, "") ?: ""
         captureColdStart()
         RetroShell.applyForcedConfig()
     }
