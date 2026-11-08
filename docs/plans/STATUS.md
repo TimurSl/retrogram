@@ -1,6 +1,6 @@
 # Plan status: every work package, one line each (2026-11-08)
 
-How to read it. **Built** = the code is in the branch and compiled by CI (latest normal build: run 52, `plugins=true`: run 49); nothing in this project has been run on a phone yet,
+How to read it. **Built** = the code is in the branch and compiled by CI (latest normal build: run 53, `plugins=true`: run 49); nothing in this project has been run on a phone yet,
 so "built" never means "seen working". **Device** = what is left can only be checked on a device. **You** = needs something only the project owner can supply.
 **Ruled out** = a decision with its reason, recorded in the linked plan. Details and evidence are in each phase file; this page only makes sure nothing is left without a state.
 
