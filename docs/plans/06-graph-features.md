@@ -83,6 +83,12 @@ Graph-style hidden chats.
 > notes, and echo tails are cut at segment seams. The existing "locked recording, send as preview" flow uses the processed file, so it doubles as the preview. **Risks to check on a device:** CPU/battery (pitch shift is a plain WSOLA with a
 > correlation search, unoptimised; SM6375 is unmeasured), sound quality by ear, pause/resume, cancel, very short notes, the round-video recorder (not touched). No separate "preview effect before recording" screen was built.
 
+> **WP 6.5 remainder (2026-11-08, written, not build-verified, never run on a device): "Large files on Wi-Fi only (experimental)"** (Settings → Retrogram → Extra features, off by default). `FileLoader`'s private document `loadFile` first asks
+> `app.retrogram.graph.WifiOnlyDownloads.maybeHold`: a document of 25 MB or more requested at normal or higher priority (a tap) while the phone is not on Wi-Fi is held with a toast ("Waiting for Wi-Fi. Tap again to download over mobile
+> data."), and `FileLoader.onNetworkChanged` starts the held downloads once Wi-Fi is connected. A second tap on a held file downloads it right away. Streaming, photos, stickers, voice notes, low-priority (auto) downloads and uploads are not
+> affected. The hold list is in memory only. **Decisions I took (change them if you disagree):** 25 MB threshold, fixed; the existing `DownloadQueuePolicy` rules (parallel limit, time window, roaming block) are *not* used by this hook yet;
+> a time-of-day schedule and bulk "save to Downloads" (SAF/MediaStore) are still not implemented.
+
 Reuse as-is (no work beyond toggles/doc): 10 accounts, themes, player, ghost mode, anti-delete/edit history, forward without quote.
 
 Each built feature needs: a toggle, a unit/instrumentation test for the core logic (lock store, hidden filter,

@@ -108,7 +108,13 @@ object RetroConfig {
     @JvmField
     val graphVoiceEffect = ConfigItem("RetroGraphVoiceEffect", ConfigItem.configTypeInt, 0)
 
-    private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings, classicInput, classicChatHeader, classicEmojiPanel, classicRoundButtons, classicColors, graphAutoReply, graphSpecialContacts, graphChatLock, graphHiddenChats)
+    /**
+     * Large files on Wi-Fi only (WP 6.5 remainder): explicit downloads of files of 25 MB or more wait for Wi-Fi. Off by default.
+     */
+    @JvmField
+    val graphWifiOnlyDownloads = ConfigItem("RetroGraphWifiOnlyDownloads", ConfigItem.configTypeBool, false)
+
+    private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings, classicInput, classicChatHeader, classicEmojiPanel, classicRoundButtons, classicColors, graphAutoReply, graphSpecialContacts, graphChatLock, graphHiddenChats, graphWifiOnlyDownloads)
 
     // Snapshot taken once per process. Until init() runs, behave like the defaults.
     @Volatile

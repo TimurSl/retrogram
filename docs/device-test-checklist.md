@@ -90,6 +90,9 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 - [ ] Pick Robot, record a short voice note and send it: plays back as a robot voice at normal speed and length; repeat with Echo (tail after the last word), Higher and Deeper
 - [ ] Pause and resume while recording, lock-record then preview before sending, and cancel: no crash, no garbage audio; a 2-minute note; note any phone heat or lag while recording
 
+**Large files on Wi-Fi only (Extra features)**
+- [ ] On mobile data, tap download on a file of 25 MB or more: toast, nothing downloads; tap again: it starts. Hold another, switch to Wi-Fi: it starts by itself. On Wi-Fi, small files, videos you play and photos behave as before
+
 **Classic theme colors (switch on, restart, theme "Blue" / default)**
 - [ ] Chat list: blue action bar with white icons and title, white status text; search icon; folder tabs
 - [ ] Chat screen action bar, profile and settings pages, sheets and dialogs: nothing unreadable (dark text on dark, white on white)

@@ -53,6 +53,7 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
             getString(R.string.RetroGraphVoiceEffectHigher),
             getString(R.string.RetroGraphVoiceEffectDeeper),
     }, null));
+    private final AbstractConfigCell graphWifiOnlyRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.graphWifiOnlyDownloads, getString(R.string.RetroGraphWifiOnlyDownloadsInfo)));
     private final AbstractConfigCell dividerInterface = cellGroup.appendCell(new ConfigCellDivider());
 
     public RetrogramSettingsActivity() {
@@ -80,7 +81,8 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
                 && !RetroConfig.graphSpecialContactIds.getKey().equals(key)
                 && !RetroConfig.graphChatLock.getKey().equals(key)
                 && !RetroConfig.graphHiddenChats.getKey().equals(key)
-                && !RetroConfig.graphVoiceEffect.getKey().equals(key)) {
+                && !RetroConfig.graphVoiceEffect.getKey().equals(key)
+                && !RetroConfig.graphWifiOnlyDownloads.getKey().equals(key)) {
                 tooltip.showWithAction(0, UndoView.ACTION_NEED_RESTART, null, null);
             }
         };

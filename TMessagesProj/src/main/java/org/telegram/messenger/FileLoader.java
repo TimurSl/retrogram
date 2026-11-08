@@ -389,6 +389,7 @@ public class FileLoader extends BaseController {
     }
 
     public void onNetworkChanged(final boolean slow) {
+        app.retrogram.graph.WifiOnlyDownloads.onNetworkChanged();
         fileLoaderQueue.postRunnable(() -> {
             for (ConcurrentHashMap.Entry<String, FileUploadOperation> entry : uploadOperationPaths.entrySet()) {
                 entry.getValue().onNetworkChanged(slow);
@@ -1164,6 +1165,10 @@ public class FileLoader extends BaseController {
             fileName = getAttachFileName(webDocument);
         } else {
             fileName = null;
+        }
+        if (document != null && app.retrogram.graph.WifiOnlyDownloads.maybeHold(document, priority, fileName,
+            () -> loadFile(document, secureDocument, webDocument, location, imageLocation, parentObject, locationExt, locationSize, priority, cacheType))) {
+            return;
         }
         Runnable runnable = () -> loadFileInternal(document, secureDocument, webDocument, location, imageLocation, parentObject, locationExt, locationSize, priority, null, 0, false, cacheType);
         if (cacheType != 10 && !TextUtils.isEmpty(fileName) && !fileName.contains("" + Integer.MIN_VALUE)) {
