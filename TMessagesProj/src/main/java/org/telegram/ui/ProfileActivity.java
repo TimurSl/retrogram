@@ -11901,6 +11901,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 final MessagesController.PeerColors peerColors = MessagesController.getInstance(currentAccount).profilePeerColors;
                 peerColor = peerColors == null ? null : peerColors.getColor(colorId);
             }
+            if (app.retrogram.RetroConfig.isPlainProfileHeader()) {
+                peerColor = null; // classic header: theme colors instead of the person's profile color
+            }
             if (wasPeerColor != peerColor) {
                 updatedPeerColor();
             }
@@ -12236,6 +12239,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 final int colorId = ChatObject.getProfileColorId(chat);
                 MessagesController.PeerColors peerColors = MessagesController.getInstance(currentAccount).profilePeerColors;
                 peerColor = peerColors == null ? null : peerColors.getColor(colorId);
+            }
+            if (app.retrogram.RetroConfig.isPlainProfileHeader()) {
+                peerColor = null; // classic header: theme colors instead of the chat's profile color
             }
             if (wasPeerColor != peerColor) {
                 updatedPeerColor();

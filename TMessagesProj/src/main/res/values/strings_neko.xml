@@ -103,6 +103,8 @@
     <string name="RetroGraphDownloadWindowStart">Window starts at</string>
     <string name="RetroGraphDownloadWindowEnd">Window ends at</string>
     <string name="RetroGraphDownloadWindowHeld">Waiting for the download window (%1$02d:00 to %2$02d:00). Tap again to download now.</string>
+    <string name="RetroPlainProfileHeader">Plain profile header (experimental)</string>
+    <string name="RetroPlainProfileHeaderInfo">Profiles (your settings page, users, groups, channels) use the theme colors in the header, like Telegram 12.1.1, instead of the profile color or gift background the person picked. Applies to profiles opened afterwards.</string>
     <string name="RetroClassicColors">Classic theme colors (experimental)</string>
     <string name="RetroClassicColorsInfo">Telegram 12.1.1 colors for the default theme: blue action bar with white icons and the older text and link colors. Applied after restart. Dark themes are mostly unaffected.</string>
     <string name="RetroClassicSettingsInfo">Open Settings as the classic profile page of Telegram 12.1.1 instead of the new Settings screen. Takes effect the next time you open Settings.</string>

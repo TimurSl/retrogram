@@ -74,6 +74,13 @@ object RetroConfig {
     val classicSheets = ConfigItem("RetroClassicSheets", ConfigItem.configTypeBool, false)
 
     /**
+     * Experimental: profile headers (own settings page, other users, groups, channels) in the plain theme colors of 12.1.1 instead of the
+     * person's or chat's profile color / collectible-gift background (WP 3.2). Off by default; read when a profile loads its data.
+     */
+    @JvmField
+    val plainProfileHeader = ConfigItem("RetroPlainProfileHeader", ConfigItem.configTypeBool, false)
+
+    /**
      * Experimental: the 12.1.1 default-theme palette (blue action bar, white icons, ...) for the keys whose default
      * changed in 13.1.1 (see [RetroThemeColors]). Off by default; applied at process start, so it needs a restart.
      * `RetroThemeColors.enabled()` reads the stored value itself because `Theme` can load before [init].
@@ -141,7 +148,7 @@ object RetroConfig {
     @JvmField
     val graphDownloadWindowEnd = ConfigItem("RetroGraphDownloadWindowEnd", ConfigItem.configTypeInt, 6)
 
-    private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings, classicInput, classicChatHeader, classicEmojiPanel, classicRoundButtons, classicProfileTabs, classicSheets, classicColors, graphAutoReply, graphSpecialContacts, graphChatLock, graphHiddenChats, graphWifiOnlyDownloads, graphDownloadWindow)
+    private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings, classicInput, classicChatHeader, classicEmojiPanel, classicRoundButtons, classicProfileTabs, classicSheets, plainProfileHeader, classicColors, graphAutoReply, graphSpecialContacts, graphChatLock, graphHiddenChats, graphWifiOnlyDownloads, graphDownloadWindow)
 
     // Snapshot taken once per process. Until init() runs, behave like the defaults.
     @Volatile
@@ -158,6 +165,10 @@ object RetroConfig {
     /** Whether the chat's round buttons are solid circles instead of glass. */
     @JvmStatic
     fun isClassicRoundButtons(): Boolean = retroUiAtStart && classicRoundButtons.Bool()
+
+    /** Whether profile headers ignore profile colors and use the theme's colors. */
+    @JvmStatic
+    fun isPlainProfileHeader(): Boolean = retroUiAtStart && plainProfileHeader.Bool()
 
     /** Whether bottom sheets use flat full-width bars instead of floating pills. */
     @JvmStatic

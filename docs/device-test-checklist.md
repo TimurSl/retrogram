@@ -23,6 +23,7 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 | Classic round buttons (experimental) | off | chats opened afterwards |
 | Classic profile tabs (experimental) | off | profiles opened afterwards |
 | Classic sheets and panels (experimental) | off | screens opened afterwards |
+| Plain profile header (experimental) | off | profiles opened afterwards |
 | Classic theme colors (experimental) | off | after restart |
 
 ## Checks
@@ -112,6 +113,9 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 
 **Download window (Extra features)**
 - [ ] Set the window to start a few minutes from now, tap download on a 25 MB+ file now: toast with the hours, nothing downloads; when the window opens it starts by itself (app kept open); tap again before that: starts at once
+
+**Plain profile header (switch on)**
+- [ ] Open your Settings page and the profile of someone with a profile color or a gift background: the header uses the theme's colors (no colored backdrop), name, status and icons are readable in light and night themes; avatar expand/collapse still works
 
 **Classic theme colors (switch on, restart, theme "Blue" / default)**
 - [ ] Chat list: blue action bar with white icons and title, white status text; search icon; folder tabs

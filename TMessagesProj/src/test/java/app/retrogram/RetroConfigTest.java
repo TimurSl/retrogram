@@ -43,6 +43,8 @@ public class RetroConfigTest {
         assertFalse(RetroConfig.isClassicProfileTabs());
         assertFalse(RetroConfig.classicSheets.Bool());
         assertFalse(RetroConfig.isClassicSheets());
+        assertFalse(RetroConfig.plainProfileHeader.Bool());
+        assertFalse(RetroConfig.isPlainProfileHeader());
         assertTrue(RetroConfig.isRetroUi());
     }
 
