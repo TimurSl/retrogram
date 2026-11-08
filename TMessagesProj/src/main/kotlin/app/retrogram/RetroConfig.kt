@@ -67,7 +67,18 @@ object RetroConfig {
     @JvmField
     val classicColors = ConfigItem("RetroClassicColors", ConfigItem.configTypeBool, false)
 
-    private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings, classicInput, classicChatHeader, classicEmojiPanel, classicRoundButtons, classicColors)
+    /**
+     * Graph features (Phase 6), all off by default. Local auto-reply (WP 6.3): answers a first private message from each
+     * sender once per 6 hours with [graphAutoReplyText], only while the app is not in the foreground, never in groups, to bots or to old messages.
+     */
+    @JvmField
+    val graphAutoReply = ConfigItem("RetroGraphAutoReply", ConfigItem.configTypeBool, false)
+
+    /** Text sent by the auto-reply. Empty text disables it even when [graphAutoReply] is on. A string item, so it is read in [init], not in [load]. */
+    @JvmField
+    val graphAutoReplyText = ConfigItem("RetroGraphAutoReplyText", ConfigItem.configTypeString, "")
+
+    private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings, classicInput, classicChatHeader, classicEmojiPanel, classicRoundButtons, classicColors, graphAutoReply)
 
     // Snapshot taken once per process. Until init() runs, behave like the defaults.
     @Volatile
@@ -102,6 +113,7 @@ object RetroConfig {
     fun init() {
         val prefs = tw.nekomimi.nekogram.NekoConfig.getPreferences()
         load { key, default -> prefs.getBoolean(key, default) }
+        graphAutoReplyText.value = prefs.getString(graphAutoReplyText.key, "") ?: ""
         captureColdStart()
         RetroShell.applyForcedConfig()
     }

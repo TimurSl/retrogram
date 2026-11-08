@@ -18,6 +18,7 @@ import tw.nekomimi.nekogram.config.cell.AbstractConfigCell;
 import tw.nekomimi.nekogram.config.cell.ConfigCellDivider;
 import tw.nekomimi.nekogram.config.cell.ConfigCellHeader;
 import tw.nekomimi.nekogram.config.cell.ConfigCellTextCheck;
+import tw.nekomimi.nekogram.config.cell.ConfigCellTextInput;
 
 /** Settings → Retrogram. Only holds the switches from {@link RetroConfig}. */
 public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
@@ -35,6 +36,9 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
     private final AbstractConfigCell classicEmojiPanelRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.classicEmojiPanel, getString(R.string.RetroClassicEmojiPanelInfo)));
     private final AbstractConfigCell classicRoundButtonsRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.classicRoundButtons, getString(R.string.RetroClassicRoundButtonsInfo)));
     private final AbstractConfigCell classicColorsRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.classicColors, getString(R.string.RetroClassicColorsInfo)));
+    private final AbstractConfigCell headerGraph = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.RetroGraphFeatures)));
+    private final AbstractConfigCell graphAutoReplyRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.graphAutoReply, getString(R.string.RetroGraphAutoReplyInfo)));
+    private final AbstractConfigCell graphAutoReplyTextRow = cellGroup.appendCell(new ConfigCellTextInput(getString(R.string.RetroGraphAutoReplyText), RetroConfig.graphAutoReplyText, getString(R.string.RetroGraphAutoReplyTextHint), null));
     private final AbstractConfigCell dividerInterface = cellGroup.appendCell(new ConfigCellDivider());
 
     public RetrogramSettingsActivity() {
@@ -55,7 +59,9 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
             if (!RetroConfig.classicSettings.getKey().equals(key) && !RetroConfig.classicInput.getKey().equals(key)
                 && !RetroConfig.classicChatHeader.getKey().equals(key)
                 && !RetroConfig.classicEmojiPanel.getKey().equals(key)
-                && !RetroConfig.classicRoundButtons.getKey().equals(key)) {
+                && !RetroConfig.classicRoundButtons.getKey().equals(key)
+                && !RetroConfig.graphAutoReply.getKey().equals(key)
+                && !RetroConfig.graphAutoReplyText.getKey().equals(key)) {
                 tooltip.showWithAction(0, UndoView.ACTION_NEED_RESTART, null, null);
             }
         };

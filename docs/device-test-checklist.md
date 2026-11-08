@@ -67,6 +67,10 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 **Other profiles (retro on)**
 - [ ] Open a user, a group, a channel and a bot profile: header, action row, info rows, shared-media tab strip, three-dot menu; note anything floating, rounded-pill or see-through (send a screenshot)
 
+**Auto-reply (Extra features; use a second account to write to yours)**
+- [ ] With the switch on and a text set, put the app in the background and send a private message from the second account: one reply arrives; a second message within 6 hours gets none
+- [ ] App in the foreground: no reply. Group message: no reply. Message to/from a bot: no reply. Switch off: no reply
+
 **Classic theme colors (switch on, restart, theme "Blue" / default)**
 - [ ] Chat list: blue action bar with white icons and title, white status text; search icon; folder tabs
 - [ ] Chat screen action bar, profile and settings pages, sheets and dialogs: nothing unreadable (dark text on dark, white on white)

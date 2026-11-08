@@ -62,6 +62,13 @@ Graph-style hidden chats.
 > `FileLoader` has `cancelLoadFile(..., deleteFile)` and `isLoadingFile` but no public pause; `FileLoadOperation` has an internal `pause()`/resume that keeps its partial file. Whether cancel-without-delete resumes from
 > the partial file must be tested before wiring pause/resume. The `DownloadsActivity` list, the drawer entry and saving to Downloads are also not done. Nothing is reachable from the app.
 
+> **WP 6.3 wiring (2026-11-08, written, not build-verified, never run on a device):** Settings → Retrogram → "Extra features": "Auto-reply (experimental)" (off by default) and "Auto-reply text".
+> `app.retrogram.graph.AutoReplyHook.onNewMessages` is called at the top of `NotificationsController.processNewMessages` (so it also runs for push-delivered messages in the background) and feeds
+> `AutoReplyEngine` with one rule: private chats only, groups off, any text, always, once per sender per 6 hours, at most 20 replies per hour per account, only while `ApplicationLoader.mainInterfacePaused`.
+> Extra guards in the hook: real users only (no bots, service/support accounts, yourself, deleted), only messages from the last 120 s (no replies to a backlog after reconnecting), no edited, scheduled or service messages.
+> The reply goes out through `SendMessagesHelper.sendMessage(SendMessageParams.of(text, dialogId))` on the UI thread. Not done: keyword/schedule rule editing UI, per-chat exceptions, the one-time warning
+> banner when enabling, a Business quick-replies comparison, and the reply is not marked as automatic. Cooldowns live in memory, so a process restart forgets who was already answered.
+
 Reuse as-is (no work beyond toggles/doc): 10 accounts, themes, player, ghost mode, anti-delete/edit history, forward without quote.
 
 Each built feature needs: a toggle, a unit/instrumentation test for the core logic (lock store, hidden filter,
