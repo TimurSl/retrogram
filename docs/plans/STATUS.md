@@ -1,6 +1,6 @@
 # Plan status: every work package, one line each (2026-11-08)
 
-How to read it. **Built** = the code is in the branch and compiled by CI (latest normal build: run 50, `plugins=true`: run 49); nothing in this project has been run on a phone yet,
+How to read it. **Built** = the code is in the branch and compiled by CI (latest normal build: run 51, `plugins=true`: run 49); nothing in this project has been run on a phone yet,
 so "built" never means "seen working". **Device** = what is left can only be checked on a device. **You** = needs something only the project owner can supply.
 **Ruled out** = a decision with its reason, recorded in the linked plan. Details and evidence are in each phase file; this page only makes sure nothing is left without a state.
 
@@ -54,7 +54,7 @@ Step 1 (behaviour specs from a phone, `docs/graph-spec/`): **You**. Step 2 was b
 | :--- | :--- |
 | 6.1 per-chat lock | Built (run 34, gaps closed in run 48). Not covered: contacts widget, chats opened as sheets, biometrics, message-storage encryption |
 | 6.2 hidden chats | Built (run 35; search and share sheet in run 48). Contacts list intentionally unchanged (not in the plan's row) |
-| 6.3 auto-reply | Built (run 32); keywords, hours and cooldown are settings (this batch). **Ruled out:** group replies (the trigger is a behaviour question for the spec); per-chat exceptions (the spec) |
+| 6.3 auto-reply | Built (run 32); keywords, hours and cooldown are settings (run 51). **Ruled out:** group replies (the trigger is a behaviour question for the spec); per-chat exceptions (the spec) |
 | 6.4 voice changer | Built, seamless streaming (runs 37, 50). **Device:** CPU and sound quality |
 | 6.5 download manager | Built: Downloads drawer entry (upstream already has the list with pause/resume), Wi-Fi-only, daily window with alarm that survives a killed app (runs 36, 38, 43, 46). Bulk save: **ruled out**, the Downloads tab's selection mode already has "Save to downloads" |
 | 6.6 special contacts | Built (run 33, notification and drawer entry run 48). SQLite store **ruled out** (the capped text log is enough) |

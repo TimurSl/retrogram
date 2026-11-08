@@ -111,7 +111,7 @@ Graph-style hidden chats.
 >   a database would add a schema and migrations for no query that exists.
 > - *6.4 preview:* the plan's "preview before send" is the existing locked-recording preview (send as preview), which plays the processed file; no separate effect screen is planned.
 
-> **WP 6.3 rule settings (2026-11-08, written, not build-verified):** the engine's rule fields now have settings under Extra features: "Auto-reply only for these words" (comma separated, case-insensitive, empty = every message), "Auto-reply from / until (hour)" (equal hours =
+> **WP 6.3 rule settings (2026-11-08, build-verified in CI run 51):** the engine's rule fields now have settings under Extra features: "Auto-reply only for these words" (comma separated, case-insensitive, empty = every message), "Auto-reply from / until (hour)" (equal hours =
 > always, wraps midnight; the hour is local time) and "Hours between replies to the same person" (1, 3, 6, 12, 24; default 6). Changing any of them starts a fresh engine (it forgets who was answered). **Ruled out: replying in groups.** The plan says "never in groups unless explicitly
 > enabled"; an auto-reply there would answer ordinary group traffic and what should trigger it (mentions? replies to me?) is a behaviour question for `docs/graph-spec/auto-reply.md`, so the group path of `AutoReplyEngine` stays unused.
 
