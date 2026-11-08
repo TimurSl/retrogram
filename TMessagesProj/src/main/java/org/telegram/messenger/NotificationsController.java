@@ -2653,6 +2653,9 @@ public class NotificationsController extends BaseController implements Notificat
         if (shouldHideNotificationContentForPasscode()) {
             return LocaleController.getString(R.string.YouHaveNewMessage);
         }
+        if (app.retrogram.graph.ChatLockGate.shouldRedact(currentAccount, messageObject.getDialogId())) {
+            return LocaleController.getString(R.string.NotificationHiddenMessage);
+        }
         if (messageObject.isStoryPush || messageObject.isStoryMentionPush) {
             return "!" + messageObject.messageOwner.message;
         }

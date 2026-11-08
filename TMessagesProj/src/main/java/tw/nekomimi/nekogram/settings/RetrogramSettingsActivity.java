@@ -42,6 +42,8 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
     private final AbstractConfigCell graphContactsRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.graphSpecialContacts, getString(R.string.RetroGraphSpecialContactsInfo)));
     private final AbstractConfigCell graphContactIdsRow = cellGroup.appendCell(new ConfigCellTextInput(getString(R.string.RetroGraphSpecialContactIds), RetroConfig.graphSpecialContactIds, getString(R.string.RetroGraphSpecialContactIdsHint), null));
     private final AbstractConfigCell graphContactsLogRow = cellGroup.appendCell(new tw.nekomimi.nekogram.config.cell.ConfigCellText("RetroGraphContactsLog", this::showContactsLog));
+    private final AbstractConfigCell graphChatLockRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.graphChatLock, getString(R.string.RetroGraphChatLockInfo)));
+    private final AbstractConfigCell graphChatLockPinRow = cellGroup.appendCell(new tw.nekomimi.nekogram.config.cell.ConfigCellText("RetroGraphChatLockSetPin", () -> app.retrogram.graph.ChatLockGate.showSetPin(getParentActivity())));
     private final AbstractConfigCell dividerInterface = cellGroup.appendCell(new ConfigCellDivider());
 
     public RetrogramSettingsActivity() {
@@ -66,7 +68,8 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
                 && !RetroConfig.graphAutoReply.getKey().equals(key)
                 && !RetroConfig.graphAutoReplyText.getKey().equals(key)
                 && !RetroConfig.graphSpecialContacts.getKey().equals(key)
-                && !RetroConfig.graphSpecialContactIds.getKey().equals(key)) {
+                && !RetroConfig.graphSpecialContactIds.getKey().equals(key)
+                && !RetroConfig.graphChatLock.getKey().equals(key)) {
                 tooltip.showWithAction(0, UndoView.ACTION_NEED_RESTART, null, null);
             }
         };

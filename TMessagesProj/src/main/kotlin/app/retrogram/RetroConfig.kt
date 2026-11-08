@@ -89,7 +89,14 @@ object RetroConfig {
     @JvmField
     val graphSpecialContactIds = ConfigItem("RetroGraphSpecialContactIds", ConfigItem.configTypeString, "")
 
-    private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings, classicInput, classicChatHeader, classicEmojiPanel, classicRoundButtons, classicColors, graphAutoReply, graphSpecialContacts)
+    /**
+     * Per-chat lock (WP 6.1): a PIN gate in front of chats you lock from the chat menu, notification text hidden for them. Off by default.
+     * It does not encrypt messages and does not hide the chat from the chat list.
+     */
+    @JvmField
+    val graphChatLock = ConfigItem("RetroGraphChatLock", ConfigItem.configTypeBool, false)
+
+    private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings, classicInput, classicChatHeader, classicEmojiPanel, classicRoundButtons, classicColors, graphAutoReply, graphSpecialContacts, graphChatLock)
 
     // Snapshot taken once per process. Until init() runs, behave like the defaults.
     @Volatile

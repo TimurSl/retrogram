@@ -82,6 +82,13 @@ Graph-style hidden chats.
 > from during to after recording, so the stop/send paths (`stopRecordingInternal`, `sendAfterDone*`) and the waveform/duration bookkeeping (`recordTimeCount`, `recordSamples`) must be reworked and tested on a device.
 > Not wired for that reason; a chunk-streaming variant of `VoiceEffects` is the other option if the in-memory approach is too slow or too large.
 
+> **WP 6.1 wiring (2026-11-08, written, not build-verified, never run on a device):** Settings → Retrogram → "Extra features": "Per-chat lock (experimental)" (off by default) and "Set chat lock PIN"
+> (at least 4 digits; salted SHA-256 in private preferences; no recovery, no biometrics). With it on, a chat's menu has "Lock chat" / "Unlock chat" (unlocking asks for the PIN). Hooks:
+> `ActionBarLayout.presentFragment` calls `ChatLockGate.intercept` first, so every normal way to open a `ChatActivity` (list, search, notifications opened in the app, links) shows a PIN dialog and presents the
+> chat after a correct PIN; `LaunchActivity.onPause` relocks everything; `NotificationsController.getStringForMessage` returns "New message" for locked chats. Decisions are `ChatLockPolicy` (60 s relock timeout).
+> Locked ids are stored per account. **Not covered:** the chat stays visible in the chat list with its last message (hiding is WP 6.2); chats shown as bottom sheets, widgets, share targets, and the notification's
+> reply action; a locked chat is let through if no PIN exists; no biometric; message storage is not encrypted.
+
 Reuse as-is (no work beyond toggles/doc): 10 accounts, themes, player, ghost mode, anti-delete/edit history, forward without quote.
 
 Each built feature needs: a toggle, a unit/instrumentation test for the core logic (lock store, hidden filter,

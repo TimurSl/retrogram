@@ -74,6 +74,10 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 **Special contacts log (Extra features)**
 - [ ] Switch on, enter the numeric id of a contact who often goes online, wait: the log row shows online/offline lines; change a test account's name or photo: a name/photo line appears. Clear works
 
+**Per-chat lock (Extra features)**
+- [ ] Switch on, set a PIN, open a chat menu → Lock chat. Leave and reopen the chat from the list, from search and from a notification: PIN dialog each time (after the first correct PIN, no prompt for 60 s); wrong PIN shows a message and does not open it
+- [ ] Put the app in the background and return: asked again. Notification text for the locked chat reads "New message". Unlock chat from the menu: opens freely again
+
 **Classic theme colors (switch on, restart, theme "Blue" / default)**
 - [ ] Chat list: blue action bar with white icons and title, white status text; search icon; folder tabs
 - [ ] Chat screen action bar, profile and settings pages, sheets and dialogs: nothing unreadable (dark text on dark, white on white)

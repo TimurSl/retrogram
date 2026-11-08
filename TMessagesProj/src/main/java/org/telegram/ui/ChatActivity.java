@@ -492,6 +492,7 @@ public class ChatActivity extends BaseFragment implements
     private final static int nkheaderbtn_upgrade = 2007;
 
     private final static int nkheaderbtn_hide_title = 2029;
+    private final static int retro_lock_chat = 2200;
 
     // shared with actionbar
     private final static int nkbtn_translate = 2008;
@@ -5093,6 +5094,9 @@ public class ChatActivity extends BaseFragment implements
             if (NaConfig.INSTANCE.getShowAddToBookmark().Bool()) {
                 bookmarksItem = headerItem.lazilyAddSubItem(nkbtn_bookmarks_manager, R.drawable.msg_fave, getString(R.string.BookmarksManager));
                 headerItem.setSubItemShown(nkbtn_bookmarks_manager, BookmarksHelper.getBookmarkedMessageIds(currentAccount, dialog_id).length > 0);
+            }
+            if (app.retrogram.graph.ChatLockGate.enabled()) {
+                headerItem.lazilyAddSubItem(retro_lock_chat, R.drawable.msg_secret, app.retrogram.graph.ChatLockGate.menuTitle(currentAccount, dialog_id));
             }
             hideTitleItem = NaConfig.INSTANCE.getChatMenuItemHideTitle().Bool() ? headerItem.lazilyAddSubItem(nkheaderbtn_hide_title, R.drawable.hide_title, getString(R.string.HideTitle)) : null;
             if (muteItem == null) {
@@ -48480,6 +48484,8 @@ public class ChatActivity extends BaseFragment implements
         } else if (id == nkbtn_repeatascopy) {
             repeatMessage(false, true);
             clearSelectionMode();
+        } else if (id == retro_lock_chat) {
+            app.retrogram.graph.ChatLockGate.toggleFromChatMenu(getParentActivity(), currentAccount, dialog_id);
         } else if (id == nkheaderbtn_hide_title) {
             if (avatarContainer != null) {
                 avatarContainer.setTitle("");
