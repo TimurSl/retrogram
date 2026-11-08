@@ -75,7 +75,7 @@ Graph-style hidden chats.
 > Changes are written to a 200-line text log in the `retro_contact_log` SharedPreferences (newest first). Changing the id list resets the baselines. Not done: SQLite store, notifications, a drawer screen, picking
 > contacts from a list instead of typing ids, and per-user options. The user must already receive updates for the id (shared chat or contact); Telegram's "last seen" privacy can hide status.
 
-> **WP 6.4 wiring (2026-11-08, written, JVM-tested DSP, not build-verified, never run on a device; supersedes the earlier "findings only" note):** Settings → Retrogram → "Extra features": "Voice changer (experimental)" with
+> **WP 6.4 wiring (2026-11-08, build-verified in CI run 37, JVM-tested DSP, never run on a device; supersedes the earlier "findings only" note):** Settings → Retrogram → "Extra features": "Voice changer (experimental)" with
 > Off (default) / Robot / Echo / Higher voice / Deeper voice, read when a recording starts. With an effect selected, `MediaController.recordRunnable` no longer sends each PCM chunk to the Opus encoder; the chunk goes to a
 > bounded buffer (`bufferForEffect`, at most 30 s = 2.9 MB), which `flushEffect` runs through `VoiceEffects.apply` and writes to the already-open encoder with `writeFrame` in 20 ms frames (zero-padded last frame). Full
 > segments flush while recording; the rest flushes in `stopRecordingInternal` before `stopRecord()` and, on pause, through `postAfterEffectFlush` before the pause path's `stopRecord()` / `joinRecord`. Recording time keeps counting as before
