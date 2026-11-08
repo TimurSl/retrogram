@@ -29,7 +29,7 @@ Also: one Android 15/16 Pixel-class phone and one Android 10 low-end phone (minS
 > **Written (2026-11-08):** `tools/perf/perf-gate.sh` (cold start median of 10 via `am start -W`, a 30 s adb fling with `dumpsys gfxinfo`, PSS from `dumpsys meminfo`; prints PASS/FAIL per limit and exits 1 on a miss),
 > `tools/perf/gfxinfo_p95.py` (parses the gfxinfo percentiles; unit-tested by `tools/perf/test_gfxinfo_p95.py`, which CI runs), `tools/apk-size.sh` (sizes of every APK, arm64 compared with
 > `docs/release/apk-size-baseline.txt`, fails above +5%; CI runs it after the build and writes the sizes to the job summary; no baseline exists yet, so today it only reports; create one with `--update-baseline` on the first
-> release build) and `docs/release/TEMPLATE.md` (the gate table to copy per tag). The shell scripts were syntax-checked and the parsers and size logic exercised with fake input; **the adb scripts have never run against a device.**
+> release build) and `docs/release/TEMPLATE.md` (the gate table to copy per tag). The shell scripts were syntax-checked and the parsers and size logic exercised with fake input; **the adb scripts have never run against a device; the Python test and the APK size step ran green in CI run 47.**
 > `FrameMetricsOverlayView` exists in the tree. **Not done (WP 7.1):** a baseline profile / Macrobenchmark module: a profile has to be recorded on a device.
 
 ### Gate
