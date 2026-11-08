@@ -29,6 +29,18 @@ public final class RetroThemeColors {
         }
     }
 
+    /** Built-in theme files whose 12.1.1 versions ship in assets/retro/ (they differ from the 13.1.1 ones). */
+    private static final java.util.Set<String> RETRO_THEME_ASSETS = new java.util.HashSet<>(java.util.Arrays.asList(
+            "arctic.attheme", "bluebubbles.attheme", "darkblue.attheme", "day.attheme", "night.attheme"));
+
+    /**
+     * Asset path to load for a built-in theme: the 12.1.1 copy under {@code retro/} when classic colors are on, else the normal one.
+     * Taken from `Theme.getAssetFile`; the copy is cached under a different file name so switching the option never reuses a stale file.
+     */
+    public static String themeAssetPath(String assetName) {
+        return assetName != null && RETRO_THEME_ASSETS.contains(assetName) && enabled() ? "retro/" + assetName : assetName;
+    }
+
     public static void apply(int[] c) {
         c[Theme.key_dialogTextBlack] = 0xff222222; // 13.1.1: 0xff1a1d21
         c[Theme.key_dialogIcon] = 0xff676b70; // 13.1.1: 0xff1a1d21

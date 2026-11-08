@@ -121,6 +121,7 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 - [ ] Chat list: blue action bar with white icons and title, white status text; search icon; folder tabs
 - [ ] Chat screen action bar, profile and settings pages, sheets and dialogs: nothing unreadable (dark text on dark, white on white)
 - [ ] Switch to a dark theme and back: no leftovers
+- [ ] Settings → Appearance: switch between Day, Night, Dark Blue, Arctic and Blue bubbles with the option on and compare with 12.1.1 (these now load the 12.1.1 theme files); with the option off they must look as before
 
 **Glass leftovers (retro on)**
 - [ ] Any blurred or translucent panel you can find: share sheet, attach sheet, photo viewer, profile of another user, chat action bar, top panels (pinned, translate)

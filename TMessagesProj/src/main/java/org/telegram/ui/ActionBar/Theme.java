@@ -7315,8 +7315,10 @@ public class Theme {
         saveOtherThemes(true);
     }
 
-    public static File getAssetFile(String assetName) {
-        File file = new File(ApplicationLoader.getFilesDirFixed(), assetName);
+    public static File getAssetFile(String requestedAssetName) {
+        // Retrogram classic colors: the 12.1.1 copy of a built-in theme, cached under its own file name
+        final String assetName = app.retrogram.RetroThemeColors.themeAssetPath(requestedAssetName);
+        File file = new File(ApplicationLoader.getFilesDirFixed(), assetName.equals(requestedAssetName) ? assetName : "retro_" + requestedAssetName);
         long size;
         try {
             InputStream stream = ApplicationLoader.applicationContext.getAssets().open(assetName);
