@@ -22,7 +22,7 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 | Classic emoji panel (experimental) | off | chats opened afterwards |
 | Classic round buttons (experimental) | off | chats opened afterwards |
 | Classic profile tabs (experimental) | off | profiles opened afterwards |
-| Classic sheets (experimental) | off | sheets opened afterwards |
+| Classic sheets and panels (experimental) | off | screens opened afterwards |
 | Classic theme colors (experimental) | off | after restart |
 
 ## Checks
@@ -103,6 +103,9 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 
 **Attach sheet (classic sheets on)**
 - [ ] Tap the paperclip: the Gallery/File/Location/... row is a flat full-width bar at the bottom (not a floating pill); pick photos so the caption bar appears: flat and full width, keyboard open/close; every tab still opens
+
+**Top panels (classic sheets and panels on)**
+- [ ] Start a group call or play music, then open the chat list, Calls, a forum's topic list and a profile: the call/music bar under the action bar is a flat full-width strip, not a floating rounded card
 
 **Classic theme colors (switch on, restart, theme "Blue" / default)**
 - [ ] Chat list: blue action bar with white icons and title, white status text; search icon; folder tabs

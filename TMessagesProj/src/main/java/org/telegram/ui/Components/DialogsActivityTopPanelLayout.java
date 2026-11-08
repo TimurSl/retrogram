@@ -60,14 +60,17 @@ public class DialogsActivityTopPanelLayout extends AnimatedLinearLayout {
 
         clipRectF.set(getPaddingLeft(), getPaddingTop(), getMeasuredWidth() - getPaddingRight(), getPaddingTop() + bgHeight);
 
-        final float r = Math.min(dp(defaultRadiusDp), Math.min(clipRectF.width(), clipRectF.height()) / 2f);
+        // Retrogram classic sheets and panels (WP 4.2): flat full-width strip instead of the rounded floating card
+        final boolean classic = app.retrogram.RetroConfig.isClassicSheets();
+        final float r = classic ? 0 : Math.min(dp(defaultRadiusDp), Math.min(clipRectF.width(), clipRectF.height()) / 2f);
         clipPath.rewind();
         clipPath.addRoundRect(clipRectF, r, r, Path.Direction.CW);
 
         if (backgroundDrawable != null) {
             backgroundDrawable.setAlpha((int) (bgAlpha * 255));
-            backgroundDrawable.setBounds(dp(4), dp(14), getMeasuredWidth() - dp(4), getPaddingTop() + getPaddingBottom() + (int) bgHeight - dp(14));
-            backgroundDrawable.setRadius(Math.min(dp(defaultRadiusDp), bgHeight / 2));
+            final int sideExt = classic ? 0 : dp(4);
+            backgroundDrawable.setBounds(sideExt - (classic ? dp(7) : 0), dp(14), getMeasuredWidth() - sideExt + (classic ? dp(7) : 0), getPaddingTop() + getPaddingBottom() + (int) bgHeight - dp(14));
+            backgroundDrawable.setRadius(classic ? 0 : Math.min(dp(defaultRadiusDp), bgHeight / 2));
         }
     }
 
