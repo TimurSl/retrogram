@@ -95,7 +95,7 @@ Graph-style hidden chats.
 > and lasts until the app goes to the background; unhiding also asks for it. Hidden chats keep receiving messages; notification text for them reads "New message" (`ChatLockGate.shouldRedact`). **Not covered:** global search results,
 > contacts, the archive, widgets, unread-count badges of folders (they still count hidden chats), the app-icon badge, and calls. Hide + lock the same chat if opening it directly (a link) must also be gated.
 
-> **WP 6.5 finding and first step (2026-11-08, from reading `SearchDownloadsContainer`, `DialogsActivity`; written, not build-verified, never run on a device):** the plan's "`DownloadsActivity` listing `FileLoader` operations
+> **WP 6.5 finding and first step (2026-11-08, from reading `SearchDownloadsContainer`, `DialogsActivity`; drawer entry build-verified in CI run 36, never run on a device):** the plan's "`DownloadsActivity` listing `FileLoader` operations
 > with pause/resume" **already exists upstream**: the Downloads tab of the search screen (`SearchDownloadsContainer`, fed by `DownloadController.downloadingFiles` / `recentDownloadingFiles`) lists active and recent downloads,
 > pauses an item with `FileLoader.cancelLoadFile(document)` (the partial file is kept) and resumes it with `loadFile(...)`, and has "Pause all / Resume all". So pause/resume needs no new code and the open question above is answered
 > (cancel without delete is Telegram's own pause). Done: a **"Downloads" drawer entry** (`nkbtnDownloads` = 1017; available in the drawer layout editor, not in the default layout) that opens that tab through the new
