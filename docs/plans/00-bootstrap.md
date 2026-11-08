@@ -157,7 +157,8 @@ Also check that nothing in `src/main` imports a class that exists only in `src/p
 
 ## WP 0.4 — CI (M)
 
-> **Status: workflow written, never run.** `.github/workflows/build.yml` replaces `staging.yml` and `canary.yml`
+> **2026-11-08:** the `plugins=true` variant was dispatched by hand on this branch after all Retrogram changes of the session (run 49, commit `c4f93fcd`): green, so the plugin build still compiles with the Phase 1-6 changes. Normal builds: green on every push (latest run 48).
+> **Status at the time it was written: workflow written, never run.** `.github/workflows/build.yml` replaces `staging.yml` and `canary.yml`
 > (both deleted; they only uploaded artifacts). YAML parses; nothing else is verified: there is no runner or Android SDK here.
 > Differences from the steps below:
 > - Triggers: every branch push, PRs, `v*` tags, manual dispatch. Matrix is `[false]`, or `[false, true]` on tags and `sync/*`.
