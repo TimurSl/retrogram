@@ -1,6 +1,6 @@
 # Plan status: every work package, one line each (2026-11-08)
 
-How to read it. **Built** = the code is in the branch and compiled by CI (latest normal build: run 54, `plugins=true`: run 49); nothing in this project has been run on a phone yet,
+How to read it. **Built** = the code is in the branch and compiled by CI (latest normal build: run 55, `plugins=true`: run 49); nothing in this project has been run on a phone yet,
 so "built" never means "seen working". **Device** = what is left can only be checked on a device. **You** = needs something only the project owner can supply.
 **Ruled out** = a decision with its reason, recorded in the linked plan. Details and evidence are in each phase file; this page only makes sure nothing is left without a state.
 
@@ -10,7 +10,7 @@ so "built" never means "seen working". **Device** = what is left can only be che
 Everything else is **Device** (needs the phone), **You** (needs credentials, artwork, a decision or Graph Messenger observations) or **Ruled out** (a recorded decision with its reason).
 
 **Audits behind the claim** (all repeated on the final state of the branch):
-1. Every work package named in a plan file (38 of them: headings `WP N.M`, list items, the Phase 6 table) has a row here with a state; `tools/check-plan-status.sh` checks that and CI runs it, so a plan item added later without a state turns the build red.
+1. Every work package named in a plan file (38 of them: headings `WP N.M`, list items, the Phase 6 table) has a row here with a state; `tools/check-plan-status.sh` checks that and CI runs it (green in run 55), so a plan item added later without a state turns the build red.
 2. A scan of every plan file for "Not done", "Not covered", "Still open", "Open:" and "unverified" found notes that were stale (finished later) or open; each stale one is marked *superseded* with the run that finished it, each open one has a state in this file.
 3. The feature matrix has no `?` row; the API-layer diff was done; both are tied to the checklist for device verification.
 4. Each script (`sync-upstream.sh`, `perf-gate.sh`, `apk-size.sh`, `sweep/capture.sh`, `glass-guard.sh`, `check-plan-status.sh`) was run, not only syntax-checked, and the ones that need a device or a network are covered by `tools/perf/test_perf_scripts.sh` (fake adb) or a recorded scratch-clone run.
