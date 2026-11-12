@@ -15,6 +15,7 @@ and an acceptance check.
 | [05-feature-audit.md](05-feature-audit.md) | 5 — 12.2 → 13.1.1 feature matrix | can start after 0.1 |
 | [06-graph-features.md](06-graph-features.md) | 6 — Graph Messenger features, clean-room | spec step needs a phone |
 | [07-validation-and-sync.md](07-validation-and-sync.md) | 7 + 8 — POCO gate, upstream sync | continuous |
+| [08-unigif.md](08-unigif.md) | feature track — UniGif GIF provider over HTTP, "Add to UniGif" | planned; nothing built; starts with a spike (WP U.0) |
 
 ## What was checked against the pinned code
 
