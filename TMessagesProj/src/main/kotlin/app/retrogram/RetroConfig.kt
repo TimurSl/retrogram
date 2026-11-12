@@ -60,7 +60,22 @@ object RetroConfig {
     @JvmField
     val classicColors = ConfigItem("RetroClassicColors", ConfigItem.configTypeBool, false)
 
+    /** GIF panel source: 0 = Telegram's GIF bot (KLIPY), 1 = UniGif over HTTP (docs/plans/08-unigif.md). Read live. */
+    @JvmField
+    val gifProvider = ConfigItem("RetroGifProvider", ConfigItem.configTypeInt, 0)
+
+    /** UniGif server URL as entered (normalised on save). Empty = not set up. Read live. */
+    @JvmField
+    val unigifUrl = ConfigItem("RetroUnigifUrl", ConfigItem.configTypeString, "")
+
+    /** UniGif API key. The name ends in "Key" on purpose: the settings export leaves such keys out unless asked. */
+    @JvmField
+    val unigifKey = ConfigItem("RetroUnigifKey", ConfigItem.configTypeString, "")
+
     private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings, classicInput, classicChatHeader, classicEmojiPanel, classicColors)
+
+    const val GIF_PROVIDER_KLIPY = 0
+    const val GIF_PROVIDER_UNIGIF = 1
 
     // Snapshot taken once per process. Until init() runs, behave like the defaults.
     @Volatile
@@ -91,6 +106,10 @@ object RetroConfig {
     fun init() {
         val prefs = tw.nekomimi.nekogram.NekoConfig.getPreferences()
         load { key, default -> prefs.getBoolean(key, default) }
+        loadGif(
+            { key, default -> prefs.getInt(key, default) },
+            { key, default -> prefs.getString(key, default) ?: default },
+        )
         captureColdStart()
         RetroShell.applyForcedConfig()
     }
@@ -101,6 +120,15 @@ object RetroConfig {
         for (item in items) {
             item.value = read(item.key, item.defaultValue as Boolean)
         }
+    }
+
+    /** Reads the non-Boolean GIF provider items. Separate from [load] so that one keeps its Boolean-only signature. */
+    @JvmStatic
+    fun loadGif(readInt: (key: String, default: Int) -> Int, readString: (key: String, default: String) -> String) {
+        val provider = readInt(gifProvider.key, gifProvider.defaultValue as Int)
+        gifProvider.value = if (provider == GIF_PROVIDER_UNIGIF) GIF_PROVIDER_UNIGIF else GIF_PROVIDER_KLIPY
+        unigifUrl.value = readString(unigifUrl.key, "")
+        unigifKey.value = readString(unigifKey.key, "")
     }
 
     /** Freezes [isRetroUi] to the current value of [retroUi]; [upstreamUiDebug] wins when set. */

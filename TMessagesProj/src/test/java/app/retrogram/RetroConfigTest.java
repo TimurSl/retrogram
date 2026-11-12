@@ -1,5 +1,6 @@
 package app.retrogram;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -38,6 +39,25 @@ public class RetroConfigTest {
         assertFalse(RetroConfig.isClassicChatHeader());
         assertFalse(RetroConfig.classicEmojiPanel.Bool());
         assertTrue(RetroConfig.isRetroUi());
+    }
+
+    @Test
+    public void gifDefaultsAndStoredValues() {
+        RetroConfig.loadGif((key, def) -> def, (key, def) -> def);
+        assertEquals(RetroConfig.GIF_PROVIDER_KLIPY, RetroConfig.gifProvider.Int());
+        assertEquals("", RetroConfig.unigifUrl.String());
+        assertEquals("", RetroConfig.unigifKey.String());
+
+        RetroConfig.loadGif(
+            (key, def) -> key.equals("RetroGifProvider") ? 1 : def,
+            (key, def) -> key.equals("RetroUnigifUrl") ? "https://gifs.example.com" : key.equals("RetroUnigifKey") ? "k" : def);
+        assertEquals(RetroConfig.GIF_PROVIDER_UNIGIF, RetroConfig.gifProvider.Int());
+        assertEquals("https://gifs.example.com", RetroConfig.unigifUrl.String());
+        assertEquals("k", RetroConfig.unigifKey.String());
+
+        // An unknown stored provider falls back to KLIPY.
+        RetroConfig.loadGif((key, def) -> 7, (key, def) -> def);
+        assertEquals(RetroConfig.GIF_PROVIDER_KLIPY, RetroConfig.gifProvider.Int());
     }
 
     @Test

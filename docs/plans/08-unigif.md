@@ -166,7 +166,26 @@ the part that needs a real run, and U.4/U.6 should treat it as their first accep
 4. `FILE_REFERENCE_EXPIRED` on a cached sent document (U.6 step 6) — still unread.
 5. The real URL shape of `/m/{id}/{variant}` and whether the server sends `Content-Length` (used for progress only).
 
-### WP U.1 — Settings and config (S)
+### WP U.1 — Settings and config (S) — CODE WRITTEN, not run on a device
+
+Status: implemented as described below. The new non-UI classes and `UnigifConfigTest` were compiled and run
+outside the Android build (against stubs, with a local HTTP server for `/me`); the app build, `RetroConfigTest`
+and the settings screen itself have only been through CI, never a device. Selecting UniGif changes nothing in
+the GIF panel until WP U.4.
+
+What differs from the steps below:
+- `RetroConfig.load` keeps its Boolean signature; the three new items are read by a separate `loadGif`.
+- "Test connection" needed a client before WP U.2, so `UnigifClient` exists with `me()` only (own `OkHttpClient`,
+  redirects not followed) and `UnigifModels` has `Me` and `UnigifError`. U.2 extends both; the full error table
+  is still U.2's (U.1 maps: not set up, key rejected, cannot reach, not a UniGif answer, other status).
+- The `http://` warning is the first line of the section's info text, not a line directly under the URL row
+  (a text row in the middle would split the settings card).
+- Step 5, checked: the export (`SettingsBackupHelper.spToJSON`) leaves out every `nkmrcfg` key ending in `Key`
+  unless the user ticks "include API keys", so `RetroUnigifKey` is covered by its name. The import only accepts
+  keys registered in `NekoConfig`/`NaConfig`, so no `Retro*` value (these three included) is restored from a
+  backup; that was already the case for the other Retrogram switches.
+- Long-press on the API key row is disabled: the default menu copies a settings link containing the row's value.
+
 
 Files: `app/retrogram/RetroConfig.kt`, `tw/nekomimi/nekogram/settings/RetrogramSettingsActivity.java`,
 `res/values/strings_neko.xml`, `app/retrogram/unigif/UnigifConfig.java`, `src/test/java/app/retrogram/RetroConfigTest.java`.
