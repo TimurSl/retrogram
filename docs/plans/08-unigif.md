@@ -220,7 +220,38 @@ Files: `app/retrogram/RetroConfig.kt`, `tw/nekomimi/nekogram/settings/RetrogramS
 Acceptance: values persist across restart; "Test connection" shows the key name with a valid key, a clear message
 with a wrong key, wrong URL and no network; `RetroConfigTest` passes.
 
-### WP U.2 — `UnigifClient` (M)
+### WP U.2 — `UnigifClient` (M) — CODE WRITTEN, not run against a real server
+
+Status: implemented as described below. `UnigifClientTest` (16 tests, MockWebServer) was compiled and run outside
+the Android build, against stubs for `AndroidUtilities` and `RetroConfig`; inside the Android build it has only
+been through CI. No call has been made to a real UniGif server.
+
+What differs from the steps below, and what was decided at the "check" points:
+- **Response shapes are assumed, not read from a server.** The plan lists the fields of a `Gif` but not the
+  envelopes. The parsers accept: a page as `{"items": [...], "next_cursor": ...}` (also `gifs` / `data`);
+  `/tags` as a bare array or under `items` / `tags`; `/tags/suggest` under `recent`; a tag as
+  `{"name", "gif_count"}` or a bare string; the upload answer as a `Gif` at the top level or under `gif`, with
+  `duplicate`. Confirm against the server before U.4, and trim what is not needed.
+- Step 1: `ExteraHttpClient` has no proxy handling (three timeouts and retry), so nothing is reused. The client
+  keeps OkHttp's default proxy selection (the device's system proxy); Telegram's in-app proxy is not applied.
+- Step 2: an extra `download(url, file, callback)` for media (U.6 needs it; it also carries the "no key on
+  `/m/`" test). It follows redirects; API calls do not follow any redirect, same host or not, and report the
+  3xx as an error.
+- Step 3: the key is attached by the interceptor only for the same scheme, host and port as the base URL, only
+  under the base URL's path, and not under `/m/`. A key that cannot go in a header counts as "not set up".
+- Step 4: the mapping is two parts. `UnigifError.message()` picks the row (no Android imports, unit-tested);
+  `UnigifErrors.message(error)` turns it into a string. The permission name comes from the problem's `scope`
+  field when there is one, else from the call that failed (`read`, `upload`, `delete`). Status fallbacks when
+  there is no `code`: 401, 403, 413, 415, 429. "The server answered, but not like a UniGif server" (a 2xx with
+  an unexpected body) is kept from U.1 as a ninth row. The settings screen now uses the same mapping.
+- Step 5: the wait is kept per base URL. A 429 from any call starts it; only `listGifs`, `listTags` and
+  `suggestTags` are refused locally. No usable `Retry-After` (missing, or the date form) means 30 s; the cap is
+  1 h.
+- Step 6: the artifact is `com.squareup.okhttp3:mockwebserver3:5.3.2`. `testOptions.unitTests.returnDefaultValues`
+  is now on, because the Android OkHttp artifact calls `android.util.Log` when it starts on the JVM.
+- Relative media URLs: `m/…` resolves under the base URL's path, `/m/…` against its host.
+- Cancelled calls deliver no callback.
+
 
 1. One shared `OkHttpClient` (connect 10 s, read 20 s, write 60 s for uploads). Reuse `ExteraHttpClient`'s
    builder settings if it has proxy handling worth keeping; **check** whether the app's Telegram proxy setting
