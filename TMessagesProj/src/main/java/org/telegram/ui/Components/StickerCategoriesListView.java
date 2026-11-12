@@ -170,6 +170,21 @@ public class StickerCategoriesListView extends RecyclerListView {
         return categories;
     }
 
+    /** Retrogram UniGif: replaces the buttons (null = none) and clears the selection. */
+    @SuppressLint("NotifyDataSetChanged")
+    public void setCategories(EmojiCategory[] newCategories) {
+        if (categories == newCategories) {
+            return;
+        }
+        categories = newCategories;
+        if (selectedCategoryIndex >= 0) {
+            selectCategory(-1);
+        }
+        adapter.notifyDataSetChanged();
+        setCategoriesShownT(0);
+        updateCategoriesShown(categoriesShouldShow, false);
+    }
+
     public void setShownButtonsAtStart(float buttonsCount) {
         shownButtonsAtStart = buttonsCount;
     }

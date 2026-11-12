@@ -61,6 +61,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Locale;
 
+import app.retrogram.unigif.UnigifResults;
 import tw.nekomimi.nekogram.NekoConfig;
 
 public class ContextLinkCell extends FrameLayout implements DownloadController.FileDownloadProgressListener {
@@ -257,6 +258,12 @@ public class ContextLinkCell extends FrameLayout implements DownloadController.F
                 currentPhotoObjectThumb = null;
             }
         }
+        final boolean unigif = UnigifResults.isUnigif(inlineResult);
+        if (unigif && inlineResult.thumb != null) {
+            // Retrogram UniGif: a plain http(s) MP4 on the user's own server, not a Telegram web document
+            documentAttachType = DOCUMENT_ATTACH_TYPE_GIF;
+            urlLocation = inlineResult.thumb.url;
+        }
         if (inlineResult != null) {
             if (inlineResult.content instanceof TLRPC.TL_webDocument) {
                 if (inlineResult.type != null) {
@@ -373,7 +380,11 @@ public class ContextLinkCell extends FrameLayout implements DownloadController.F
                 } else if (webFile != null) {
                     linkImageView.setImage(ImageLocation.getForWebFile(webFile), "100_100", ImageLocation.getForPhoto(currentPhotoObject, photoAttach), currentPhotoFilter, strippedLocation, currentPhotoFilterThumb, null, -1, ext, parentObject, 1);
                 } else {
-                    linkImageView.setImage(ImageLocation.getForPath(urlLocation), "100_100", ImageLocation.getForPhoto(currentPhotoObject, photoAttach), currentPhotoFilter, strippedLocation, currentPhotoFilterThumb, null, -1, ext, parentObject, 1);
+                    ImageLocation location = ImageLocation.getForPath(urlLocation);
+                    if (unigif && location != null) {
+                        location.imageType = FileLoader.IMAGE_TYPE_ANIMATION; // the URL has no .mp4 suffix to go by
+                    }
+                    linkImageView.setImage(location, "100_100", ImageLocation.getForPhoto(currentPhotoObject, photoAttach), currentPhotoFilter, strippedLocation, currentPhotoFilterThumb, null, -1, ext, parentObject, 1);
                 }
             } else {
                 if (currentPhotoObject != null) {

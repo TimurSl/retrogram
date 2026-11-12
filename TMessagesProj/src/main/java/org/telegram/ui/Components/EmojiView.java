@@ -168,6 +168,11 @@ import java.util.Objects;
 import me.vkryl.android.animator.BoolAnimator;
 import me.vkryl.android.animator.FactorAnimator;
 
+import app.retrogram.unigif.UnigifClient;
+import app.retrogram.unigif.UnigifConfig;
+import app.retrogram.unigif.UnigifErrors;
+import app.retrogram.unigif.UnigifModels;
+import app.retrogram.unigif.UnigifResults;
 import tw.nekomimi.nekogram.NekoConfig;
 import com.radolyn.ayugram.controllers.AyuGhostController;
 import xyz.nextalone.nagram.NaConfig;
@@ -252,6 +257,10 @@ public class EmojiView extends FrameLayout implements
     private int gifRecentTabNum = -2;
     private int gifTrendingTabNum = -2;
     private int gifFirstEmojiTabNum = -2;
+    // Retrogram UniGif (docs/plans/08-unigif.md, WP U.4): the GIF page shows the UniGif library instead of @gif.
+    private static final String UNIGIF_SORT_NEW = "\u0000new";
+    private static final long UNIGIF_REFRESH_INTERVAL = 60_000;
+    private boolean unigifMode = UnigifConfig.isActive();
     private boolean shouldDrawBackground = true;
     public boolean shouldDrawStickerSettings;
     public boolean shouldLightenBackground = true;
@@ -807,6 +816,8 @@ public class EmojiView extends FrameLayout implements
 
         private StickerCategoriesListView.EmojiCategory recent;
         private StickerCategoriesListView.EmojiCategory trending;
+        private StickerCategoriesListView.EmojiCategory[] gifKlipyCategories;
+        private StickerCategoriesListView.EmojiCategory[] gifUnigifCategories;
 
         @SuppressLint("ClickableViewAccessibility")
         public SearchField(Context context, int type) {
@@ -996,6 +1007,17 @@ public class EmojiView extends FrameLayout implements
                     protected boolean isTabIconsAnimationEnabled(boolean loaded) {
                         return LiteMode.isEnabled(LiteMode.FLAG_ANIMATED_EMOJI_REACTIONS);
                     }
+
+                    @Override
+                    protected EmojiCategory[] preprocessCategories(EmojiCategory[] categories) {
+                        if (type == 2) {
+                            gifKlipyCategories = categories;
+                            if (unigifMode) {
+                                return unigifCategories();
+                            }
+                        }
+                        return categories;
+                    }
                 };
                 categoriesListView.isGlassDesign = glassDesign;
                 categoriesListView.setDontOccupyWidth((int) (searchEditText.getPaint().measureText(searchEditText.getHint() + "")) + dp(16));
@@ -1019,6 +1041,16 @@ public class EmojiView extends FrameLayout implements
                     }
                 });
                 categoriesListView.setOnCategoryClick(category -> {
+                    if (type == 2 && unigifMode) {
+                        if (categoriesListView.getSelectedCategory() == category) {
+                            search(null, false);
+                            categoriesListView.selectCategory(null);
+                        } else {
+                            gifSearchAdapter.searchUnigifSort(UNIGIF_SORT_NEW);
+                            categoriesListView.selectCategory(category);
+                        }
+                        return;
+                    }
                     if (category == recent) {
                         showInputBoxGradient(false);
                         categoriesListView.selectCategory(recent);
@@ -1050,6 +1082,24 @@ public class EmojiView extends FrameLayout implements
 
         public boolean isCategorySelected() {
             return categoriesListView != null && categoriesListView.getSelectedCategory() != null;
+        }
+
+        /** UniGif mode: the strip holds one button, "Newest"; the list behind the empty field is "Most used". */
+        private StickerCategoriesListView.EmojiCategory[] unigifCategories() {
+            if (gifUnigifCategories == null) {
+                StickerCategoriesListView.EmojiCategory newest = StickerCategoriesListView.EmojiCategory.withIcon(R.drawable.msg_emoji_recent, null);
+                newest.title = getString(R.string.UnigifTabNewest);
+                gifUnigifCategories = new StickerCategoriesListView.EmojiCategory[]{newest};
+            }
+            return gifUnigifCategories;
+        }
+
+        /** Swaps the GIF field's category strip between the emoji categories and the UniGif one. */
+        private void applyUnigifMode() {
+            if (type != 2 || categoriesListView == null) {
+                return;
+            }
+            categoriesListView.setCategories(unigifMode ? unigifCategories() : gifKlipyCategories);
         }
 
         public void search(String text, boolean delay) {
@@ -2149,6 +2199,9 @@ public class EmojiView extends FrameLayout implements
                 gifTabs.setBackgroundColor(getThemedColor(Theme.key_chat_emojiPanelBackground));
 //                gifContainer.addView(gifTabs, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, StickerTabView.SMALL_HEIGHT, Gravity.LEFT | Gravity.TOP));
                 updateGifTabs();
+                if (unigifMode) {
+                    gifSearchField.applyUnigifMode();
+                }
 
                 gifTabs.setDelegate(page -> {
                     if (page == gifTrendingTabNum && gifAdapter.results.isEmpty()) {
@@ -2169,7 +2222,7 @@ public class EmojiView extends FrameLayout implements
                                 gifSearchPreloader.preload(gifSearchEmojies.get(0));
                             }
                         }
-                    } else {
+                    } else if (!unigifMode) {
                         final ArrayList<String> gifSearchEmojies = MessagesController.getInstance(currentAccount).gifSearchEmojies;
                         gifSearchAdapter.searchEmoji(gifSearchEmojies.get(page - gifFirstEmojiTabNum));
                         if (page - gifFirstEmojiTabNum > 0) {
@@ -5849,12 +5902,15 @@ public class EmojiView extends FrameLayout implements
         gifTrendingTabNum = -2;
         gifFirstEmojiTabNum = -2;
 
-        if (hasRecent) {
+        if (unigifMode) {
+            gifTrendingTabNum = gifTabsCount++;
+            gifTabs.addIconTab(0, gifIcons[0]).setContentDescription(getString(R.string.UnigifTabUsed));
+        } else if (hasRecent) {
             gifRecentTabNum = gifTabsCount++;
             gifTabs.addIconTab(0, gifIcons[0]).setContentDescription(getString(R.string.RecentStickers));
         }
 
-        if (!NaConfig.INSTANCE.getDisableFeaturedGifs().Bool()) {
+        if (!unigifMode && !NaConfig.INSTANCE.getDisableFeaturedGifs().Bool()) {
             gifTrendingTabNum = gifTabsCount++;
             gifTabs.addIconTab(1, gifIcons[1]).setContentDescription(getString(R.string.FeaturedGifs));
         }
@@ -5863,7 +5919,7 @@ public class EmojiView extends FrameLayout implements
         final int hPadding = AndroidUtilities.dp(13);
         final int vPadding = AndroidUtilities.dp(11);
         final List<String> gifSearchEmojies = MessagesController.getInstance(currentAccount).gifSearchEmojies;
-        for (int i = 0, N = gifSearchEmojies.size(); i < N; i++) {
+        for (int i = 0, N = unigifMode ? 0 : gifSearchEmojies.size(); i < N; i++) {
             final String emoji = gifSearchEmojies.get(i);
             final Emoji.EmojiDrawable emojiDrawable = Emoji.getEmojiDrawable(emoji);
             if (emojiDrawable != null) {
@@ -6029,6 +6085,11 @@ public class EmojiView extends FrameLayout implements
             gifSearchAdapter.progressEmptyView.imageView.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_chat_emojiPanelEmptyText), PorterDuff.Mode.MULTIPLY));
             gifSearchAdapter.progressEmptyView.textView.setTextColor(getThemedColor(Theme.key_chat_emojiPanelEmptyText));
             gifSearchAdapter.progressEmptyView.progressView.setProgressColor(getThemedColor(Theme.key_progressCircle));
+            if (gifAdapter != null) {
+                gifAdapter.progressEmptyView.imageView.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_chat_emojiPanelEmptyText), PorterDuff.Mode.MULTIPLY));
+                gifAdapter.progressEmptyView.textView.setTextColor(getThemedColor(Theme.key_chat_emojiPanelEmptyText));
+                gifAdapter.progressEmptyView.progressView.setProgressColor(getThemedColor(Theme.key_progressCircle));
+            }
         }
         animatedEmojiTextColorFilter = new PorterDuffColorFilter(getThemedColor(Theme.key_featuredStickers_addButton), PorterDuff.Mode.SRC_IN);
 
@@ -6156,6 +6217,7 @@ public class EmojiView extends FrameLayout implements
     }
 
     public void onOpen(boolean forceEmoji, boolean groupEmojiHintWasVisible) {
+        checkUnigifMode();
         if (currentPage != 0 && stickersBanned) {
             currentPage = 0;
         }
@@ -6345,10 +6407,43 @@ public class EmojiView extends FrameLayout implements
         }
     }
 
+    /** Re-reads the GIF provider when the panel opens; on a change both GIF lists are emptied and reloaded. */
+    private void checkUnigifMode() {
+        if (gifAdapter == null || gifSearchAdapter == null || gifSearchField == null) {
+            return;
+        }
+        final boolean active = UnigifConfig.isActive();
+        if (active == unigifMode) {
+            if (active && gifGridView.getAdapter() == gifAdapter) {
+                gifAdapter.refreshUnigif();
+            }
+            return;
+        }
+        unigifMode = active;
+        gifAdapter.resetForProviderChange();
+        gifSearchAdapter.resetForProviderChange();
+        gifCache.clear();
+        gifSearchField.searchEditText.setText("");
+        gifSearchField.applyUnigifMode();
+        updateRecentGifs();
+        updateGifTabs();
+        if (gifGridView.getAdapter() != gifAdapter) {
+            gifGridView.setAdapter(gifAdapter);
+        }
+        gifAdapter.notifyDataSetChanged();
+        gifAdapter.loadTrendingGifs();
+    }
+
+    /** The grid shows the single "empty / loading / error" row instead of GIFs. */
+    private boolean isGifEmptyViewShown() {
+        final RecyclerView.Adapter<?> adapter = gifGridView.getAdapter();
+        return adapter == gifSearchAdapter && gifSearchAdapter.results.isEmpty() || unigifMode && adapter == gifAdapter && gifAdapter.results.isEmpty();
+    }
+
     private void updateRecentGifs() {
         final int prevSize = recentGifs.size();
         long prevHash = MediaDataController.calcDocumentsHash(recentGifs, Integer.MAX_VALUE);
-        recentGifs = MediaDataController.getInstance(currentAccount).getRecentGifs();
+        recentGifs = unigifMode ? new ArrayList<>() : MediaDataController.getInstance(currentAccount).getRecentGifs();
         long newHash = MediaDataController.calcDocumentsHash(recentGifs, Integer.MAX_VALUE);
         if (gifTabs != null && prevSize == 0 && !recentGifs.isEmpty() || prevSize != 0 && recentGifs.isEmpty()) {
             updateGifTabs();
@@ -8772,6 +8867,11 @@ public class EmojiView extends FrameLayout implements
 
         private boolean showTrendingWhenSearchEmpty;
 
+        private okhttp3.Call unigifCall;
+        private boolean unigifLoading;
+        private int unigifToken;
+        private long unigifLoadedAt;
+
         public GifAdapter(Context context) {
             this(context, false, 0);
         }
@@ -8784,7 +8884,7 @@ public class EmojiView extends FrameLayout implements
             this.context = context;
             this.withRecent = withRecent;
             this.maxRecentRowsCount = maxRecentRowsCount;
-            this.progressEmptyView = withRecent ? null : new GifProgressEmptyView(context);
+            this.progressEmptyView = new GifProgressEmptyView(context); // withRecent: shown in UniGif mode only
         }
 
         @Override
@@ -8803,7 +8903,7 @@ public class EmojiView extends FrameLayout implements
                 return 1; // search field
             } else if (withRecent && position == trendingSectionItem) {
                 return 2; // trending section
-            } else if (!withRecent && results.isEmpty()) {
+            } else if ((!withRecent || unigifMode) && results.isEmpty()) {
                 return 3; // progress empty view
             }
             return 0; // gif
@@ -8882,7 +8982,7 @@ public class EmojiView extends FrameLayout implements
                 }
                 firstResultItem = itemsCount;
                 itemsCount += results.size();
-            } else if (!withRecent) {
+            } else if (!withRecent || unigifMode) {
                 itemsCount++; // progress empty view
             }
         }
@@ -8931,7 +9031,7 @@ public class EmojiView extends FrameLayout implements
         }
 
         public void loadTrendingGifs() {
-            if (NaConfig.INSTANCE.getDisableFeaturedGifs().Bool()) return;
+            if (!unigifMode && NaConfig.INSTANCE.getDisableFeaturedGifs().Bool()) return;
             search("", "", true, true, true);
         }
 
@@ -8965,6 +9065,7 @@ public class EmojiView extends FrameLayout implements
             if (withRecent) {
                 return;
             }
+            cancelUnigifCall();
             if (reqId != 0) {
                 if (reqId >= 0) {
                     ConnectionsManager.getInstance(currentAccount).cancelRequest(reqId, true);
@@ -8984,7 +9085,7 @@ public class EmojiView extends FrameLayout implements
                     loadTrendingGifs();
                 } else {
                     final int page = gifTabs.getCurrentPosition();
-                    if (page == gifRecentTabNum || page == gifTrendingTabNum) {
+                    if (unigifMode || page == gifRecentTabNum || page == gifTrendingTabNum) {
                         if (gifGridView.getAdapter() != gifAdapter) {
                             gifGridView.setAdapter(gifAdapter);
                         }
@@ -9016,6 +9117,10 @@ public class EmojiView extends FrameLayout implements
         }
 
         protected void search(final String query, final String offset, boolean searchUser, boolean isEmoji, boolean cache) {
+            if (unigifMode) {
+                searchUnigif(query, offset, isEmoji);
+                return;
+            }
             if (reqId != 0) {
                 if (reqId >= 0) {
                     ConnectionsManager.getInstance(currentAccount).cancelRequest(reqId, true);
@@ -9121,7 +9226,15 @@ public class EmojiView extends FrameLayout implements
                     addedCount++;
                 }
                 searchEndReached = oldCount == results.size() || TextUtils.isEmpty(nextSearchOffset);
-                if (addedCount != 0) {
+                if (addedCount != 0 && unigifMode) {
+                    // No recents and no section header here, so the upstream offsets below do not apply.
+                    if (oldCount != 0) {
+                        updateItems();
+                        notifyItemRangeInserted(firstResultItem + oldCount, addedCount);
+                    } else {
+                        notifyDataSetChanged();
+                    }
+                } else if (addedCount != 0) {
                     if (!isEmoji || oldCount != 0) {
                         updateItems();
                         if (withRecent) {
@@ -9156,6 +9269,143 @@ public class EmojiView extends FrameLayout implements
                 }
             }
         }
+
+        // Retrogram UniGif (WP U.4). Everything below runs in UniGif mode only.
+
+        /** The library by a sort order ({@link #UNIGIF_SORT_NEW}), shown like an emoji category. Always reloads. */
+        public void searchUnigifSort(String sortToken) {
+            if (searchRunnable != null) {
+                AndroidUtilities.cancelRunOnUIThread(searchRunnable);
+            }
+            search(sortToken, "", false, true, false);
+        }
+
+        /** Reloads the first page when the list is older than {@link #UNIGIF_REFRESH_INTERVAL}. */
+        private void refreshUnigif() {
+            if (!unigifLoading && SystemClock.elapsedRealtime() - unigifLoadedAt > UNIGIF_REFRESH_INTERVAL) {
+                loadTrendingGifs();
+            }
+        }
+
+        private void cancelUnigifCall() {
+            unigifToken++;
+            if (unigifCall != null) {
+                unigifCall.cancel();
+                unigifCall = null;
+            }
+            if (unigifLoading) {
+                unigifLoading = false;
+                reqId = 0;
+            }
+        }
+
+        private void resetForProviderChange() {
+            cancelUnigifCall();
+            if (reqId > 0) {
+                ConnectionsManager.getInstance(currentAccount).cancelRequest(reqId, true);
+            }
+            reqId = 0;
+            if (searchRunnable != null) {
+                AndroidUtilities.cancelRunOnUIThread(searchRunnable);
+                searchRunnable = null;
+            }
+            results.clear();
+            resultsMap.clear();
+            nextSearchOffset = null;
+            searchEndReached = false;
+            lastSearchImageString = null;
+            lastSearchIsEmoji = false;
+            bot = null;
+            unigifLoadedAt = 0;
+            progressEmptyView.setMessage(null);
+            progressEmptyView.setLoadingState(false);
+            if (!withRecent) {
+                gifSearchField.showProgress(false);
+            }
+        }
+
+        /** {@code query}: empty = the library by use, {@link #UNIGIF_SORT_NEW} = newest first, anything else = search text. */
+        private void searchUnigif(String query, final String offset, final boolean isEmoji) {
+            cancelUnigifCall();
+            final String token = query == null ? "" : query;
+            final boolean firstPage = TextUtils.isEmpty(offset);
+            final boolean isLibrary = token.isEmpty() || UNIGIF_SORT_NEW.equals(token);
+
+            lastSearchImageString = token;
+            lastSearchIsEmoji = isEmoji;
+            bot = null;
+
+            if (firstPage) {
+                progressEmptyView.setMessage(null);
+                progressEmptyView.setLoadingState(true);
+                if (!withRecent) {
+                    gifSearchField.showProgress(true);
+                    if (isEmoji) {
+                        results.clear();
+                        resultsMap.clear();
+                        if (gifGridView.getAdapter() != this) {
+                            gifGridView.setAdapter(this);
+                        }
+                        notifyDataSetChanged();
+                        scrollGifsToTop();
+                    }
+                }
+            }
+
+            final int callToken = ++unigifToken;
+            unigifLoading = true;
+            reqId = -1; // "busy" for checkGifSearchFieldScroll; never passed to ConnectionsManager
+            final String q = isLibrary ? null : token;
+            final String sort = !isLibrary ? null : token.isEmpty() ? "used" : "new";
+            final okhttp3.Call call = UnigifClient.listGifs(q, sort, offset, (page, error) -> {
+                if (callToken != unigifToken) {
+                    return;
+                }
+                unigifCall = null;
+                unigifLoading = false;
+                reqId = 0;
+                if (error != null) {
+                    onUnigifError(firstPage, error);
+                    return;
+                }
+                final TLRPC.TL_messages_botResults res = UnigifResults.toBotResults(page);
+                if (firstPage) {
+                    unigifLoadedAt = SystemClock.elapsedRealtime();
+                    if (withRecent) {
+                        results.clear();
+                        resultsMap.clear();
+                    }
+                    progressEmptyView.setLoadingState(false);
+                    progressEmptyView.setMessage(isLibrary && res.results.isEmpty() ? getString(R.string.UnigifEmptyLibrary) : null);
+                }
+                processResponse(token, offset, false, isEmoji, false, "ugf_" + token + "_" + offset, res);
+            });
+            if (unigifLoading && callToken == unigifToken) {
+                unigifCall = call;
+            }
+        }
+
+        private void onUnigifError(boolean firstPage, UnigifModels.UnigifError error) {
+            if (!withRecent) {
+                gifSearchField.showProgress(false);
+            }
+            if (!firstPage) {
+                searchEndReached = true; // no retry on every scroll; reopening the panel or a new search loads again
+                return;
+            }
+            if (!withRecent) {
+                results.clear();
+                resultsMap.clear();
+            }
+            progressEmptyView.setLoadingState(false);
+            if (results.isEmpty()) {
+                progressEmptyView.setMessage(UnigifErrors.message(error));
+                notifyDataSetChanged();
+            }
+            if (!withRecent && gifGridView.getAdapter() != this) {
+                gifGridView.setAdapter(this);
+            }
+        }
     }
 
     private class GifSearchPreloader {
@@ -9171,6 +9421,9 @@ public class EmojiView extends FrameLayout implements
         }
 
         private void preload(final String query, final String offset, boolean cache) {
+            if (unigifMode) {
+                return;
+            }
             final String key = "gif_search_" + query + "_" + offset;
 
             if (cache && gifCache.containsKey(key)) {
@@ -9222,7 +9475,7 @@ public class EmojiView extends FrameLayout implements
             setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
                 @Override
                 public int getSpanSize(int position) {
-                    if (position == 0 && gifAdapter.addSearch || gifGridView.getAdapter() == gifSearchAdapter && gifSearchAdapter.results.isEmpty()) {
+                    if (position == 0 && gifAdapter.addSearch || isGifEmptyViewShown()) {
                         return getSpanCount();
                     }
                     return getSpanSizeForItem(position - (gifAdapter.addSearch ? 1 : 0));
@@ -9234,7 +9487,12 @@ public class EmojiView extends FrameLayout implements
         protected Size getSizeForItem(int i) {
             TLRPC.Document document;
             ArrayList<TLRPC.DocumentAttribute> attributes;
-            if (gifGridView.getAdapter() == gifAdapter) {
+            if (unigifMode && gifGridView.getAdapter() == gifAdapter) {
+                // no recents and no section header: item i is result i
+                final TLRPC.BotInlineResult result = i >= 0 && i < gifAdapter.results.size() ? gifAdapter.results.get(i) : null;
+                document = null;
+                attributes = result != null && result.content != null ? result.content.attributes : null;
+            } else if (gifGridView.getAdapter() == gifAdapter) {
                 if (i > gifAdapter.recentItemsCount) {
                     TLRPC.BotInlineResult result = gifAdapter.results.get(i - gifAdapter.recentItemsCount - 1);
                     document = result.document;
@@ -9274,8 +9532,11 @@ public class EmojiView extends FrameLayout implements
 
         @Override
         protected int getFlowItemCount() {
-            if (gifGridView.getAdapter() == gifSearchAdapter && gifSearchAdapter.results.isEmpty()) {
+            if (isGifEmptyViewShown()) {
                 return 0;
+            }
+            if (unigifMode) {
+                return getItemCount(); // upstream's "- 1" gives the last item no width; a small library must show it
             }
             return getItemCount() - 1;
         }
@@ -9351,6 +9612,16 @@ public class EmojiView extends FrameLayout implements
 
         public boolean isLoadingState() {
             return loadingState;
+        }
+
+        /** Text under the icon; null restores "No GIFs found". Long texts wrap and stay centred. */
+        public void setMessage(CharSequence message) {
+            final CharSequence text = message == null ? getString(R.string.NoGIFsFound) : message;
+            if (!TextUtils.equals(textView.getText(), text)) {
+                textView.setGravity(Gravity.CENTER);
+                textView.setPadding(AndroidUtilities.dp(24), 0, AndroidUtilities.dp(24), 0);
+                textView.setText(text);
+            }
         }
 
         public void setLoadingState(boolean loadingState) {

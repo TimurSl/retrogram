@@ -237,6 +237,7 @@ import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import kotlin.Unit;
+import app.retrogram.unigif.UnigifResults;
 import tw.nekomimi.nekogram.helpers.ChatsHelper;
 import tw.nekomimi.nekogram.llm.LlmConfig;
 import tw.nekomimi.nekogram.utils.AndroidUtil;
@@ -13650,6 +13651,11 @@ if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
             }
 
             public void onGifSelected(View view, Object gif, String query, Object parent, boolean notify, int scheduleDate, int scheduleRepeatPeriod, MediaController.PhotoEntry entry, boolean invertMedia) {
+                if (gif instanceof TLRPC.BotInlineResult && UnigifResults.isUnigif((TLRPC.BotInlineResult) gif)) {
+                    // Retrogram UniGif: the inline-bot send below needs a query_id these results do not have, so a
+                    // tap does nothing yet. WP U.6 (docs/plans/08-unigif.md) replaces this with UnigifSender.send(...).
+                    return;
+                }
                 if (replyingQuote != null && parentFragment != null && replyingQuote.outdated) {
                     parentFragment.showQuoteMessageUpdate();
                     return;
