@@ -4,7 +4,7 @@
 self-hosted **UniGif** server over its HTTP API, plus an "Add to UniGif" action that uploads a GIF file to that
 server. Independent of the UI phases; it can be built any time after WP 0.5 (`RetroConfig` pattern exists).
 
-Nothing in this file has been built or run. Line numbers are from the tree at commit `738213b8` and will drift.
+Nothing in this file has been built or run. WP U.0 was completed by code reading only. Line numbers are from the tree at commit `738213b8` and will drift.
 Items marked **verify** were inferred from reading code and must be confirmed in the spike (WP U.0) before the
 WPs that depend on them.
 
@@ -97,30 +97,74 @@ All new classes go in package `app.retrogram.unigif` under `TMessagesProj/src/ma
 
 ## Work packages
 
-### WP U.0 — Spike: rendering and sending a synthetic result (S)
+### WP U.0 — Spike: rendering and sending a synthetic result (S) — DONE (code reading only)
 
-Purpose: settle the two **verify** points before the rest is written. Throwaway code is fine.
+Done by reading the code at the current tree; **no build was run and nothing was tried on a device or emulator.**
+Each decision below says whether it rests on code alone. The "still to confirm on a device" list at the end is
+the part that needs a real run, and U.4/U.6 should treat it as their first acceptance step.
 
-1. Hard-code one public MP4 URL. Build a `TL_botInlineResult` as in WP U.3 and put it in `gifSearchAdapter.results`.
-2. **Rendering.** Add the hook from WP U.4 step 5 to `ContextLinkCell` and check that the cell plays the MP4.
-   - Option A (preferred): set `urlLocation = <preview URL>` and let the existing
-     `ImageLocation.getForPath(urlLocation)` branch (`ContextLinkCell.java:376`) load it over HTTP.
-     **verify** that an HTTP MP4 loaded this way is decoded as an animation and not as a still image.
-   - Option B (fallback): download previews ourselves with OkHttp into
-     `FileLoader.getDirectory(MEDIA_DIR_CACHE)/ugf_<id>_p.mp4` and pass the local path to `getForPath`; show `poster`
-     until the file exists.
-   - Option C (fallback): use `media.poster` only in the grid (static) and animate only in the long-press preview.
-3. **Sending.** Call `prepareSendingBotContextResult` with params that contain **no `query_id`** and check that the
-   message appears as a looping GIF in a normal chat and in a secret chat.
-   **verify** `SendMessagesHelper` routes a document whose `path` starts with `http` to
-   `delayedMessage.httpLocation` for this document type (seen for photos at `:5830`; the document branch must be read).
-   - Fallback: `UnigifSender` downloads `media.mp4` to the cache directory itself and passes the local path.
-4. **Long-press preview.** `ContentPreviewViewer.java:1949–1951` loads `WebFile.createWithWebDocument(content)`.
-   `WebFile` marks `TL_webDocumentNoProxy` as `noproxy`; **verify** the preview plays, otherwise add a
-   `getForPath(url)` branch there for UniGif results.
+**1. Rendering in the grid: Option A, with an explicit animation type (not an `.mp4` suffix).**
+- `ContextLinkCell` only handles `TL_webDocument` (`:261`). `TL_webDocumentNoProxy` is a separate class, so for it
+  `webDocument`, `webFile` and `urlLocation` all stay null and the cell draws nothing. The hook is needed, as planned.
+- `ImageLocation.getForPath(url)` with an `http` URL is loaded by `ImageLoader.HttpImageTask` (plain
+  `HttpURLConnection`, no auth header, 5 s timeouts, redirects followed). That suits the public `/m/…` URLs.
+- Whether the result is decoded as an animation is decided at `ImageLoader.java:3165–3176`: by
+  `imageLocation.imageType == IMAGE_TYPE_ANIMATION`, or else by `getHttpUrlExtension(path)` being `mp4`/`webm`/`gif`.
+  **`getHttpUrlExtension` looks at the last path segment only** (`Uri.getLastPathSegment()`), so a `#.mp4` or `?.mp4`
+  suffix does **not** work, and a segment such as `mp4` (no dot) falls back to the default `jpg`. This replaces the
+  "`#.mp4` extension guard" idea in WP U.3.
+- Decision: the hook builds `ImageLocation.getForPath(thumbUrl)` and sets `location.imageType =
+  FileLoader.IMAGE_TYPE_ANIMATION` itself (the same thing `ContextLinkCell.java:369` and
+  `ContentPreviewViewer.java:1937` already do for documents). It does not depend on the URL shape.
+  The decode step (`AnimatedFileDrawable`, `ImageLoader.java:1048`) takes a file path, so the `.jpg` cache-file name
+  that `getHttpUrlExtension(…, "jpg")` gives should not matter; that is **unconfirmed** (see list).
+- Options B and C stay as fallbacks if the on-device check fails.
 
-Acceptance: a written note in this file (replace this WP's text) saying which option was taken for rendering,
-sending and preview, with the reason.
+**2. Sending: the `http` path does not work for normal chats, so the sender pre-downloads (the fallback).**
+- In `SendMessagesHelper.sendMessage`, the unencrypted document branches hard-code `boolean http = false`
+  (`:3542`, `:5928`) and never set `delayedMessage.httpLocation` for documents. `attachPath` is set to the URL
+  (`:5060`) and the type-2 upload then calls `uploadFile(attachPath, …)` on it (`:7075–7078`), which is not a file.
+  So a synthetic result with an `http` content URL would fail to upload in private chats, groups and channels.
+- `httpLocation` is set only in the secret-chat branch (`:6590`); that route downloads through `loadHttpFile` and then
+  re-reads the file as `MD5(url) + ".gif"` (`:1475`), which is the wrong extension for an MP4. Not worth relying on.
+- Decision: **`UnigifSender` downloads `media.mp4` itself** before calling `prepareSendingBotContextResult`, saving it
+  to exactly `FileLoader.getDirectory(MEDIA_DIR_CACHE)/MD5(content.url) + ext`. `prepareSendingBotContextResult`
+  already looks for that file first (`:10501–10511`); on a hit it uses the local path, so the document branch, the
+  secret-chat branch and the thumbnail step (`createVideoThumbnail` on a local file) all take their normal local-file
+  routes. `ext` must be what the code computes: `"." + getHttpUrlExtension(url, null)` when the last segment has a
+  short extension, else `FileLoader.getExtensionByMimeType("video/mp4")` = `".mp4"`. The sender should use the same
+  expression rather than hard-coding. `finalPath.endsWith("mp4")` (`:10529`) then holds, so the document gets
+  `video/mp4` + `TL_documentAttributeAnimated`.
+- The download is the user's own server over OkHttp (`UnigifClient`), with the progress shown as a normal pending
+  message only after the file is in place (the message appears when the download finishes).
+- `params` must be a non-null map: `params.put("originalPath", result.content.url)` is skipped when it is null
+  (`:10699`), and that value is the key of the sent-file cache that makes the second send of a GIF free.
+- Cache lookup for U.6 step 2.1: the sent-file row is written with type **2** for a GIF sent as animated MP4
+  (`SendMessagesHelper.java:9109`) and type 1 otherwise, keyed by `MD5(originalPath)`; read it with
+  `MessagesStorage.getSentFile(contentUrl, 2)`. Scheduled and ephemeral sends are not stored (`:9108`), so those
+  always take the upload path.
+
+**3. Long-press preview: needs one small hook.**
+- `ContentPreviewViewer.java:1949–1957` builds `WebFile.createWithWebDocument(botInlineResult.content)`, which does
+  handle `TL_webDocumentNoProxy` (`WebFile.java:61–72`: `noproxy = true`), and `ImageLocation.getForWebFile` turns that
+  into `path = url` (`ImageLocation.java:96–98`). So it ends up in the same `HttpImageTask` route, but with no
+  `imageType` set, which means it only animates if the URL's last segment ends in `.mp4` — which we cannot count on.
+- Decision: add a UniGif branch in that method that uses `getForPath(content.url)` with
+  `imageType = IMAGE_TYPE_ANIMATION`, like branch 1 above.
+
+**4. Other findings that change later WPs** (the WP text below has been adjusted to match):
+- U.3: no `#.mp4` suffix. Keep `media.mp4.url` as the content URL unchanged.
+- U.4 step 8 and the preview: set `imageType` explicitly, as above.
+- U.6: pre-download in the sender; `params` non-null; sent-file type 2.
+
+**Still to confirm on a device or emulator (not verified by this spike):**
+1. A grid cell with `imageLocation.path = http mp4` and `imageType = ANIMATION` actually animates (the `.jpg`
+   cache name is fine for the decoder).
+2. A pre-downloaded file at `MD5(url) + ".mp4"` is picked up and the message is sent as a looping GIF in a private
+   chat, a group and a secret chat.
+3. `createVideoThumbnail` yields a thumbnail from the local file, so the chat bubble has a preview while uploading.
+4. `FILE_REFERENCE_EXPIRED` on a cached sent document (U.6 step 6) — still unread.
+5. The real URL shape of `/m/{id}/{variant}` and whether the server sends `Content-Length` (used for progress only).
 
 ### WP U.1 — Settings and config (S)
 
@@ -205,14 +249,14 @@ so the send path takes the `content` branch):
 | `id` | `"ugf:" + g.id` |
 | `type` | `"gif"` |
 | `title` | `g.tags` joined with spaces (used for accessibility only) |
-| `content` | `TL_webDocumentNoProxy`: `url` = absolute `media.mp4.url` + a `.mp4` suffix guard (see below), `mime_type = "video/mp4"`, `size = media.mp4.bytes`, attributes = one `TL_documentAttributeVideo` with `w`, `h`, `duration = duration_ms / 1000.0` |
+| `content` | `TL_webDocumentNoProxy`: `url` = absolute `media.mp4.url` unchanged, `mime_type = "video/mp4"`, `size = media.mp4.bytes`, attributes = one `TL_documentAttributeVideo` with `w`, `h`, `duration = duration_ms / 1000.0` |
 | `thumb` | `TL_webDocumentNoProxy`: `url` = absolute `media.preview_mp4.url` (fallback `media.mp4.url`), `mime_type = "video/mp4"`, same attributes |
 | `send_message` | `TL_botInlineMessageMediaAuto` with `message = ""` |
 | `query_id` | `0` |
 
-- The send path decides MP4 vs GIF with `finalPath.endsWith("mp4")` (`SendMessagesHelper.java:10529`) and derives
-  the cache file extension from the URL. If the server's `/m/{id}/{variant}` URLs do not end in `.mp4`, append a
-  harmless fragment or query (`#.mp4`) — **verify** against a real response and against `ImageLoader.getHttpUrlExtension`.
+- No extension guard on the URL: it does not work (WP U.0 finding 1; `getHttpUrlExtension` reads the last path
+  segment only). Animation is forced with `imageType` in the cell hook, and the send path gets its `.mp4` from the
+  local cache file the sender creates (WP U.0 finding 2).
 - `width`/`height` null → fall back to 100×100 (the layout manager's own default).
 - Keep `poster` URL and the raw `Gif` reachable from the result: a side map `id → Gif` in `UnigifResults`
   (bounded, e.g. 500 entries) rather than a new field on the TL class.
@@ -221,8 +265,8 @@ so the send path takes the `content` branch):
 - `UnigifResults.isUnigif(BotInlineResult)` = `id != null && id.startsWith("ugf:")`; `gifId(result)` strips the prefix.
 
 Unit tests for the mapper are possible only if the TL classes load on the JVM; **check** how `RetroConfigTest`
-handles Android dependencies. If they do not load, keep the pure parts (URL resolution, extension guard) in a
-helper that is tested and leave the TL assembly untested.
+handles Android dependencies. If they do not load, keep the pure parts (URL resolution, the cache-file name
+expression from WP U.0 finding 2) in a helper that is tested and leave the TL assembly untested.
 
 Acceptance: mapper tests pass (or the limitation is noted here).
 
@@ -320,12 +364,13 @@ the other `onGifSelected` implementations (**find all**: `grep -n "onGifSelected
    1. Look up a previously uploaded Telegram document for this GIF:
       `MessagesStorage.getSentFile(contentUrl, isEncrypted ? SENT_FILE_TYPE_…_ENCRYPTED : SENT_FILE_TYPE_…)` on the
       storage queue. The store is filled by the existing code after each successful send
-      (`SendMessagesHelper.java:9105–9118`, keyed by `originalPath` = the content URL). **verify** which type
-      constant matches the `2` / `1` passed to `putSentFile` there.
+      (`SendMessagesHelper.java:9105–9118`, keyed by `originalPath` = the content URL). the type is **2** for a GIF sent as animated MP4 (WP U.0 finding 2).
    2. Hit → send that `TLRPC.Document` with `SendMessagesHelper.sendSticker(document, query, dialogId, …)` exactly
       as the "recent GIF" branch does (`ChatActivityEnterView.java:13722`). No upload.
-   3. Miss → call `prepareSendingBotContextResult` with `params = {force_gif: "1"}` — **no `id`, no `query_id`** —
-      so the document branch downloads the MP4 (or uses the local file, per WP U.0) and uploads it.
+   3. Miss → download `media.mp4` with `UnigifClient` to `MEDIA_DIR_CACHE/MD5(content.url) + ext` (expression in
+      WP U.0 finding 2), then call `prepareSendingBotContextResult` with a **non-null** `params = {force_gif: "1"}`
+      — **no `id`, no `query_id`** — so it finds the local file and uploads it. The `http` path in
+      `SendMessagesHelper` is not used (it does not work for documents in normal chats).
    4. In both cases, after handing the message to `SendMessagesHelper`, call `UnigifClient.use(gifId)`.
 3. Do **not** call `MediaDataController.addRecentGif` / `MessagesController.saveGif` for UniGif sends (D6).
    Also guard the automatic "add sent GIF to recents" at `SendMessagesHelper.java:9232–9237` when
@@ -434,9 +479,9 @@ U.7 depends only on U.1 and U.2, so "Add to UniGif" can ship before the panel wo
 
 | Risk / question | Handling |
 | :--- | :--- |
-| HTTP MP4 may not animate through `ImageLocation.getForPath(url)`. | WP U.0 options B/C. |
-| The `http` path for document sends may not exist or may be flaky (it is legacy code). | WP U.0 fallback: `UnigifSender` downloads the file itself. |
-| Media URL has no `.mp4` suffix, so the send path treats it as `image/gif`. | Extension guard in WP U.3; confirm with a real response. |
+| HTTP MP4 may not animate through `ImageLocation.getForPath(url)`. | Code reading says it does when `imageType = ANIMATION` is set (WP U.0); device check still open; options B/C remain as fallbacks. |
+| The `http` path for document sends does not work in normal chats. | Confirmed by code reading (WP U.0): `UnigifSender` downloads the file itself. |
+| Media URL has no `.mp4` suffix, so URL-extension checks treat it as a still image or `image/gif`. | Animation is forced with `imageType`; the sender names its cache file with the expression from WP U.0. A URL suffix cannot fix this. |
 | `EmojiView` is a 10k-line upstream file that changes with every Telegram release; the hooks add merge cost. | Keep each hook to one `if (unigifMode)` line that calls into `app.retrogram.unigif`; list the hook lines in this file when done. |
 | The API key is stored in plain app preferences, like the fork's other API keys. | Accepted for now; note it in the settings info text. Android Keystore-backed storage is a possible follow-up. |
 | A user enters an `http://` URL. | Allowed (self-hosted LAN servers), with a visible warning (WP U.1 step 3). |
