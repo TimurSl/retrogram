@@ -289,7 +289,30 @@ What differs from the steps below, and what was decided at the "check" points:
 
 Acceptance: unit tests pass in CI.
 
-### WP U.3 — Result mapping (S)
+### WP U.3 — Result mapping (S) — CODE WRITTEN, not run in the Android build
+
+Status: `UnigifResults` is implemented as described below. `UnigifResultsTest` (11 tests) was compiled and run
+outside the Android build against a hand-written stub of the TL classes it touches; against the real `TLRPC` it
+has only CI to go through. Nothing calls `UnigifResults` yet (U.4 and U.6 do).
+
+What differs from the text below, and what was decided at the "check" point:
+- `toInlineResult(Gif)` takes no `baseUrl`: `UnigifClient` already makes every media URL absolute when it parses
+  (WP U.2), so the mapper copies them unchanged.
+- It returns null for an item without an MP4 URL; `toBotResults` leaves such items out.
+- Size: `Gif.width/height`, else the MP4 rendition's own size, else 100×100. A pair with one side missing counts
+  as missing.
+- `flags` are set to match the filled fields (title, thumb, content; `next_offset` on the page), and
+  `gallery = true` as the `@gif` bot's answers have it. Neither is read by the panel today.
+- The side map is `UnigifResults.gif(result)`: 500 entries, least recently read dropped first. A result whose
+  item was dropped still sends and renders (everything those need is on the result); only the poster URL and
+  tags are gone.
+- **Check, TL classes on the JVM:** by reading, they should load. The classes used are plain field holders, and
+  the only static state in `TLObject` is a `ThreadLocal` whose `NativeByteBuffer` is created on first use, not at
+  class load. So the test builds real TL objects. This is unconfirmed until the CI unit-test step runs it; if it
+  fails there, fall back to the split described at the end of this section.
+- The cache-file name expression (WP U.0 finding 2) is not in this WP. It needs `ImageLoader.getHttpUrlExtension`
+  (`android.net.Uri`, which is a stub in JVM tests) and `Utilities.MD5`, and U.6 is its only user, so
+  `UnigifSender` calls those two directly.
 
 `UnigifResults.toInlineResult(Gif g, String baseUrl)` builds a **`TLRPC.TL_botInlineResult`** (the non-media class,
 so the send path takes the `content` branch):
