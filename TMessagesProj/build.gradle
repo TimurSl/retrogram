@@ -140,6 +140,9 @@ if (nativeTarget == 'SKIP') {
 android {
     defaultConfig.applicationId = APP_PACKAGE
 
+    // JVM unit tests run OkHttp's Android artifact, which calls android.util.Log while it starts.
+    testOptions.unitTests.returnDefaultValues = true
+
     packaging {
         jniLibs {
             useLegacyPackaging = true
@@ -403,6 +406,7 @@ dependencies {
     implementation 'com.android.billingclient:billing:8.0.0'
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs_nio:2.1.5'
     testImplementation 'junit:junit:4.13.2'
+    testImplementation 'com.squareup.okhttp3:mockwebserver3:5.3.2'
 
     // kotlin
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'

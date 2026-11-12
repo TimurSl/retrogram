@@ -73,6 +73,11 @@
     <string name="UnigifErrorNetwork">Cannot reach the UniGif server.</string>
     <string name="UnigifErrorNotUnigif">The server answered, but not like a UniGif server. Check the URL.</string>
     <string name="UnigifErrorOther">UniGif error (%1$d)</string>
+    <string name="UnigifErrorScope">This UniGif key lacks the %1$s permission.</string>
+    <string name="UnigifErrorForbidden">This UniGif key is not allowed to do that.</string>
+    <string name="UnigifErrorRateLimited">UniGif rate limit reached, try again in %1$d s.</string>
+    <string name="UnigifErrorTooLarge">File is too large for UniGif.</string>
+    <string name="UnigifErrorUnsupported">UniGif cannot process this file.</string>
     <string name="UnlimitedFavoredStickers">Unlimited Favored Stickers</string>
     <string name="UnlimitedFavoredStickersAbout">Add unlimited stickers to favorites. Stickers may not be synchronized to other devices.</string>
     <string name="MessageDetails">Details</string>

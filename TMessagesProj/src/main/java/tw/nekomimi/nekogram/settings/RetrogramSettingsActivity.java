@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import app.retrogram.RetroConfig;
 import app.retrogram.unigif.UnigifClient;
 import app.retrogram.unigif.UnigifConfig;
+import app.retrogram.unigif.UnigifErrors;
 import app.retrogram.unigif.UnigifModels;
 
 import org.telegram.messenger.LocaleController;
@@ -137,18 +138,7 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
     }
 
     private static String describeError(UnigifModels.UnigifError error) {
-        String text;
-        if (error == null || error.kind == UnigifModels.UnigifError.KIND_NOT_SET_UP) {
-            text = getString(R.string.UnigifErrorNotSetUp);
-        } else if (error.kind == UnigifModels.UnigifError.KIND_NETWORK) {
-            text = getString(R.string.UnigifErrorNetwork);
-        } else if (error.kind == UnigifModels.UnigifError.KIND_BAD_RESPONSE) {
-            text = getString(R.string.UnigifErrorNotUnigif);
-        } else if (error.isKeyRejected()) {
-            text = getString(R.string.UnigifErrorKeyRejected);
-        } else {
-            text = LocaleController.formatString(R.string.UnigifErrorOther, error.httpStatus);
-        }
+        String text = UnigifErrors.message(error);
         // The server's own wording is shown here only (plan: "detail" appears in the test result, nowhere else).
         return error == null || error.detail.isEmpty() ? text : text + "\n\n" + error.detail;
     }
