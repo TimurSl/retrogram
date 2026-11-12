@@ -289,11 +289,11 @@ What differs from the steps below, and what was decided at the "check" points:
 
 Acceptance: unit tests pass in CI.
 
-### WP U.3 — Result mapping (S) — CODE WRITTEN, not run in the Android build
+### WP U.3 — Result mapping (S) — CODE WRITTEN, unit tests green in CI
 
 Status: `UnigifResults` is implemented as described below. `UnigifResultsTest` (11 tests) was compiled and run
-outside the Android build against a hand-written stub of the TL classes it touches; against the real `TLRPC` it
-has only CI to go through. Nothing calls `UnigifResults` yet (U.4 and U.6 do).
+outside the Android build against a hand-written stub of the TL classes it touches, and the CI unit-test step
+(run 64, commit `89fed11e`) passed with it against the real `TLRPC`. Nothing calls `UnigifResults` yet (U.4 and U.6 do).
 
 What differs from the text below, and what was decided at the "check" point:
 - `toInlineResult(Gif)` takes no `baseUrl`: `UnigifClient` already makes every media URL absolute when it parses
@@ -308,8 +308,8 @@ What differs from the text below, and what was decided at the "check" point:
   tags are gone.
 - **Check, TL classes on the JVM:** by reading, they should load. The classes used are plain field holders, and
   the only static state in `TLObject` is a `ThreadLocal` whose `NativeByteBuffer` is created on first use, not at
-  class load. So the test builds real TL objects. This is unconfirmed until the CI unit-test step runs it; if it
-  fails there, fall back to the split described at the end of this section.
+  class load. So the test builds real TL objects. The CI unit-test step passed with it (run 64), so the split
+  described at the end of this section was not needed.
 - The cache-file name expression (WP U.0 finding 2) is not in this WP. It needs `ImageLoader.getHttpUrlExtension`
   (`android.net.Uri`, which is a stub in JVM tests) and `Utilities.MD5`, and U.6 is its only user, so
   `UnigifSender` calls those two directly.
