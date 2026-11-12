@@ -343,7 +343,52 @@ expression from WP U.0 finding 2) in a helper that is tested and leave the TL as
 
 Acceptance: mapper tests pass (or the limitation is noted here).
 
-### WP U.4 — Panel browse mode: tabs and the two library lists (M)
+### WP U.4 — Panel browse mode: tabs and the two library lists (M) — CODE WRITTEN, not compiled locally, not run on a device
+
+Status: implemented as described below. There is no Android SDK in the environment it was written in, so the
+changed files were only syntax-checked there; the first real compile is the CI build of the branch. Nothing was
+run on a device or against a real server, so the whole acceptance list below is still open, and so are items 1
+and 5 of the WP U.0 "still to confirm" list (the grid animating an `http` MP4).
+
+What differs from the steps below, and what was found:
+- **The GIF tab strip is not on screen in this tree.** `gifTabs` is created and kept up to date, but the line that
+  adds it to the page is commented out (`EmojiView.java`, `gifContainer.addView(gifTabs, …)`), in upstream too.
+  What the user sees is one list (recents, a "Featured" header, trending) and the category buttons inside the
+  search field. So steps 3 and 4 could not give two visible tabs as written. Built instead:
+  - the list behind the empty search field is the library by use ("Most used");
+  - the search field's category strip, which holds the emoji categories in KLIPY mode, holds **one button,
+    "Newest"** (clock icon) in UniGif mode. It works like an emoji category: tap = the library with `sort=new`,
+    tap again or the back arrow = back to "Most used". This replaces step 9 ("do not create the strip"); the
+    strip hides itself while text is typed, so WP U.5's suggestion row can still take that place.
+  - the hidden `gifTabs` gets one tab ("Most used") and no emoji tabs; there is no `gifUnigifNewTabNum`.
+  This is a design choice made without the owner; P1 is still a proposal. Undoing it is: drop
+  `SearchField.unigifCategories()` and pass `null` in `applyUnigifMode()`.
+- **Tapping a GIF does nothing until WP U.6.** The unchanged send path would issue `messages.sendInlineBotResult`
+  with `query_id = 0` and leave a failed message, so `ChatActivityEnterView.onGifSelected` returns early for a
+  UniGif result. U.6 replaces that early return with `UnigifSender.send`.
+- Step 1: `unigifMode` is a field initialised from `UnigifConfig.isActive()` and re-read in `onOpen` (the keyboard
+  panel being shown). UniGif selected but URL or key empty therefore shows the `@gif` panel, with no "not set up"
+  message in the panel; that message only appears for a key that cannot be sent in a header.
+- Step 5: the running call is tracked with a flag and a token, with `reqId = -1` meaning "busy" (the value the
+  upstream code already uses for a cache read, so it is never passed to `ConnectionsManager.cancelRequest`).
+  An error on a later page stops paging for that list until it is reloaded.
+- Not in the steps: the "Most used" list is reloaded when the panel opens and the list is older than 60 s
+  ("the panel reloads when it is opened", Out of scope).
+- Not in the steps, grid layout: with no recents the upstream size lookup treats item 0 as the section header
+  (full width) and shifts every size by one, and `getFlowItemCount()` returns one less than the item count, which
+  gives the last item no width. Both are harmless with paged `@gif` results but would hide the only GIF of a
+  one-item library, so UniGif mode has its own branch in `GifLayoutManager.getSizeForItem` and
+  `getFlowItemCount`, and its own insert notification in `processResponse`.
+- Step 7: the "Most used" adapter now owns a `GifProgressEmptyView` too; it is a row only in UniGif mode.
+- Step 8: also the long-press preview (`ContentPreviewViewer`, WP U.0 finding 3), with no thumbnail while the
+  MP4 loads.
+- `StickerCategoriesListView` got `setCategories(…)` (the category array was private and filled once).
+
+Hook lines in upstream files (search for `unigif`, case-insensitive): `EmojiView.java` (field, `SearchField`
+category strip, `updateGifTabs`, `onOpen` → `checkUnigifMode`, `updateRecentGifs`, `GifAdapter`,
+`GifSearchPreloader.preload`, `GifLayoutManager`, `GifProgressEmptyView.setMessage`), `ContextLinkCell.java`
+(`onMeasure`, two places), `ContentPreviewViewer.java` (one branch), `StickerCategoriesListView.java`
+(`setCategories`), `ChatActivityEnterView.java` (the early return above).
 
 File: `org/telegram/ui/Components/EmojiView.java`; one hook in `org/telegram/ui/Cells/ContextLinkCell.java`.
 

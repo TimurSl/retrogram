@@ -78,6 +78,9 @@
     <string name="UnigifErrorRateLimited">UniGif rate limit reached, try again in %1$d s.</string>
     <string name="UnigifErrorTooLarge">File is too large for UniGif.</string>
     <string name="UnigifErrorUnsupported">UniGif cannot process this file.</string>
+    <string name="UnigifTabUsed">Most used</string>
+    <string name="UnigifTabNewest">Newest</string>
+    <string name="UnigifEmptyLibrary">No GIFs in your UniGif library yet.</string>
     <string name="UnlimitedFavoredStickers">Unlimited Favored Stickers</string>
     <string name="UnlimitedFavoredStickersAbout">Add unlimited stickers to favorites. Stickers may not be synchronized to other devices.</string>
     <string name="MessageDetails">Details</string>

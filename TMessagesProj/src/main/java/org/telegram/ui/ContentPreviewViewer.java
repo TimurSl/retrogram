@@ -114,6 +114,7 @@ import org.telegram.ui.Stories.DarkThemeResourceProvider;
 import java.util.ArrayList;
 import java.util.List;
 
+import app.retrogram.unigif.UnigifResults;
 import tw.nekomimi.nekogram.NekoConfig;
 import tw.nekomimi.nekogram.helpers.MessageHelper;
 import com.radolyn.ayugram.controllers.AyuGhostController;
@@ -1945,7 +1946,15 @@ public class ContentPreviewViewer {
                 if (botInlineResult.content == null) {
                     return;
                 }
-                if (botInlineResult.thumb instanceof TLRPC.TL_webDocument && "video/mp4".equals(botInlineResult.thumb.mime_type)) {
+                if (UnigifResults.isUnigif(botInlineResult)) {
+                    // Retrogram UniGif: plain http(s) MP4s; the type is set here because the URLs have no .mp4 suffix
+                    ImageLocation location = ImageLocation.getForPath(botInlineResult.content.url);
+                    if (location == null) {
+                        return;
+                    }
+                    location.imageType = FileLoader.IMAGE_TYPE_ANIMATION;
+                    centerImage.setImage(location, null, (ImageLocation) null, null, botInlineResult.content.size, null, "gif" + botInlineResult, 1);
+                } else if (botInlineResult.thumb instanceof TLRPC.TL_webDocument && "video/mp4".equals(botInlineResult.thumb.mime_type)) {
                     centerImage.setImage(ImageLocation.getForWebFile(WebFile.createWithWebDocument(botInlineResult.content)), null, ImageLocation.getForWebFile(WebFile.createWithWebDocument(botInlineResult.thumb)), null, ImageLocation.getForWebFile(WebFile.createWithWebDocument(botInlineResult.thumb)), "90_90_b", null, botInlineResult.content.size, null, "gif" + botInlineResult, 1);
                 } else {
                     centerImage.setImage(ImageLocation.getForWebFile(WebFile.createWithWebDocument(botInlineResult.content)), null, ImageLocation.getForWebFile(WebFile.createWithWebDocument(botInlineResult.thumb)), "90_90_b", botInlineResult.content.size, null, "gif" + botInlineResult, 1);
