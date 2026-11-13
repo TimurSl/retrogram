@@ -238,6 +238,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import kotlin.Unit;
 import app.retrogram.unigif.UnigifResults;
+import app.retrogram.unigif.UnigifSender;
 import tw.nekomimi.nekogram.helpers.ChatsHelper;
 import tw.nekomimi.nekogram.llm.LlmConfig;
 import tw.nekomimi.nekogram.utils.AndroidUtil;
@@ -13651,11 +13652,6 @@ if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
             }
 
             public void onGifSelected(View view, Object gif, String query, Object parent, boolean notify, int scheduleDate, int scheduleRepeatPeriod, MediaController.PhotoEntry entry, boolean invertMedia) {
-                if (gif instanceof TLRPC.BotInlineResult && UnigifResults.isUnigif((TLRPC.BotInlineResult) gif)) {
-                    // Retrogram UniGif: the inline-bot send below needs a query_id these results do not have, so a
-                    // tap does nothing yet. WP U.6 (docs/plans/08-unigif.md) replaces this with UnigifSender.send(...).
-                    return;
-                }
                 if (replyingQuote != null && parentFragment != null && replyingQuote.outdated) {
                     parentFragment.showQuoteMessageUpdate();
                     return;
@@ -13681,7 +13677,15 @@ if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
                                 setStickersExpanded(false, true, false);
                             }
                             TL_stories.StoryItem storyItem = delegate != null ? delegate.getReplyToStory() : null;
-                            if (gif instanceof TLRPC.Document) {
+                            if (gif instanceof TLRPC.BotInlineResult && UnigifResults.isUnigif((TLRPC.BotInlineResult) gif)) {
+                                // Retrogram UniGif: no query_id, so not an inline-bot send (docs/plans/08-unigif.md, WP U.6).
+                                UnigifSender.send(parentFragment, accountInstance, (TLRPC.BotInlineResult) gif, query, dialog_id, replyingMessageObject, getThreadMessage(), storyItem, replyingQuote, notify, scheduleDate, scheduleRepeatPeriod, parentFragment != null ? parentFragment.getMessageChatSendParams() : null, stars, getSendMonoForumPeerId(), getSendMessageSuggestionParams());
+                                if (searchingType != 0) {
+                                    setSearchingTypeInternal(0, true);
+                                    emojiView.closeSearch(true);
+                                    emojiView.hideSearchKeyboard();
+                                }
+                            } else if (gif instanceof TLRPC.Document) {
                                 TLRPC.Document document = (TLRPC.Document) gif;
                                 boolean applyEdit = false;
 

@@ -363,9 +363,8 @@ What differs from the steps below, and what was found:
   - the hidden `gifTabs` gets one tab ("Most used") and no emoji tabs; there is no `gifUnigifNewTabNum`.
   This is a design choice made without the owner; P1 is still a proposal. Undoing it is: drop
   `SearchField.unigifCategories()` and pass `null` in `applyUnigifMode()`.
-- **Tapping a GIF does nothing until WP U.6.** The unchanged send path would issue `messages.sendInlineBotResult`
-  with `query_id = 0` and leave a failed message, so `ChatActivityEnterView.onGifSelected` returns early for a
-  UniGif result. U.6 replaces that early return with `UnigifSender.send`.
+- Tapping a GIF did nothing until WP U.6 (an early return in `ChatActivityEnterView.onGifSelected`); U.6
+  replaced it with `UnigifSender.send`.
 - Step 1: `unigifMode` is a field initialised from `UnigifConfig.isActive()` and re-read in `onOpen` (the keyboard
   panel being shown). UniGif selected but URL or key empty therefore shows the `@gif` panel, with no "not set up"
   message in the panel; that message only appears for a key that cannot be sent in a header.
@@ -503,7 +502,47 @@ Files: `EmojiView.java`, `app/retrogram/unigif/UnigifTagSuggestView.java`, `app/
 Acceptance: typing `ca` lists tags starting with `ca`; tapping `cat` then typing `fu` and tapping `funny` runs the
 search `cat funny ` and shows GIFs carrying both; `-dog` excludes; clearing the field restores the tab content.
 
-### WP U.6 — Sending a UniGif result (M)
+### WP U.6 — Sending a UniGif result (M) — CODE WRITTEN, not compiled locally, not run on a device
+
+Status: implemented as described below. No Android SDK where it was written, so `UnigifSender.java` and the
+changed upstream files were only parsed; the first real compile is the CI build of the branch. No unit test was
+added: the sender is glue between `UnigifClient` (tested) and `SendMessagesHelper`, and its one pure-looking part,
+the cache-file name, needs `android.net.Uri`. Nothing was sent on a device, so the acceptance line below and
+items 2 and 3 of the WP U.0 "still to confirm" list are open.
+
+What differs from the steps below, and what was decided:
+- Step 1, hook position: inside the send runnable of `onGifSelected`, as the first branch, so the schedule
+  picker, slow mode, the paid-message confirmation and `beforeMessageSend` all run first as for any GIF. The
+  early return from WP U.4 is gone. `onGifSelected` has no other implementation (the other `EmojiView` hosts
+  keep the empty default).
+- Step 2.1: the lookup uses type 2 (`SENT_FILE_TYPE_VIDEO`) and is skipped for secret chats, where sent
+  documents are never stored; a secret-chat send always uploads, but reuses the downloaded file if it is still in
+  the cache directory. A stored document that is no longer a GIF document is ignored (upload instead).
+- Step 2.2: the stored `sent_…` parent string is passed to `sendSticker` as the parent object.
+- Step 2.3: a download in progress is shared: a second tap on the same GIF waits for it and then sends too.
+  A file already in the cache directory is used without a download. A failed download shows the mapped error as a
+  bulletin and sends nothing. There is no progress indicator while the MP4 downloads; the message appears when
+  the file is in place.
+- Step 2.3, the story-reply case: upstream sends `result.document` there, which a UniGif result does not have, so
+  the story item is passed to `prepareSendingBotContextResult` / `sendSticker` like any other reply target.
+  Unverified.
+- Step 3, decided with the default: while UniGif is active **no** sent GIF is added to Telegram's recent GIFs,
+  UniGif-originated or not (`SendMessagesHelper`, the `save` condition). Owner can narrow this later.
+- Step 4, **captions do not work for UniGif results**: `onGifSelectedForAddCaption` returns early for anything
+  that is not a `TLRPC.Document` (upstream behaviour for every inline result). Spoiler: applied on a repeat send
+  (`sendSticker` reads the flag), not on the first, uploading send (`prepareSendingBotContextResult` has no
+  spoiler parameter). Scheduled and silent sends pass through the hook's arguments.
+- Step 6, checked by reading: yes. `performSendMessageRequest` hands a file-reference error to
+  `FileRefController.requestReference(parentObject, …)`, and a `sent_…` string parent is resolved by re-fetching
+  that message. So no drop-and-resend code was written. Left open: if that original message was deleted, the
+  refresh fails and the repeat send fails with it; the user has to wait for the cache row to be replaced, which
+  only happens after an upload. If this shows up on a device, add the fallback from step 6.
+- If the media URL's last path segment ever has a short extension other than `mp4`, the cache file gets that
+  extension and the upstream code sends the file as `image/gif`. `/m/{id}/{variant}` has no extension, so this is
+  not expected (WP U.0 "still to confirm", item 5).
+
+Hook lines in upstream files: `ChatActivityEnterView.java` (`onGifSelected`, one branch),
+`SendMessagesHelper.java` (the recent-GIF `save` condition).
 
 Files: `ChatActivityEnterView.java` (one hook), `app/retrogram/unigif/UnigifSender.java`; possibly one hook each in
 the other `onGifSelected` implementations (**find all**: `grep -n "onGifSelected" -r TMessagesProj/src/main/java`).
