@@ -445,9 +445,42 @@ Acceptance (device or emulator, against a real server):
 - With a wrong key / unreachable server the panel shows the message and does not spin forever.
 - KLIPY mode is unchanged (compare with a build before the change: tabs, trending, emoji tabs, search, paging).
 
-### WP U.5 — Search and hashtag suggestions (M)
+### WP U.5 — Search and hashtag suggestions (M) — CODE WRITTEN, not compiled locally, not run on a device
 
-Files: `EmojiView.java`, `app/retrogram/unigif/UnigifTagSuggestView.java`.
+Status: implemented as described below. As with U.4 there is no Android SDK where it was written:
+`UnigifQueryTest` (4 tests) was compiled and run with plain `javac` and JUnit; `EmojiView.java` and
+`UnigifTagSuggestView.java` were only parsed. The first real compile is the CI build of the branch. Nothing was
+run on a device or against a real server, so the acceptance line below is open.
+
+What differs from the steps below, and what was decided:
+- **Step 1, the query is not trimmed at the end.** Step 1 says to send `text.trim()`, step 3 relies on a trailing
+  space to make the last hashtag exact; both cannot hold. `UnigifQuery.normalize` removes leading whitespace,
+  keeps the case, and reduces trailing whitespace to one space. Blank text counts as an empty field. The
+  case question for the owner (are tags case-insensitive on the server?) is still open; the client sends what
+  was typed.
+- Step 2: there are no tabs on screen (WP U.4), so clearing the field returns to "Most used", and typing while
+  "Newest" is selected deselects it. That was already the behaviour after U.4; nothing was added.
+- Step 3, placement: the row is **under** the search box, not inside it (inside, it would cover the typed text).
+  It is a child of the GIF `SearchField`; while it is shown the field is 36 dp taller and the grid's top padding
+  grows by the same amount (`setUnigifTagRowShown`, and a `setPadding` override on `gifGridView` so the upstream
+  padding calls need no change). The "Newest" button stays in the box.
+- Step 3, "empty and focused": taken as "the GIF search screen is open" (`openSearch` … `closeSearch`), not the
+  edit text's focus flag, which can outlive the search screen.
+- Step 3, typing: a leading `#` on the word is ignored for the tag lookup, like the leading `-`. While the
+  answer for a new prefix is on its way the previous chips stay.
+- Step 3, cache: per prefix, but emptied each time the panel opens (and on a provider change), so the recent
+  tags are current and a changed server URL does not show the old server's tags.
+- A failed tag call is not retried for the same prefix until the panel is reopened.
+- Chip colours are read when the field is created (as the search box's own colours are); a theme switch with
+  the panel alive is not followed.
+- The pure text handling is in a new class `UnigifQuery` (`normalize`, `lastWord`, `replaceLastWord`), with tests.
+
+Hook lines added to `EmojiView.java`: `unigifTagRowHeight`, `SearchField` (`afterTextChanged`,
+`createUnigifTags`, `applyUnigifMode`), `openSearch`, `closeSearch`, the `gifGridView.setPadding` override,
+`checkUnigifMode`, `setUnigifTagRowShown`, `GifAdapter.search(text, delay)`.
+
+Files: `EmojiView.java`, `app/retrogram/unigif/UnigifTagSuggestView.java`, `app/retrogram/unigif/UnigifQuery.java`,
+`src/test/java/app/retrogram/unigif/UnigifQueryTest.java`, `strings_neko.xml`.
 
 1. Text search already funnels into `GifAdapter.search(text, delay)` (`:8964`) → the hook from U.4 step 5. In
    `unigifMode` do not lower-case the query before sending (`lastSearchImageString = text.toLowerCase()` at `:8997`

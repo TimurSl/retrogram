@@ -172,7 +172,9 @@ import app.retrogram.unigif.UnigifClient;
 import app.retrogram.unigif.UnigifConfig;
 import app.retrogram.unigif.UnigifErrors;
 import app.retrogram.unigif.UnigifModels;
+import app.retrogram.unigif.UnigifQuery;
 import app.retrogram.unigif.UnigifResults;
+import app.retrogram.unigif.UnigifTagSuggestView;
 import tw.nekomimi.nekogram.NekoConfig;
 import com.radolyn.ayugram.controllers.AyuGhostController;
 import xyz.nextalone.nagram.NaConfig;
@@ -261,6 +263,8 @@ public class EmojiView extends FrameLayout implements
     private static final String UNIGIF_SORT_NEW = "\u0000new";
     private static final long UNIGIF_REFRESH_INTERVAL = 60_000;
     private boolean unigifMode = UnigifConfig.isActive();
+    // WP U.5: height of the hashtag row under the GIF search field while it is shown, else 0.
+    private int unigifTagRowHeight;
     private boolean shouldDrawBackground = true;
     public boolean shouldDrawStickerSettings;
     public boolean shouldLightenBackground = true;
@@ -818,6 +822,8 @@ public class EmojiView extends FrameLayout implements
         private StickerCategoriesListView.EmojiCategory trending;
         private StickerCategoriesListView.EmojiCategory[] gifKlipyCategories;
         private StickerCategoriesListView.EmojiCategory[] gifUnigifCategories;
+        private UnigifTagSuggestView unigifTags;
+        private boolean unigifSearchOpen;
 
         @SuppressLint("ClickableViewAccessibility")
         public SearchField(Context context, int type) {
@@ -940,6 +946,7 @@ public class EmojiView extends FrameLayout implements
                     updateButton();
                     final String query = searchEditText.getText().toString();
                     search(query, true);
+                    updateUnigifTags();
                     if (categoriesListView != null) {
                         categoriesListView.selectCategory(null);
                         categoriesListView.updateCategoriesShown(TextUtils.isEmpty(query), true);
@@ -1078,6 +1085,9 @@ public class EmojiView extends FrameLayout implements
                 });
                 box.addView(categoriesListView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 36, Gravity.LEFT | Gravity.TOP, 36, 0, 0, 0));
             }
+            if (type == 2) {
+                createUnigifTags(context);
+            }
         }
 
         public boolean isCategorySelected() {
@@ -1094,12 +1104,74 @@ public class EmojiView extends FrameLayout implements
             return gifUnigifCategories;
         }
 
-        /** Swaps the GIF field's category strip between the emoji categories and the UniGif one. */
+        /** Swaps the GIF field's category strip between the emoji categories and the UniGif one, and the hint. */
         private void applyUnigifMode() {
-            if (type != 2 || categoriesListView == null) {
+            if (type != 2) {
                 return;
             }
-            categoriesListView.setCategories(unigifMode ? unigifCategories() : gifKlipyCategories);
+            searchEditText.setHint(getString(unigifMode ? R.string.UnigifSearchHint : R.string.Search));
+            if (categoriesListView != null) {
+                categoriesListView.setDontOccupyWidth((int) (searchEditText.getPaint().measureText(searchEditText.getHint() + "")) + dp(16));
+                categoriesListView.setCategories(unigifMode ? unigifCategories() : gifKlipyCategories);
+            }
+            resetUnigifTags();
+        }
+
+        // Retrogram UniGif (WP U.5): the hashtag chip row under the GIF search field.
+
+        @SuppressLint("ClickableViewAccessibility")
+        private void createUnigifTags(Context context) {
+            unigifTags = new UnigifTagSuggestView(context, resourcesProvider, new UnigifTagSuggestView.Delegate() {
+                @Override
+                public void onTagClick(UnigifModels.Tag tag) {
+                    final String text = UnigifQuery.replaceLastWord(searchEditText.getText().toString(), tag.name);
+                    searchEditText.setText(text);
+                    searchEditText.setSelection(searchEditText.length());
+                    search(text, false); // replaces the delayed search the text change has just queued
+                }
+
+                @Override
+                public void onShownChanged(boolean shown) {
+                    setUnigifTagRowShown(shown);
+                }
+            });
+            unigifTags.setColors(
+                    glassDesign ? getGlassIconColor(0.06f) : getThemedColor(Theme.key_chat_emojiSearchBackground),
+                    getThemedColor(Theme.key_listSelector),
+                    glassDesign ? getGlassIconColor(0.8f) : getThemedColor(Theme.key_windowBackgroundWhiteBlackText),
+                    glassDesign ? getGlassIconColor(0.45f) : getThemedColor(Theme.key_chat_emojiSearchIcon));
+            unigifTags.setOnTouchListener((v, event) -> {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    ignorePagerScroll = true;
+                } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
+                    ignorePagerScroll = false;
+                }
+                return false;
+            });
+            final LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(UnigifTagSuggestView.HEIGHT_DP), Gravity.TOP | Gravity.LEFT);
+            params.topMargin = searchFieldHeight;
+            addView(unigifTags, params);
+        }
+
+        /** The search screen of the GIF page was opened or closed; the recent tags are offered only while it is open. */
+        private void setUnigifSearchOpen(boolean open) {
+            if (unigifSearchOpen != open) {
+                unigifSearchOpen = open;
+                updateUnigifTags();
+            }
+        }
+
+        private void updateUnigifTags() {
+            if (unigifTags != null) {
+                unigifTags.update(searchEditText.getText().toString(), unigifMode, unigifSearchOpen);
+            }
+        }
+
+        private void resetUnigifTags() {
+            if (unigifTags != null) {
+                unigifTags.reset();
+                updateUnigifTags();
+            }
         }
 
         public void search(String text, boolean delay) {
@@ -2074,6 +2146,11 @@ public class EmojiView extends FrameLayout implements
                     public boolean onInterceptTouchEvent(MotionEvent event) {
                         boolean result = ContentPreviewViewer.getInstance().onInterceptTouchEvent(event, gifGridView, 0, contentPreviewViewerDelegate, resourcesProvider);
                         return super.onInterceptTouchEvent(event) || result;
+                    }
+
+                    @Override
+                    public void setPadding(int left, int top, int right, int bottom) {
+                        super.setPadding(left, top + unigifTagRowHeight, right, bottom); // Retrogram UniGif: room for the hashtag row
                     }
 
                     @Override
@@ -4866,6 +4943,9 @@ public class EmojiView extends FrameLayout implements
             searchAnimation.cancel();
             searchAnimation = null;
         }
+        if (gifSearchField != null) {
+            gifSearchField.setUnigifSearchOpen(searchField == gifSearchField);
+        }
 
         firstStickersAttach = false;
         firstGifAttach = false;
@@ -5060,6 +5140,9 @@ public class EmojiView extends FrameLayout implements
 
         if (gifSearchAdapter != null) {
             gifSearchAdapter.showTrendingWhenSearchEmpty = false;
+        }
+        if (gifSearchField != null) {
+            gifSearchField.setUnigifSearchOpen(false);
         }
 
         for (int a = 0; a < 3; a++) {
@@ -6414,6 +6497,7 @@ public class EmojiView extends FrameLayout implements
         }
         final boolean active = UnigifConfig.isActive();
         if (active == unigifMode) {
+            gifSearchField.resetUnigifTags(); // recent tags are re-read each time the panel opens
             if (active && gifGridView.getAdapter() == gifAdapter) {
                 gifAdapter.refreshUnigif();
             }
@@ -6432,6 +6516,24 @@ public class EmojiView extends FrameLayout implements
         }
         gifAdapter.notifyDataSetChanged();
         gifAdapter.loadTrendingGifs();
+    }
+
+    /** WP U.5: makes room under the GIF search field for the hashtag row, or takes it back. */
+    private void setUnigifTagRowShown(boolean shown) {
+        final int height = shown ? dp(UnigifTagSuggestView.HEIGHT_DP) : 0;
+        if (height == unigifTagRowHeight || gifGridView == null || gifSearchField == null) {
+            return;
+        }
+        final int basePaddingTop = gifGridView.getPaddingTop() - unigifTagRowHeight;
+        unigifTagRowHeight = height;
+        gifSearchField.getLayoutParams().height = searchFieldHeight + height + AndroidUtilities.getShadowHeight();
+        gifSearchField.backgroundView.getLayoutParams().height = searchFieldHeight + height;
+        gifSearchField.requestLayout();
+        gifGridView.setPadding(0, basePaddingTop, 0, gifGridView.getPaddingBottom());
+        if (gifLayoutManager.findFirstVisibleItemPosition() <= 0) {
+            gifLayoutManager.scrollToPositionWithOffset(0, 0); // keep the first row right under the field
+        }
+        gifContainer.invalidate();
     }
 
     /** The grid shows the single "empty / loading / error" row instead of GIFs. */
@@ -9061,10 +9163,12 @@ public class EmojiView extends FrameLayout implements
             search(text, true);
         }
 
-        public void search(String text, boolean delay) {
+        public void search(String rawText, boolean delay) {
             if (withRecent) {
                 return;
             }
+            // UniGif (WP U.5): case kept, one trailing space kept (it makes the last hashtag exact), blank = empty.
+            final String text = unigifMode ? UnigifQuery.normalize(rawText) : rawText;
             cancelUnigifCall();
             if (reqId != 0) {
                 if (reqId >= 0) {
