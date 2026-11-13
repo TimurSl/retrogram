@@ -447,6 +447,8 @@ import com.radolyn.ayugram.controllers.AyuGhostController;
 import xyz.nextalone.nagram.NaConfig;
 import xyz.nextalone.nagram.ToggleResult;
 import xyz.nextalone.nagram.helper.BookmarksHelper;
+import app.retrogram.unigif.UnigifConfig;
+import app.retrogram.unigif.UnigifUploader;
 import xyz.nextalone.nagram.helper.DoubleTap;
 import xyz.nextalone.nagram.helper.SystemAiServiceHelper;
 
@@ -36496,6 +36498,10 @@ public class ChatActivity extends BaseFragment implements
             }
             case OPTION_ADD_TO_GIFS: {
                 TLRPC.Document document = selectedObject.getDocument();
+                if (UnigifConfig.isActive()) {
+                    UnigifUploader.add(currentAccount, document, selectedObject, this);
+                    break;
+                }
                 getMessagesController().saveGif(selectedObject, document);
                 if (!showGifHint() && getParentActivity() != null) {
                     BulletinFactory.of(this).createDownloadBulletin(BulletinFactory.FileType.GIF, themeDelegate).show();
@@ -50902,7 +50908,7 @@ public class ChatActivity extends BaseFragment implements
                     }
                 } else if (type == MESSAGE_TYPE_MEDIA_WEB && !noforwardsOrPaidMedia) {
                     if (selectedObject.messageOwner.media instanceof TLRPC.TL_messageMediaWebPage && MessageObject.isNewGifDocument(selectedObject.messageOwner.media.webpage.document)) {
-                        items.add(LocaleController.getString(R.string.SaveToGIFs));
+                        items.add(LocaleController.getString(UnigifConfig.isActive() ? R.string.UnigifAdd : R.string.SaveToGIFs));
                         options.add(OPTION_ADD_TO_GIFS);
                         icons.add(R.drawable.msg_gif);
                     }
@@ -50937,7 +50943,7 @@ public class ChatActivity extends BaseFragment implements
                                 }
                             }
                             if (MessageObject.isNewGifDocument(selectedObject.getDocument())) {
-                                items.add(LocaleController.getString(R.string.SaveToGIFs));
+                                items.add(LocaleController.getString(UnigifConfig.isActive() ? R.string.UnigifAdd : R.string.SaveToGIFs));
                                 options.add(OPTION_ADD_TO_GIFS);
                                 icons.add(R.drawable.msg_gif);
                             }

@@ -359,6 +359,8 @@ import tw.nekomimi.nekogram.utils.AndroidUtil;
 import tw.nekomimi.nekogram.utils.ProxyUtil;
 import com.radolyn.ayugram.controllers.AyuGhostController;
 import xyz.nextalone.nagram.NaConfig;
+import app.retrogram.unigif.UnigifConfig;
+import app.retrogram.unigif.UnigifUploader;
 import tw.nekomimi.nekogram.helpers.MessageHelper;
 import tw.nekomimi.nekogram.streaming.MediaStreamingProvider;
 
@@ -2212,6 +2214,14 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
     private final static int gallery_menu_openin = 10;
     private final static int gallery_menu_masks = 11;
     private final static int gallery_menu_savegif = 12;
+
+    /** The item is created once; the GIF provider can change while the viewer object lives. */
+    private void updateSaveGifItemTitle() {
+        ActionBarMenuSubItem item = menuItem != null ? menuItem.getSubItem(gallery_menu_savegif) : null;
+        if (item != null) {
+            item.setText(getString(UnigifConfig.isActive() ? R.string.UnigifAdd : R.string.SaveToGIFs));
+        }
+    }
     private final static int gallery_menu_masks2 = 13;
     private final static int gallery_menu_set_as_main = 14;
     private final static int gallery_menu_edit_avatar = 15;
@@ -5697,6 +5707,14 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                     bottomLayout.setTag(1);
                     bottomLayout.setVisibility(View.VISIBLE);
                 } else if (id == gallery_menu_savegif) {
+                    if (UnigifConfig.isActive()) {
+                        if (currentMessageObject != null) {
+                            UnigifUploader.add(currentAccount, currentMessageObject.getDocument(), currentMessageObject, containerView, resourcesProvider);
+                        } else if (pageBlocksAdapter != null && pageBlocksAdapter.getMedia(currentIndex) instanceof TLRPC.Document) {
+                            UnigifUploader.add(currentAccount, (TLRPC.Document) pageBlocksAdapter.getMedia(currentIndex), pageBlocksAdapter.getParentObject(), containerView, resourcesProvider);
+                        }
+                        return;
+                    }
                     if (currentMessageObject != null) {
                         TLRPC.Document document = currentMessageObject.getDocument();
                         if (parentChatActivity != null && parentChatActivity.chatActivityEnterView != null) {
@@ -15061,6 +15079,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                 }
                 allowShare = !noforwards;
                 if (newMessageObject.isNewGif() && allowShare && !DialogObject.isEncryptedDialog(newMessageObject.getDialogId())) {
+                    updateSaveGifItemTitle();
                     menuItem.showSubItem(gallery_menu_savegif);
                 }
                 if (newMessageObject.canDeleteMessage(parentChatActivity != null && parentChatActivity.isInScheduleMode(), null) && slideshowMessageId == 0) {
@@ -15719,6 +15738,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                 galleryButton.setVisibility(View.GONE);
                 galleryGap.setVisibility(View.GONE);
                 if (allowShare) {
+                    updateSaveGifItemTitle();
                     menuItem.showSubItem(gallery_menu_savegif);
                 } else {
                     menuItem.hideSubItem(gallery_menu_savegif);
