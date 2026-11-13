@@ -578,7 +578,40 @@ Acceptance: first send of a GIF uploads and appears as a looping GIF; second sen
 upload progress); works in a private chat, a group, a channel comment thread, a secret chat, scheduled, and with a
 caption; the server's `sort=used` order changes after sends; Telegram's saved GIFs list does not grow.
 
-### WP U.7 — "Add to UniGif" (M)
+### WP U.7 — "Add to UniGif" (M) — CODE WRITTEN, not compiled locally, not run on a device
+
+Status: implemented as described below. No Android SDK where it was written, so `UnigifUploader.java` and the
+changed upstream files were only parsed with `javac`; the first real compile is the CI build of the branch. No
+unit test was added: the uploader is glue between `FileLoader`, `UnigifClient.add` (tested in U.2) and bulletins.
+Nothing was run on a device or against a real server, so the acceptance line below is open.
+
+What differs from the steps below, and what was decided:
+- Step 1, signature: a second `add(account, document, parentObject, container, resourcesProvider)` for the media
+  viewer, which is not a fragment. The place for a bulletin is looked up again for each bulletin; when the screen
+  that started the upload is gone, the bulletin goes to the top fragment.
+- Step 1.1: three places are tried, in this order: the message's `attachPath` (only when the message's document
+  is the one being added), `getPathToAttach(document)`, and the cache directory (`getPathToAttach(document, true)`).
+  A document with no size counts as present when the file is not empty.
+- Step 1.2: "Adding to UniGif…" is shown only when the file has to be downloaded first; an upload of a file that
+  is already on the device shows just the result. On the 60 s timeout the Telegram download is left running (the
+  chat may be showing it) and the user gets "Could not download the GIF from Telegram." (new string); the same
+  for a failed or cancelled download. Tapping again later starts over.
+- Step 1.5: a second tap on a GIF that is still being added does nothing, with no bulletin.
+- Step 2, media viewer: the menu item is created once, so its title is set each time the item is shown
+  (`updateSaveGifItemTitle`). In UniGif mode the upstream "GIF saved" bulletin is not shown.
+- Step 2, admin log: both menu labels and the handler.
+- Step 3: the new action constant is `nkbtn_unigif_add` (114). The bulletin goes to the top fragment (the preview
+  has no fragment of its own and closes with its menu). `delegate.gifAddedOrDeleted()` is not called: nothing in
+  Telegram's recents changed.
+- Step 4: the document's own `mime_type` is sent, whatever it is; `UnigifClient.add` uses `video/mp4` when it is
+  empty. A type the server does not take comes back as "UniGif cannot process this file".
+- Not handled: the panel is not refreshed after an add. The new GIF shows under "Newest" the next time that list
+  is loaded.
+
+Hook lines in upstream files: `ChatActivity.java` (two menu labels, `OPTION_ADD_TO_GIFS` handler),
+`PhotoViewer.java` (`updateSaveGifItemTitle` and its two calls, `gallery_menu_savegif` handler),
+`ChannelAdminLogActivity.java` (two menu labels, `OPTION_SAVE_TO_GIFS` handler), `ContentPreviewViewer.java`
+(`nkbtn_unigif_add`, the GIF menu entry and its click branch).
 
 Files: `ChatActivity.java`, `PhotoViewer.java`, `ChannelAdminLogActivity.java`, `ContentPreviewViewer.java`,
 `app/retrogram/unigif/UnigifUploader.java`, `strings_neko.xml`.

@@ -114,7 +114,9 @@ import org.telegram.ui.Stories.DarkThemeResourceProvider;
 import java.util.ArrayList;
 import java.util.List;
 
+import app.retrogram.unigif.UnigifConfig;
 import app.retrogram.unigif.UnigifResults;
+import app.retrogram.unigif.UnigifUploader;
 import tw.nekomimi.nekogram.NekoConfig;
 import tw.nekomimi.nekogram.helpers.MessageHelper;
 import com.radolyn.ayugram.controllers.AyuGhostController;
@@ -324,6 +326,7 @@ public class ContentPreviewViewer {
     private final static int nkbtn_stickerdl = 110;
     private final static int nkbtn_sticker_copy = 111;
     private final static int nkbtn_photo_spoiler = 113;
+    private final static int nkbtn_unigif_add = 114;
 
     private static TextPaint textPaint;
 
@@ -1101,7 +1104,13 @@ public class ContentPreviewViewer {
                 }
 
                 boolean canDelete;
-                if (currentDocument != null) {
+                if (currentDocument != null && UnigifConfig.isActive()) {
+                    // One entry instead of "Delete" / "Save to GIFs": Telegram's saved GIFs are not used in this mode.
+                    canDelete = false;
+                    items.add(LocaleController.getString(R.string.UnigifAdd));
+                    icons.add(R.drawable.outline_add_gif);
+                    actions.add(nkbtn_unigif_add);
+                } else if (currentDocument != null) {
                     if (canDelete = MediaDataController.getInstance(currentAccount).hasRecentGif(currentDocument)) {
                         items.add(LocaleController.formatString("Delete", R.string.Delete));
                         icons.add(R.drawable.msg_delete);
@@ -1149,6 +1158,8 @@ public class ContentPreviewViewer {
                         AlertsCreator.createScheduleDatePickerDialog(parentActivity, stickerPreviewViewerDelegate.getDialogId(), (notify, scheduleDate, scheduleRepeatPeriod) -> stickerPreviewViewerDelegate.sendGif(document != null ? document : result, parent, notify, scheduleDate, scheduleRepeatPeriod), resourcesProvider);
                     } else if (actions.get(which) == 11) {
                         delegate.addCaptionToGif(currentDocument != null ? currentDocument : inlineResult, parentObject, true, 0, 0);
+                    } else if (actions.get(which) == nkbtn_unigif_add) {
+                        UnigifUploader.add(currentAccount, currentDocument, parentObject, (BaseFragment) null);
                     } else if (actions.get(which) == nkbtn_photo_spoiler) {
                         nkbtn_hasMediaSpoilers = true;
                         delegate.sendGif(currentDocument != null ? currentDocument : inlineResult, parentObject, true, 0, 0);

@@ -179,6 +179,8 @@ import me.vkryl.core.reference.ReferenceList;
 import kotlin.Unit;
 import tw.nekomimi.nekogram.ui.BottomBuilder;
 import tw.nekomimi.nekogram.NekoConfig;
+import app.retrogram.unigif.UnigifConfig;
+import app.retrogram.unigif.UnigifUploader;
 import tw.nekomimi.nekogram.utils.AlertUtil;
 import tw.nekomimi.nekogram.utils.ProxyUtil;
 
@@ -1749,7 +1751,7 @@ public void updateDrawState(@NonNull android.text.TextPaint ds) {
             }
         } else if (type == 3) {
             if (selectedObject.messageOwner.media instanceof TLRPC.TL_messageMediaWebPage && MessageObject.isNewGifDocument(selectedObject.messageOwner.media.webpage.document)) {
-                items.add(getString(R.string.SaveToGIFs));
+                items.add(getString(UnigifConfig.isActive() ? R.string.UnigifAdd : R.string.SaveToGIFs));
                 icons.add(R.drawable.msg_gif);
                 options.add(OPTION_SAVE_TO_GIFS);
             }
@@ -1770,7 +1772,7 @@ public void updateDrawState(@NonNull android.text.TextPaint ds) {
                 options.add(OPTION_SHARE);
             } else if (selectedObject.getDocument() != null) {
                 if (MessageObject.isNewGifDocument(selectedObject.getDocument())) {
-                    items.add(getString(R.string.SaveToGIFs));
+                    items.add(getString(UnigifConfig.isActive() ? R.string.UnigifAdd : R.string.SaveToGIFs));
                     icons.add(R.drawable.msg_gif);
                     options.add(OPTION_SAVE_TO_GIFS);
                 }
@@ -2277,6 +2279,10 @@ public void updateDrawState(@NonNull android.text.TextPaint ds) {
             }
             case OPTION_SAVE_TO_GIFS: {
                 TLRPC.Document document = selectedObject.getDocument();
+                if (UnigifConfig.isActive()) {
+                    UnigifUploader.add(currentAccount, document, selectedObject, this);
+                    break;
+                }
                 MessagesController.getInstance(currentAccount).saveGif(selectedObject, document);
                 break;
             }

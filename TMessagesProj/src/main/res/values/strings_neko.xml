@@ -82,6 +82,11 @@
     <string name="UnigifTabNewest">Newest</string>
     <string name="UnigifEmptyLibrary">No GIFs in your UniGif library yet.</string>
     <string name="UnigifSearchHint">Search hashtags</string>
+    <string name="UnigifAdd">Add to UniGif</string>
+    <string name="UnigifAdding">Adding to UniGif…</string>
+    <string name="UnigifAdded">Added to UniGif</string>
+    <string name="UnigifAddDuplicate">Already in your UniGif library</string>
+    <string name="UnigifAddDownloadFailed">Could not download the GIF from Telegram.</string>
     <string name="UnlimitedFavoredStickers">Unlimited Favored Stickers</string>
     <string name="UnlimitedFavoredStickersAbout">Add unlimited stickers to favorites. Stickers may not be synchronized to other devices.</string>
     <string name="MessageDetails">Details</string>
