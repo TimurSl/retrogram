@@ -757,6 +757,14 @@ public class EmojiView extends FrameLayout implements
         }
 
         @Override
+        public void unigifDeleted(TLRPC.BotInlineResult result) {
+            if (unigifMode && result != null && gifAdapter != null && gifSearchAdapter != null) {
+                gifAdapter.removeUnigif(result.id);
+                gifSearchAdapter.removeUnigif(result.id);
+            }
+        }
+
+        @Override
         public long getDialogId() {
             return delegate.getDialogId();
         }
@@ -6496,6 +6504,9 @@ public class EmojiView extends FrameLayout implements
             return;
         }
         final boolean active = UnigifConfig.isActive();
+        if (active) {
+            UnigifClient.ensureScopes(); // WP U.8: "Delete" in the GIF preview needs to know the key's permissions
+        }
         if (active == unigifMode) {
             gifSearchField.resetUnigifTags(); // recent tags are re-read each time the panel opens
             if (active && gifGridView.getAdapter() == gifAdapter) {
@@ -9487,6 +9498,27 @@ public class EmojiView extends FrameLayout implements
             if (unigifLoading && callToken == unigifToken) {
                 unigifCall = call;
             }
+        }
+
+        /** WP U.8: takes a deleted library item out of this list. {@code resultId} is the result's id ("ugf:…"). */
+        private void removeUnigif(String resultId) {
+            final TLRPC.BotInlineResult result = resultsMap.remove(resultId);
+            if (result == null) {
+                return;
+            }
+            results.remove(result);
+            if (results.isEmpty()) {
+                final boolean isLibrary = TextUtils.isEmpty(lastSearchImageString) || UNIGIF_SORT_NEW.equals(lastSearchImageString);
+                if (!searchEndReached && !unigifLoading && lastSearchImageString != null && (withRecent || gifGridView.getAdapter() == this)) {
+                    // the page is used up but the server has more
+                    searchUnigif(lastSearchImageString, "", lastSearchIsEmoji);
+                } else {
+                    progressEmptyView.setLoadingState(false);
+                    progressEmptyView.setMessage(isLibrary ? getString(R.string.UnigifEmptyLibrary) : null);
+                }
+            }
+            // A full rebind, not an item removal: the flow layout sizes its rows from the whole list.
+            notifyDataSetChanged();
         }
 
         private void onUnigifError(boolean firstPage, UnigifModels.UnigifError error) {

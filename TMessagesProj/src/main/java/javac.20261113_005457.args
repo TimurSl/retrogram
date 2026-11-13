@@ -1,8 +1,0 @@
--proc:none
--d
-/tmp/claude-0/-home-user-retrogram/3cca5f37-0af1-5dc7-8bc8-992afd87fd6f/scratchpad/out
-app/retrogram/unigif/UnigifUploader.java
-org/telegram/ui/ContentPreviewViewer.java
-org/telegram/ui/ChannelAdminLogActivity.java
-org/telegram/ui/PhotoViewer.java
-org/telegram/ui/ChatActivity.java

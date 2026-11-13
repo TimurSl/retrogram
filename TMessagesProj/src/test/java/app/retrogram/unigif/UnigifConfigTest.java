@@ -8,6 +8,8 @@ import static org.junit.Assert.assertTrue;
 import org.junit.After;
 import org.junit.Test;
 
+import java.util.Arrays;
+
 import app.retrogram.RetroConfig;
 import app.retrogram.unigif.UnigifModels.Me;
 import app.retrogram.unigif.UnigifModels.UnigifError;
@@ -21,6 +23,31 @@ public class UnigifConfigTest {
     @After
     public void tearDown() {
         set(0, "", "");
+        UnigifConfig.forgetScopes();
+    }
+
+    @Test
+    public void scopesBelongToOneServerAndKey() {
+        set(1, "gifs.example.com", "key");
+        assertFalse(UnigifConfig.scopesKnown());
+        assertFalse(UnigifConfig.hasScope("delete"));
+
+        UnigifConfig.rememberScopes("https://gifs.example.com", "key", Arrays.asList("read", "delete"));
+        assertTrue(UnigifConfig.scopesKnown());
+        assertTrue(UnigifConfig.hasScope("delete"));
+        assertFalse(UnigifConfig.hasScope("upload"));
+
+        set(1, "gifs.example.com", "other key");
+        assertFalse(UnigifConfig.scopesKnown());
+        assertFalse(UnigifConfig.hasScope("delete"));
+        set(1, "other.example.com", "key");
+        assertFalse(UnigifConfig.hasScope("delete"));
+
+        set(1, "gifs.example.com", "key");
+        assertTrue(UnigifConfig.hasScope("delete"));
+        UnigifConfig.forgetScopes();
+        assertFalse(UnigifConfig.scopesKnown());
+        assertFalse(UnigifConfig.hasScope("delete"));
     }
 
     @Test

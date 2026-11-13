@@ -1,6 +1,8 @@
 package app.retrogram.unigif;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import app.retrogram.RetroConfig;
@@ -32,6 +34,46 @@ public final class UnigifConfig {
 
     public static String key() {
         return RetroConfig.unigifKey.String().trim();
+    }
+
+    // Permissions of the key, as the last successful GET /me reported them (WP U.8). Kept for the process only.
+
+    private static final Object scopesLock = new Object();
+    /** Server URL and key the scopes belong to; a changed URL or key makes them unknown again. */
+    private static String scopesOwner;
+    private static List<String> scopes;
+
+    private static String owner(String baseUrl, String key) {
+        return baseUrl + "\n" + key;
+    }
+
+    /** Called by {@code UnigifClient} for every answered {@code GET /me}, with the server and key that call used. */
+    public static void rememberScopes(String baseUrl, String key, List<String> granted) {
+        synchronized (scopesLock) {
+            scopesOwner = owner(baseUrl, key);
+            scopes = new ArrayList<>(granted);
+        }
+    }
+
+    public static void forgetScopes() {
+        synchronized (scopesLock) {
+            scopesOwner = null;
+            scopes = null;
+        }
+    }
+
+    /** The scopes of the current server and key have been read. */
+    public static boolean scopesKnown() {
+        synchronized (scopesLock) {
+            return scopes != null && owner(baseUrl(), key()).equals(scopesOwner);
+        }
+    }
+
+    /** The current key is known to have this permission ("read", "upload", "delete"). False while nothing is known. */
+    public static boolean hasScope(String scope) {
+        synchronized (scopesLock) {
+            return scopes != null && owner(baseUrl(), key()).equals(scopesOwner) && scopes.contains(scope);
+        }
     }
 
     /** Trims, removes trailing slashes, and puts {@code https://} in front when no scheme was typed. */

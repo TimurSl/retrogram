@@ -88,18 +88,26 @@ public final class UnigifClient {
     /** Forgets every 429 wait. For tests. */
     static void clearBackoff() {
         blockedUntil.clear();
+        scopesAskedFor = null;
     }
+
+    /** How long a failed scope read is left alone before {@link #ensureScopes()} asks again. */
+    private static final long SCOPES_RETRY_MS = 60_000;
+    private static String scopesAskedFor;
+    private static long scopesAskedAt;
 
     /** One server and key, and where to deliver results. */
     static final class Server {
         final String baseUrl;
         /** Null when the URL or the key cannot be used. */
         final HttpUrl base;
+        final String key;
         final String authHeader;
         final Executor executor;
 
         Server(String baseUrl, String key, Executor executor) {
             this.baseUrl = baseUrl == null ? "" : baseUrl;
+            this.key = key == null ? "" : key;
             this.executor = executor;
             HttpUrl parsed = this.baseUrl.isEmpty() ? null : HttpUrl.parse(this.baseUrl);
             String header = null;
@@ -148,9 +156,34 @@ public final class UnigifClient {
 
     // Public API: configured server, callbacks on the UI thread.
 
-    /** {@code GET /me}. */
+    /** {@code GET /me}. A good answer also updates the scopes in {@link UnigifConfig}. */
     public static Call me(Callback<Me> callback) {
         return me(Server.current(), callback);
+    }
+
+    /**
+     * Reads the key's scopes once (WP U.8) so that {@link UnigifConfig#hasScope} can answer. Does nothing when
+     * they are known, when the server is not set up, or when the same server and key were asked less than a
+     * minute ago.
+     */
+    public static void ensureScopes() {
+        ensureScopes(Server.current());
+    }
+
+    static void ensureScopes(Server server) {
+        if (server.base == null || UnigifConfig.scopesKnown()) {
+            return;
+        }
+        String asked = server.baseUrl + "\n" + server.key;
+        long now = clock.getAsLong();
+        synchronized (UnigifClient.class) {
+            if (asked.equals(scopesAskedFor) && now - scopesAskedAt < SCOPES_RETRY_MS) {
+                return;
+            }
+            scopesAskedFor = asked;
+            scopesAskedAt = now;
+        }
+        me(server, null);
     }
 
     /**
@@ -201,7 +234,13 @@ public final class UnigifClient {
     // The same calls against an explicit server (used by tests).
 
     static Call me(Server server, Callback<Me> callback) {
-        return send(server, null, "", false, (status, body) -> parseMe(body), callback, false,
+        return send(server, null, "", false, (status, body) -> {
+                    Me me = parseMe(body);
+                    if (me != null) {
+                        UnigifConfig.rememberScopes(server.baseUrl, server.key, me.scopes);
+                    }
+                    return me;
+                }, callback, false,
                 server.base == null ? null : new Request.Builder().url(server.url("me").build()));
     }
 
