@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import app.retrogram.RetroConfig;
 import app.retrogram.unigif.UnigifClient.Server;
 import app.retrogram.unigif.UnigifModels.Gif;
 import app.retrogram.unigif.UnigifModels.GifPage;
@@ -70,6 +71,53 @@ public class UnigifClientTest {
     @After
     public void tearDown() {
         web.close();
+        RetroConfig.loadGif((k, def) -> 0, (k, def) -> "");
+        UnigifConfig.forgetScopes();
+    }
+
+    @Test
+    public void meRemembersTheScopes() throws Exception {
+        RetroConfig.loadGif((k, def) -> 1, (k, def) -> k.equals("RetroUnigifUrl") ? server.baseUrl : "k3y");
+        assertFalse(UnigifConfig.hasScope("delete"));
+        enqueue(200, "{\"name\":\"phone\",\"scopes\":[\"read\",\"delete\"]}");
+        Result<Me> result = new Result<>();
+        UnigifClient.me(server, result);
+        assertNotNull(result.await().value);
+        assertTrue(UnigifConfig.scopesKnown());
+        assertTrue(UnigifConfig.hasScope("delete"));
+        assertFalse(UnigifConfig.hasScope("upload"));
+
+        // known: no further request
+        UnigifClient.ensureScopes(server);
+        assertEquals(1, web.getRequestCount());
+    }
+
+    @Test
+    public void scopesAreAskedForOnceAMinute() throws Exception {
+        RetroConfig.loadGif((k, def) -> 1, (k, def) -> k.equals("RetroUnigifUrl") ? server.baseUrl : "k3y");
+        enqueue(500, "{\"code\":\"internal\"}");
+        UnigifClient.ensureScopes(server);
+        assertEquals("/me", request().getTarget());
+        UnigifClient.ensureScopes(server);
+        now += 59_000;
+        UnigifClient.ensureScopes(server);
+        assertEquals(1, web.getRequestCount());
+        assertFalse(UnigifConfig.scopesKnown());
+
+        now += 2_000;
+        enqueue(200, "{\"scopes\":[\"read\"]}");
+        UnigifClient.ensureScopes(server);
+        assertEquals("/me", request().getTarget());
+        for (int i = 0; i < 100 && !UnigifConfig.scopesKnown(); i++) {
+            Thread.sleep(50);
+        }
+        assertTrue(UnigifConfig.scopesKnown());
+        assertFalse(UnigifConfig.hasScope("delete"));
+
+        // a server that is not set up is never asked
+        UnigifConfig.forgetScopes();
+        UnigifClient.ensureScopes(new Server("", "k3y", Runnable::run));
+        assertEquals(2, web.getRequestCount());
     }
 
     private Server server(String path) {

@@ -651,7 +651,37 @@ panel; adding it again shows "Already in your UniGif library"; a GIF that was ne
 then added; a key without the `upload` scope shows the permission message; KLIPY mode shows "Save to GIFs" and
 behaves as before.
 
-### WP U.8 — Delete from the library (S, proposal P2)
+### WP U.8 — Delete from the library (S, proposal P2) — CODE WRITTEN, not compiled locally, not run on a device
+
+Status: implemented as described below. The scope cache and `ensureScopes` are unit-tested (`UnigifConfigTest`,
+`UnigifClientTest`; compiled and run with plain `javac` and JUnit against stubs for `AndroidUtilities` and
+`RetroConfig`). `UnigifDeleter.java` and the changed upstream files were only parsed; the first real compile is
+the CI build of the branch. Nothing was run on a device or against a real server, so the acceptance line below
+is open. P2 is still a proposal; this WP builds it as proposed.
+
+What differs from the steps below, and what was decided:
+- Step 1: the scopes are stored together with the server URL and key they were read with, so a changed URL or
+  key makes them unknown until the next `/me`. They are not saved across restarts. **Every** answered
+  `GET /me` updates them (the settings test included), inside `UnigifClient.me`. "First use" is the GIF panel
+  opening in UniGif mode (`checkUnigifMode`) and, as a fallback, the preview menu being built; a failed read is
+  repeated at most once a minute (`UnigifClient.ensureScopes`).
+- Step 2: while the scopes are not known yet the entry is not shown (a first long-press right after the app
+  starts may come before the `/me` answer). There is no confirmation dialog: the server moves the item to its
+  trash, and upstream's "Delete" for a saved GIF has none either.
+- Step 2: the row is removed with a full rebind (`notifyDataSetChanged`), not an item-removal animation: the
+  flow layout sizes its rows from the whole list. When the last loaded item of a list is deleted and the
+  server has more, the first page is loaded again; otherwise the empty text is shown.
+- A `404` counts as deleted (already removed from another device): the tile goes and the same bulletin shows.
+- A "permission" or "key rejected" answer to a delete forgets the cached scopes, so they are read again.
+- A second tap on a GIF whose delete is still running does nothing.
+- The bulletin goes to the top fragment, as for "Add to UniGif".
+- The new action constant is `nkbtn_unigif_delete` (115); the new delegate method is
+  `ContentPreviewViewerDelegate.unigifDeleted(result)`, implemented by `EmojiView` only.
+- Not handled: Telegram's sent-file row for the deleted GIF stays (it is only reachable through the tile).
+
+Hook lines in upstream files: `ContentPreviewViewer.java` (`nkbtn_unigif_delete`, the delegate method, the menu
+entry and its click branch), `EmojiView.java` (`unigifDeleted`, `ensureScopes` in `checkUnigifMode`,
+`GifAdapter.removeUnigif`).
 
 1. `UnigifConfig` caches the scopes from the last successful `GET /me` (refreshed by "Test connection" and once per
    process on first use).

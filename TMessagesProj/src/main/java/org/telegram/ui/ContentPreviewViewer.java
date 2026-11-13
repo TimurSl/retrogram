@@ -115,6 +115,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import app.retrogram.unigif.UnigifConfig;
+import app.retrogram.unigif.UnigifDeleter;
 import app.retrogram.unigif.UnigifResults;
 import app.retrogram.unigif.UnigifUploader;
 import tw.nekomimi.nekogram.NekoConfig;
@@ -256,6 +257,10 @@ public class ContentPreviewViewer {
         default void gifAddedOrDeleted() {
         }
 
+        /** Retrogram UniGif: the library item behind this result was deleted on the server. */
+        default void unigifDeleted(TLRPC.BotInlineResult result) {
+        }
+
         default boolean needMenu() {
             return true;
         }
@@ -327,6 +332,7 @@ public class ContentPreviewViewer {
     private final static int nkbtn_sticker_copy = 111;
     private final static int nkbtn_photo_spoiler = 113;
     private final static int nkbtn_unigif_add = 114;
+    private final static int nkbtn_unigif_delete = 115;
 
     private static TextPaint textPaint;
 
@@ -1120,8 +1126,11 @@ public class ContentPreviewViewer {
                         icons.add(R.drawable.outline_add_gif);
                         actions.add(2);
                     }
-                } else {
-                    canDelete = false;
+                } else if (canDelete = UnigifDeleter.canDelete(inlineResult)) {
+                    // Retrogram UniGif (WP U.8): a library item, and the key has the delete permission.
+                    items.add(LocaleController.getString(R.string.Delete));
+                    icons.add(R.drawable.msg_delete);
+                    actions.add(nkbtn_unigif_delete);
                 }
                 if (items.isEmpty()) {
                     return;
@@ -1160,6 +1169,9 @@ public class ContentPreviewViewer {
                         delegate.addCaptionToGif(currentDocument != null ? currentDocument : inlineResult, parentObject, true, 0, 0);
                     } else if (actions.get(which) == nkbtn_unigif_add) {
                         UnigifUploader.add(currentAccount, currentDocument, parentObject, (BaseFragment) null);
+                    } else if (actions.get(which) == nkbtn_unigif_delete) {
+                        final ContentPreviewViewerDelegate previewDelegate = delegate; // the field is cleared when the preview closes
+                        UnigifDeleter.delete(inlineResult, previewDelegate::unigifDeleted);
                     } else if (actions.get(which) == nkbtn_photo_spoiler) {
                         nkbtn_hasMediaSpoilers = true;
                         delegate.sendGif(currentDocument != null ? currentDocument : inlineResult, parentObject, true, 0, 0);
