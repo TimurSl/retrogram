@@ -148,8 +148,11 @@ public abstract class AyuHistoryHook {
         Map<Integer, TLRPC.TL_message> mappedMessages = new HashMap<>();
         AyuHistoryPagination.Source<DeletedMessageFull> source = (start, end, limit, ascending) -> ayuController.getHistoryMessages(
                 clientUserId, dialogId, savedTopicId, savedThreadId, start, end, limit, ascending);
+        // A cached copy of an archived message is stale: the row was written back after the deletion.
+        Map<Integer, Integer> staleCachedIds = new HashMap<>();
         Predicate<DeletedMessageFull> canDisplay = full -> {
             if (existingIds.contains(full.message.messageId)) {
+                if (isCache) staleCachedIds.put(full.message.messageId, full.message.entityCreateDate);
                 return true;
             }
             if (!hasContent(full)) {
@@ -166,6 +169,17 @@ public abstract class AyuHistoryHook {
         AyuHistoryPagination.Page<DeletedMessageFull> page = encrypted
                 ? AyuHistoryPagination.loadEncrypted(direction, offsetId, minId, maxId, count, source, full -> full.message.messageId, canDisplay)
                 : AyuHistoryPagination.load(direction, offsetId, minId, maxId, count, source, full -> full.message.messageId, canDisplay);
+        if (!staleCachedIds.isEmpty()) {
+            for (int i = 0; i < messagesRes.messages.size(); i++) {
+                TLRPC.Message message = messagesRes.messages.get(i);
+                Integer deleteDate = staleCachedIds.get(message.id);
+                if (deleteDate == null || message instanceof TLRPC.TL_messageService || message instanceof TLRPC.TL_messageEmpty) {
+                    continue;
+                }
+                message.ayuDeleted = true;
+                if (message.ayuDeleteDate == 0) message.ayuDeleteDate = deleteDate;
+            }
+        }
         Set<Long> groupIds = new HashSet<>();
         ArrayList<Long> usersToLoad = new ArrayList<>();
         ArrayList<Long> chatsToLoad = new ArrayList<>();
