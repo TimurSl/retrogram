@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="NagramX" translatable="false">Nagram X</string>
+    <string name="NagramX" translatable="false">Retrogram</string>
     <string name="XChannel">Канал Nagram X</string>
     <string name="NagramXForkChannel">Канал Nagram XF</string>
     <string name="JoinOfficialChannelTitle">Приєднатися до офіційного каналу</string>
