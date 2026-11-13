@@ -13560,7 +13560,31 @@ public class MessagesStorage extends BaseController {
         putMessages(messages, withTransaction, useQueue, doNotUpdateDialogDate, downloadMask, false, mode, threadMessageId);
     }
 
-    public void putMessages(ArrayList<TLRPC.Message> messages, boolean withTransaction, boolean useQueue, boolean doNotUpdateDialogDate, int downloadMask, boolean ifNoLastMessage, int mode, long threadMessageId) {
+    /**
+     * Messages restored from the deleted-messages archive live only in memory: {@code ayuDeleted} is not
+     * serialized, so writing one back would bring it into the cache as a regular message.
+     */
+    private static boolean hasAyuDeleted(ArrayList<TLRPC.Message> messages) {
+        if (messages == null) return false;
+        for (int a = 0, N = messages.size(); a < N; a++) {
+            TLRPC.Message message = messages.get(a);
+            if (message != null && message.ayuDeleted) return true;
+        }
+        return false;
+    }
+
+    private static ArrayList<TLRPC.Message> withoutAyuDeleted(ArrayList<TLRPC.Message> messages) {
+        if (!hasAyuDeleted(messages)) return messages;
+        ArrayList<TLRPC.Message> result = new ArrayList<>(messages.size());
+        for (int a = 0, N = messages.size(); a < N; a++) {
+            TLRPC.Message message = messages.get(a);
+            if (message == null || !message.ayuDeleted) result.add(message);
+        }
+        return result;
+    }
+
+    public void putMessages(ArrayList<TLRPC.Message> allMessages, boolean withTransaction, boolean useQueue, boolean doNotUpdateDialogDate, int downloadMask, boolean ifNoLastMessage, int mode, long threadMessageId) {
+        final ArrayList<TLRPC.Message> messages = withoutAyuDeleted(allMessages);
         if (messages == null || messages.isEmpty()) {
             return;
         }
@@ -16397,7 +16421,25 @@ public class MessagesStorage extends BaseController {
     }
 
     // put messages in data base while load history
-    public void putMessages(TLRPC.messages_Messages messages, long dialogId, int load_type, int max_id, boolean createDialog, int mode, long threadMessageId) {
+    public void putMessages(TLRPC.messages_Messages allMessages, long dialogId, int load_type, int max_id, boolean createDialog, int mode, long threadMessageId) {
+        final TLRPC.messages_Messages messages;
+        if (allMessages != null && hasAyuDeleted(allMessages.messages)) {
+            ArrayList<TLRPC.Message> kept = withoutAyuDeleted(allMessages.messages);
+            if (kept.isEmpty()) {
+                return;
+            }
+            messages = allMessages instanceof TLRPC.TL_messages_channelMessages ? new TLRPC.TL_messages_channelMessages() : new TLRPC.TL_messages_messages();
+            messages.messages = kept;
+            messages.users = allMessages.users;
+            messages.chats = allMessages.chats;
+            messages.topics = allMessages.topics;
+            messages.animatedEmoji = allMessages.animatedEmoji;
+            messages.count = allMessages.count;
+            messages.pts = allMessages.pts;
+            messages.flags = allMessages.flags;
+        } else {
+            messages = allMessages;
+        }
         storageQueue.postRunnable(() -> {
             SQLitePreparedStatement state_messages = null;
             SQLitePreparedStatement state_messages_topics = null;
