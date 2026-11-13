@@ -9233,7 +9233,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                     } else {
                         save = true;
                     }
-                    if (save) {
+                    if (save && !app.retrogram.unigif.UnigifConfig.isActive()) { // Retrogram UniGif: sent GIFs are not saved to Telegram's list (WP U.6)
                         getMediaDataController().addRecentGif(sentMedia.document, sentMessage.date, true);
                     }
                 } else if (MessageObject.isStickerDocument(sentMedia.document) || MessageObject.isAnimatedStickerDocument(sentMedia.document, true)) {
