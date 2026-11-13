@@ -269,7 +269,7 @@ public class AndroidUtilities {
 
     public static Typeface bold() {
         if (mediumTypeface == null) {
-            if (SharedConfig.useSystemBoldFont && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            if (SharedConfig.useSystemBoldFont && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && !app.retrogram.RetroFont.isActive()) {
                 mediumTypeface = Typeface.create(null, 500, false);
             } else {
                 mediumTypeface = getTypeface(TYPEFACE_ROBOTO_MEDIUM);
@@ -2404,6 +2404,10 @@ public class AndroidUtilities {
     public static Typeface getTypeface(String assetPath) {
         return typefaceCache.computeIfAbsent(assetPath, path -> {
             try {
+                Typeface custom = app.retrogram.RetroFont.resolve(path);
+                if (custom != null) {
+                    return custom;
+                }
                 if (NekoConfig.typeface.Bool()) {
                     return TypefaceHelper.createTypeface(path);
                 }

@@ -2,7 +2,11 @@ package tw.nekomimi.nekogram.settings;
 
 import static org.telegram.messenger.LocaleController.getString;
 
+import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.text.TextUtils;
 import android.view.View;
 
@@ -10,17 +14,24 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import app.retrogram.RetroConfig;
+import app.retrogram.RetroFont;
 import app.retrogram.unigif.UnigifClient;
 import app.retrogram.unigif.UnigifConfig;
 import app.retrogram.unigif.UnigifErrors;
 import app.retrogram.unigif.UnigifModels;
 
+import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
+import org.telegram.messenger.Utilities;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Components.UndoView;
+
+import java.util.ArrayList;
 
 import okhttp3.Call;
 
@@ -51,6 +62,13 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
     private final AbstractConfigCell classicColorsRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.classicColors, getString(R.string.RetroClassicColorsInfo)));
     private final AbstractConfigCell dividerInterface = cellGroup.appendCell(new ConfigCellDivider());
 
+    // Font. The row shows the picked file's name; updateFontRow() swaps it when the choice changes.
+    private static final int REQUEST_CODE_FONT = 6972;
+    private final AbstractConfigCell headerFont = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.RetrogramFont)));
+    private AbstractConfigCell fontRow = cellGroup.appendCell(newFontRow());
+    private final AbstractConfigCell fontInfoRow = cellGroup.appendCell(new ConfigCellCustom("RetroFontInfo", CellGroup.ITEM_TYPE_TEXT, false));
+    private final AbstractConfigCell dividerFont = cellGroup.appendCell(new ConfigCellDivider());
+
     // GIF provider. The UniGif rows are only in the list while UniGif is selected (see updateGifRows).
     private final AbstractConfigCell headerGifs = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.RetrogramGifs)));
     private final AbstractConfigCell gifProviderRow = cellGroup.appendCell(new ConfigCellSelectBox(null, RetroConfig.gifProvider, new String[]{
@@ -70,6 +88,112 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
 
     public RetrogramSettingsActivity() {
         updateGifRows();
+    }
+
+    private ConfigCellText newFontRow() {
+        String name = RetroFont.selectedName();
+        return new ConfigCellText("RetroFont", name != null ? name : getString(R.string.RetroFontDefault), this::showFontDialog);
+    }
+
+    private void updateFontRow() {
+        int index = cellGroup.rows.indexOf(fontRow);
+        if (index < 0) {
+            return;
+        }
+        fontRow = newFontRow();
+        fontRow.bindCellGroup(cellGroup);
+        cellGroup.rows.set(index, fontRow);
+        addRowsToMap(cellGroup);
+        if (listAdapter != null) {
+            listAdapter.notifyDataSetChanged();
+        }
+    }
+
+    private void showFontDialog() {
+        Context context = getParentActivity();
+        if (context == null) {
+            return;
+        }
+        boolean custom = RetroFont.selectedName() != null;
+        ArrayList<CharSequence> items = new ArrayList<>();
+        items.add(getString(R.string.RetroFontChoose));
+        if (custom) {
+            items.add(getString(R.string.RetroFontReset));
+        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(context, getResourceProvider());
+        builder.setTitle(getString(R.string.RetroFont));
+        builder.setItems(items.toArray(new CharSequence[0]), (dialog, which) -> {
+            if (which == 0) {
+                openFontPicker();
+            } else {
+                RetroFont.reset();
+                updateFontRow();
+                tooltip.showWithAction(0, UndoView.ACTION_NEED_RESTART, null, null);
+            }
+        });
+        builder.setNegativeButton(getString(R.string.Cancel), null);
+        showDialog(builder.create());
+    }
+
+    private void openFontPicker() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        // Fonts have no reliable MIME type across file managers, so offer every file and let RetroFont validate it.
+        intent.setType("*/*");
+        intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"font/ttf", "font/otf", "font/sfnt", "application/x-font-ttf", "application/x-font-otf", "application/x-font-opentype", "application/vnd.ms-opentype", "application/octet-stream"});
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        try {
+            startActivityForResult(intent, REQUEST_CODE_FONT);
+        } catch (ActivityNotFoundException e) {
+            showFontError(getString(R.string.RetroFontError));
+        }
+    }
+
+    @Override
+    public void onActivityResultFragment(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_CODE_FONT) {
+            Uri uri = resultCode == Activity.RESULT_OK && data != null ? data.getData() : null;
+            if (uri != null) {
+                installFont(uri);
+            }
+            return;
+        }
+        super.onActivityResultFragment(requestCode, resultCode, data);
+    }
+
+    private void installFont(Uri uri) {
+        Utilities.globalQueue.postRunnable(() -> {
+            String error = null;
+            try {
+                RetroFont.install(ApplicationLoader.applicationContext, uri);
+            } catch (RetroFont.InvalidFontException e) {
+                error = getString(e.tooLarge ? R.string.RetroFontTooLarge : R.string.RetroFontInvalid);
+            } catch (Exception e) {
+                FileLog.e(e);
+                error = getString(R.string.RetroFontError);
+            }
+            final String message = error;
+            AndroidUtilities.runOnUIThread(() -> {
+                if (message != null) {
+                    showFontError(message);
+                } else {
+                    updateFontRow();
+                    if (tooltip != null) {
+                        tooltip.showWithAction(0, UndoView.ACTION_NEED_RESTART, null, null);
+                    }
+                }
+            });
+        });
+    }
+
+    private void showFontError(String message) {
+        if (getParentActivity() == null) {
+            return;
+        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), getResourceProvider());
+        builder.setTitle(getString(R.string.RetroFont));
+        builder.setMessage(message);
+        builder.setPositiveButton(getString(R.string.OK), null);
+        showDialog(builder.create());
     }
 
     /** Puts the URL, key and test rows between the provider row and the info text when UniGif is selected, and removes them otherwise. */
@@ -217,7 +341,9 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
 
         @Override
         protected void onBindCustomViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-            if (cellGroup.rows.get(position) == unigifInfoRow) {
+            if (cellGroup.rows.get(position) == fontInfoRow) {
+                ((TextInfoPrivacyCell) holder.itemView).setText(getString(R.string.RetroFontInfo));
+            } else if (cellGroup.rows.get(position) == unigifInfoRow) {
                 String info = getString(R.string.UnigifInfo);
                 if (UnigifConfig.isSelected() && UnigifConfig.isCleartext(UnigifConfig.normalizeUrl(RetroConfig.unigifUrl.String()))) {
                     info = getString(R.string.UnigifHttpWarning) + "\n\n" + info;
