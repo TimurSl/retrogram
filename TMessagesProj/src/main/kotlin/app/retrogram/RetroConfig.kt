@@ -72,6 +72,14 @@ object RetroConfig {
     @JvmField
     val unigifKey = ConfigItem("RetroUnigifKey", ConfigItem.configTypeString, "")
 
+    /** File name (inside the app's private `retro_fonts` folder) of the font picked in settings. Empty = bundled font. See [RetroFont]. */
+    @JvmField
+    val fontFile = ConfigItem("RetroFontFile", ConfigItem.configTypeString, "")
+
+    /** Original name of the picked font file, for display only. */
+    @JvmField
+    val fontName = ConfigItem("RetroFontName", ConfigItem.configTypeString, "")
+
     private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings, classicInput, classicChatHeader, classicEmojiPanel, classicColors)
 
     const val GIF_PROVIDER_KLIPY = 0
@@ -129,6 +137,8 @@ object RetroConfig {
         gifProvider.value = if (provider == GIF_PROVIDER_UNIGIF) GIF_PROVIDER_UNIGIF else GIF_PROVIDER_KLIPY
         unigifUrl.value = readString(unigifUrl.key, "")
         unigifKey.value = readString(unigifKey.key, "")
+        fontFile.value = readString(fontFile.key, "")
+        fontName.value = readString(fontName.key, "")
     }
 
     /** Freezes [isRetroUi] to the current value of [retroUi]; [upstreamUiDebug] wins when set. */

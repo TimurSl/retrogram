@@ -54,6 +54,15 @@
     <string name="RetroClassicColorsInfo">Telegram 12.1.1 colors for the default theme: blue action bar with white icons and the older text and link colors. Applied after restart. Dark themes are mostly unaffected.</string>
     <string name="RetroClassicSettingsInfo">Open Settings as the classic profile page of Telegram 12.1.1 instead of the new Settings screen. Takes effect the next time you open Settings.</string>
     <string name="RetroRemoteMetadataInfo">Fetch update info and extra data from channels not owned by Retrogram. Off by default.</string>
+    <string name="RetrogramFont">Font</string>
+    <string name="RetroFont">App font</string>
+    <string name="RetroFontInfo">Use your own font (.ttf or .otf) for text across the app. Bold text is made from the same file, and code blocks keep their monospaced font. Applied after restart. If a font looks wrong, choose the default font again.</string>
+    <string name="RetroFontDefault">Default</string>
+    <string name="RetroFontChoose">Choose font file…</string>
+    <string name="RetroFontReset">Use default font</string>
+    <string name="RetroFontInvalid">This file is not a usable font. Pick a .ttf or .otf file.</string>
+    <string name="RetroFontTooLarge">This font file is too large (the limit is 32 MB).</string>
+    <string name="RetroFontError">Could not load the font file.</string>
     <string name="RetrogramGifs">GIFs</string>
     <string name="RetroGifProvider">GIF provider</string>
     <string name="RetroUnigifUrl">Server URL</string>
