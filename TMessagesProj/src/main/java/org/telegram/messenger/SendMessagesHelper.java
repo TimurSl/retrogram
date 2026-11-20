@@ -5976,7 +5976,9 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                             delayedMessage.performMediaUpload = performMediaUpload;
                             if (!document.thumbs.isEmpty()) {
                                 TLRPC.PhotoSize photoSize = document.thumbs.get(0);
-                                if (!(photoSize instanceof TLRPC.TL_photoStrippedSize)) {
+                                // Retrogram UniGif: a thumb that could not be generated is a TL_fileLocationUnavailable placeholder with no
+                                // file behind it; uploading it fails and the message ends with the red "!". Send without a thumb instead.
+                                if (!(photoSize instanceof TLRPC.TL_photoStrippedSize) && !(photoSize.location instanceof TLRPC.TL_fileLocationUnavailable)) {
                                     delayedMessage.photoSize = photoSize;
                                     delayedMessage.locationParent = document;
                                 }
