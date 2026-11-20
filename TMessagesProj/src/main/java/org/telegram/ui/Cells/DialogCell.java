@@ -849,6 +849,22 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
         onlineProgress = isOnline ? 1.0f : 0.0f;
     }
 
+    /** Retrogram: whether this row gets the pinned band (not in the share-to-story list, which marks every row). */
+    private boolean retroPinnedBackground() {
+        return app.retrogram.RetroLook.enabled() && getIsPinned() && !isShareToStoryCell;
+    }
+
+    private void setRetroPinnedPaint() {
+        Theme.dialogs_pinnedPaint.setColor(app.retrogram.RetroLook.pinnedOverlay(resourcesProvider));
+        Theme.dialogs_pinnedPaint.setAlpha((int) (Theme.dialogs_pinnedPaint.getAlpha() * (1f - rightFragmentOpenedProgress)));
+    }
+
+    /** Colour behind the avatar's status dot ring: the row background, lifted for pinned rows in retro mode. */
+    private int statusDotRingColor() {
+        int background = Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider);
+        return retroPinnedBackground() ? app.retrogram.RetroLook.raised(background, resourcesProvider) : background;
+    }
+
     private boolean isOnline() {
         if (isForumCell()) {
             return false;
@@ -2834,6 +2850,10 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                         messageStringSpannable.removeSpan(span);
                     }
                 }
+                // Retrogram: bold entities and bold typeface spans (links, file names, formatted text) render regular too.
+                if (currentDialogCommunityId == 0 && !isFolderCell()) {
+                    app.retrogram.RetroLook.stripBold(messageStringSpannable);
+                }
             }
             if ((useForceThreeLines || SharedConfig.useThreeLinesLayout) && !hasTags() && currentDialogFolderId != 0 && currentDialogFolderDialogsCount > 1) {
                 messageStringFinal = messageNameString;
@@ -4191,6 +4211,11 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
             Theme.dialogs_pinnedPaint.setColor(Theme.getColor(Theme.key_chats_pinnedOverlay, resourcesProvider));
             Theme.dialogs_pinnedPaint.setAlpha((int) (Theme.dialogs_pinnedPaint.getAlpha() * (1f - rightFragmentOpenedProgress)));
             //canvas.drawRect(-xOffset, 0, getMeasuredWidth(), getMeasuredHeight() - translateY, Theme.dialogs_pinnedPaint);
+            if (retroPinnedBackground()) {
+                // Retrogram: pinned chats sit on a slightly lighter band, as in 12.1.1 / Graph Messenger.
+                setRetroPinnedPaint();
+                canvas.drawRect(-xOffset, 0, getMeasuredWidth(), getMeasuredHeight() - translateY, Theme.dialogs_pinnedPaint);
+            }
         }
         canvas.restore();
 
@@ -4236,6 +4261,10 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                     Theme.dialogs_pinnedPaint.setColor(Theme.getColor(Theme.key_chats_pinnedOverlay, resourcesProvider));
                     Theme.dialogs_pinnedPaint.setAlpha((int) (Theme.dialogs_pinnedPaint.getAlpha() * (1f - rightFragmentOpenedProgress)));
                     // canvas.drawRoundRect(rect, cornersRadius, cornersRadius, Theme.dialogs_pinnedPaint);
+                    if (retroPinnedBackground()) {
+                        setRetroPinnedPaint();
+                        canvas.drawRoundRect(rect, cornersRadius, cornersRadius, Theme.dialogs_pinnedPaint);
+                    }
                 }
                 canvas.restore();
             }
@@ -5309,16 +5338,24 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
             if (user != null && !MessagesController.isSupportUser(user) && !user.bot) {
                 boolean isOnline = isOnline();
                 wasDrawnOnline = isOnline;
-                int onlineColor = Theme.getColor(Theme.key_chats_onlineCircle, resourcesProvider);
+                // Retrogram: every user gets a status dot, grey when offline and the accent colour when online.
+                final boolean retroDot = app.retrogram.RetroLook.alwaysShowStatusDot() && !user.self && !UserObject.isDeleted(user) && !isForumCell() && !storyParams.drawnLive && ttlProgress == 0;
+                int onlineColor = retroDot ? app.retrogram.RetroLook.onlineDotColor(resourcesProvider) : Theme.getColor(Theme.key_chats_onlineCircle, resourcesProvider);
+                boolean customColor = false;
                 if (!isOnline) {
                     int color = AndroidUtil.getOnlineColor(user, resourcesProvider);
                     if (color != 0) {
                         onlineColor = color;
                         isOnline = true;
                         onlineProgress = 1.0f;
+                        customColor = true;
                     }
                 }
-                if (isOnline || onlineProgress != 0) {
+                if (retroDot && !customColor) {
+                    onlineColor = ColorUtils.blendARGB(app.retrogram.RetroLook.offlineDotColor(resourcesProvider), onlineColor, onlineProgress);
+                }
+                if (isOnline || onlineProgress != 0 || retroDot) {
+                    final float dotScale = retroDot ? 1f : onlineProgress;
                     float onlineDotOuterRadius = org.telegram.messenger.AvatarCornerHelper.getOnlineDotOuterRadius();
                     float onlineDotInnerRadius = org.telegram.messenger.AvatarCornerHelper.getOnlineDotInnerRadius();
                     float onlineDotOffsetX = org.telegram.messenger.AvatarCornerHelper.getOnlineDotOffset(dp(6), onlineDotOuterRadius);
@@ -5331,10 +5368,10 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                         left = storyParams.originalAvatarRect.right - onlineDotOffsetX;
                     }
 
-                    Theme.dialogs_onlineCirclePaint.setColor(Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider));
-                    canvas.drawCircle(left, top, onlineDotOuterRadius * onlineProgress, Theme.dialogs_onlineCirclePaint);
+                    Theme.dialogs_onlineCirclePaint.setColor(statusDotRingColor());
+                    canvas.drawCircle(left, top, onlineDotOuterRadius * dotScale, Theme.dialogs_onlineCirclePaint);
                     Theme.dialogs_onlineCirclePaint.setColor(onlineColor);
-                    canvas.drawCircle(left, top, onlineDotInnerRadius * onlineProgress, Theme.dialogs_onlineCirclePaint);
+                    canvas.drawCircle(left, top, onlineDotInnerRadius * dotScale, Theme.dialogs_onlineCirclePaint);
                     if (isOnline) {
                         if (onlineProgress < 1.0f) {
                             onlineProgress += 16f / 150.0f;

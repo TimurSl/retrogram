@@ -130,3 +130,19 @@ Hide in retro mode the search/FAB glass layers that remain in the layout `onMeas
 - Seen but not ours: the drawer header clips the tall glyphs of the display name (upstream layout, `DrawerProfileCell` name view is `WRAP_CONTENT` at the bottom).
 - Not covered by the screenshots: search opening, archive, "Connecting…" state, the stories row, tablet layout.
 
+
+## Owner requests (2026-11-20, from Graph Messenger screenshots; behaviour only, no Graph code)
+Written, not compiled outside CI, not run on a device. All of it is retro-mode only.
+- **Drawer:** while it opens, the content behind moves right by 20% of the drawer travel and is dimmed (up to `0x99000000`, the 12.1.1 scrim that
+  13.1.1 no longer draws). Phones only. `DrawerLayoutContainer.applyRetroParallax()` / `drawChild()`.
+- **Pinned chats and header:** pinned rows get the `chats_pinnedOverlay` band again (13.1.1 commented the draw out); on a dark background a
+  black-based overlay is replaced by `0x08ffffff` so the band is lighter, as in Graph. The status bar + action bar + folder tabs of the main list get
+  the same overlay (`DialogsActivity.drawRetroHeaderLift`). Colours in `app.retrogram.RetroLook`.
+- **Status dot:** every user row has a dot at the avatar: grey (`#888888`) offline, accent (`chats_actionBackground`) online, cross-fading on change.
+  NagramXF's "show online status" colours still win when that option is on. Not for bots, self, deleted accounts, or while the TTL badge shows.
+- **Three-dots menu:** Saved Messages, Archive, Feed, Hashtags+ (`RetroHashtagsActivity`: type or pick a recent hashtag → Telegram's
+  `HashtagActivity`), Favorites (NagramXF bookmarks), Games (`RetroGamesActivity`: game messages found in the local cache, newest first, tap opens the
+  message), Scan QR code (`RetroMainMenu.scanQr`: login codes are accepted, links opened, other text copied), In-app browser. Graph's AI chat bot is left out.
+  The proxy row stays when proxies exist. Theme switch / new group / new channel moved out of this menu (they remain in the drawer).
+- **No bold for links and files:** chat list previews drop bold entities and bold typeface spans; in bubbles the file name and the link preview's
+  site name and title use the regular weight (`RetroLook.regular`).

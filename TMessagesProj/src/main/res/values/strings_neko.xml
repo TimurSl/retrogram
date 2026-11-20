@@ -63,6 +63,11 @@
     <string name="RetroFontInvalid">This file is not a usable font. Pick a .ttf or .otf file.</string>
     <string name="RetroFontTooLarge">This font file is too large (the limit is 32 MB).</string>
     <string name="RetroFontError">Could not load the font file.</string>
+    <string name="RetroHashtags">Hashtags+</string>
+    <string name="RetroFavorites">Favorites</string>
+    <string name="RetroGames">Games</string>
+    <string name="RetroGamesEmpty">No games found in your chats yet. Games that bots post in chats you have opened on this device show up here.</string>
+    <string name="RetroGamesInfo">Games found in the chats stored on this device. Tap a game to open its message, then press Play.</string>
     <string name="RetrogramGifs">GIFs</string>
     <string name="RetroGifProvider">GIF provider</string>
     <string name="RetroUnigifUrl">Server URL</string>

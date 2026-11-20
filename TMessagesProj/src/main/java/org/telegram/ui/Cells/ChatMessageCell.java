@@ -8152,10 +8152,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                             int width = (int) Math.ceil(Theme.chat_replyNamePaint.measureText(site_name.toString()) + 1 + site_name_additionalWidth);
                             int restLines = 0;
                             if (!isSmallImage) {
-                                siteNameLayout = new StaticLayout(site_name, Theme.chat_replyNamePaint, Math.min(width, linkPreviewMaxWidth), Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
+                                siteNameLayout = new StaticLayout(app.retrogram.RetroLook.regular(site_name), Theme.chat_replyNamePaint, Math.min(width, linkPreviewMaxWidth), Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
                             } else {
                                 restLines = restLinesCount;
-                                siteNameLayout = generateStaticLayout(site_name, Theme.chat_replyNamePaint, linkPreviewMaxWidth, linkPreviewMaxWidth - smallImageSide - smallSideMargin, restLinesCount, 1);
+                                siteNameLayout = generateStaticLayout(app.retrogram.RetroLook.regular(site_name), Theme.chat_replyNamePaint, linkPreviewMaxWidth, linkPreviewMaxWidth - smallImageSide - smallSideMargin, restLinesCount, 1);
                                 restLinesCount -= siteNameLayout.getLineCount();
                             }
                             siteNameLeft = siteNameLayout.getWidth();
@@ -8229,10 +8229,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                                 maxLines = 1;
                             }
                             if (!isSmallImage) {
-                                titleLayout = StaticLayoutEx.createStaticLayout(titleCs, Theme.chat_replyNamePaint, linkPreviewMaxWidth, Layout.Alignment.ALIGN_NORMAL, 1.0f, dp(1), false, TextUtils.TruncateAt.END, linkPreviewMaxWidth, maxLines);
+                                titleLayout = StaticLayoutEx.createStaticLayout(app.retrogram.RetroLook.regular(titleCs), Theme.chat_replyNamePaint, linkPreviewMaxWidth, Layout.Alignment.ALIGN_NORMAL, 1.0f, dp(1), false, TextUtils.TruncateAt.END, linkPreviewMaxWidth, maxLines);
                             } else {
                                 restLines = restLinesCount;
-                                titleLayout = generateStaticLayout(titleCs, Theme.chat_replyNamePaint, linkPreviewMaxWidth, linkPreviewMaxWidth - smallImageSide - smallSideMargin, restLinesCount, maxLines);
+                                titleLayout = generateStaticLayout(app.retrogram.RetroLook.regular(titleCs), Theme.chat_replyNamePaint, linkPreviewMaxWidth, linkPreviewMaxWidth - smallImageSide - smallSideMargin, restLinesCount, maxLines);
                                 restLinesCount -= titleLayout.getLineCount();
                             }
 
@@ -10833,7 +10833,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 TLRPC.WebPage webPage = MessageObject.getMedia(currentMessageObject.messageOwner).webpage;
                 try {
                     int width = siteNameWidth = (int) Math.ceil(Theme.chat_replyNamePaint.measureText(webPage.site_name) + 1);
-                    siteNameLayout = new StaticLayout(webPage.site_name, Theme.chat_replyNamePaint, Math.min(width, linkPreviewMaxWidth), Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
+                    siteNameLayout = new StaticLayout(app.retrogram.RetroLook.regular(webPage.site_name), Theme.chat_replyNamePaint, Math.min(width, linkPreviewMaxWidth), Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
                     siteNameLeft = siteNameLayoutWidth = 0;
                     for (int i = 0; i < siteNameLayout.getLineCount(); ++i) {
                         siteNameLeft = siteNameLayout.getLineLeft(i);
@@ -13040,7 +13040,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             if (name.length() == 0) {
                 name = getString("AttachDocument", R.string.AttachDocument);
             }
-            docTitleLayout = StaticLayoutEx.createStaticLayout(name, Theme.chat_docNamePaint, maxWidth, Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false, TextUtils.TruncateAt.MIDDLE, maxWidth, 2, false);
+            docTitleLayout = StaticLayoutEx.createStaticLayout(app.retrogram.RetroLook.regular(name), Theme.chat_docNamePaint, maxWidth, Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false, TextUtils.TruncateAt.MIDDLE, maxWidth, 2, false);
             docTitleOffsetX = Integer.MIN_VALUE;
             int width;
             if (docTitleLayout != null && docTitleLayout.getLineCount() > 0) {

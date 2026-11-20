@@ -1130,6 +1130,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             updateContextViewPosition();
             updateStoriesViewAlpha(storiesAlpha);
             super.dispatchDraw(canvas);
+            drawRetroHeaderLift(canvas, top + actionBarHeight);
             drawHeaderShadow(canvas, top + actionBarHeight);
 
             /*if (fragmentContextView != null && fragmentContextView.isCallStyle()) {
@@ -14409,6 +14410,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             return;
         }
 
+        // Retrogram: the classic shell has its own fixed set of shortcuts here (RetroMainMenu); the proxy row below stays.
+        final boolean retroMenu = app.retrogram.RetroLook.enabled();
+        if (retroMenu) {
+            app.retrogram.RetroMainMenu.fill(io, this, currentAccount);
+        } else {
         if (NekoConfig.navigationDrawerEnabled.Bool()) {
             io.add(R.drawable.msg_recent, getString(R.string.RecentChats), () -> {
                 presentFragment(new ChatHistoryActivity());
@@ -14526,6 +14532,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 }
             }
         }
+        } // !retroMenu
         if (proxyMenuSubItem != null) {
             proxyMenuSubItem.subtextView.setTextColor(getThemedColor(Theme.key_groupcreate_sectionText));
             proxyMenuSubItem.setOnClickListener(v -> {
@@ -15198,6 +15205,25 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 }
             }
         }
+    }
+
+    private final Paint retroHeaderPaint = new Paint();
+
+    /**
+     * Retrogram: the status bar, action bar and folder tabs of the main chat list sit one step lighter than the list, in
+     * the same colour as pinned chats (12.1.1 / Graph Messenger look). 13.1.1 paints the header in the list colour. Drawn as the
+     * same faint overlay the pinned rows use, on top of the header content, so it needs no change to the blur/header layering.
+     */
+    private void drawRetroHeaderLift(Canvas canvas, int bottom) {
+        if (!app.retrogram.RetroLook.enabled() || inPreviewMode || onlySelect || folderId != 0 || communityId != 0
+                || initialDialogsType != DIALOGS_TYPE_DEFAULT || searchAnimationProgress != 0 || progressToActionMode != 0 || bottom <= 0) {
+            return;
+        }
+        retroHeaderPaint.setColor(app.retrogram.RetroLook.pinnedOverlay(resourceProvider));
+        if (Color.alpha(retroHeaderPaint.getColor()) == 0) {
+            return;
+        }
+        canvas.drawRect(0, 0, fragmentView.getMeasuredWidth(), bottom, retroHeaderPaint);
     }
 
     private void drawHeaderShadow(Canvas canvas, int sy) {
