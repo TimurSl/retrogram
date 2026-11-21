@@ -68,7 +68,8 @@ done < "$hits"
 
 echo "glass-guard ($mode${range:+ $range}): $total hit(s), $bad not allowed"
 if [ "$bad" -gt 0 ]; then
-  for f in "${!per_file[@]}"; do printf '%6d  %s\n' "${per_file[$f]}" "$f"; done | sort -rn | head -$([ "$mode" = range ] && echo 200 || echo 25)
+  # awk (not head) reads all of its input: with pipefail, head closing the pipe early made sort fail with SIGPIPE.
+  for f in "${!per_file[@]}"; do printf '%6d  %s\n' "${per_file[$f]}" "$f"; done | sort -rn | awk -v n="$([ "$mode" = range ] && echo 200 || echo 25)" 'NR <= n' 
 fi
 
 if [ "$mode" = baseline ]; then
