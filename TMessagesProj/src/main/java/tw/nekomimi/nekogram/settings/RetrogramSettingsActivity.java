@@ -59,6 +59,7 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
     private final AbstractConfigCell classicInputRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.classicInput, getString(R.string.RetroClassicInputInfo)));
     private final AbstractConfigCell classicChatHeaderRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.classicChatHeader, getString(R.string.RetroClassicChatHeaderInfo)));
     private final AbstractConfigCell classicEmojiPanelRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.classicEmojiPanel, getString(R.string.RetroClassicEmojiPanelInfo)));
+    private final AbstractConfigCell classicChatButtonsRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.classicChatButtons, getString(R.string.RetroClassicChatButtonsInfo)));
     private final AbstractConfigCell classicColorsRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.classicColors, getString(R.string.RetroClassicColorsInfo)));
     private final AbstractConfigCell dividerInterface = cellGroup.appendCell(new ConfigCellDivider());
 
@@ -281,6 +282,7 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
             if (!RetroConfig.classicSettings.getKey().equals(key) && !RetroConfig.classicInput.getKey().equals(key)
                 && !RetroConfig.classicChatHeader.getKey().equals(key)
                 && !RetroConfig.classicEmojiPanel.getKey().equals(key)
+                && !RetroConfig.classicChatButtons.getKey().equals(key)
                 && !isGifKey(key)) {
                 tooltip.showWithAction(0, UndoView.ACTION_NEED_RESTART, null, null);
             }

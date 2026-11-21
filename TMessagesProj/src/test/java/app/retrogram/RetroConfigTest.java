@@ -38,6 +38,8 @@ public class RetroConfigTest {
         assertFalse(RetroConfig.classicChatHeader.Bool());
         assertFalse(RetroConfig.isClassicChatHeader());
         assertFalse(RetroConfig.classicEmojiPanel.Bool());
+        assertFalse(RetroConfig.classicChatButtons.Bool());
+        assertFalse(RetroConfig.isClassicChatButtons());
         assertTrue(RetroConfig.isRetroUi());
     }
 
@@ -86,5 +88,19 @@ public class RetroConfigTest {
         reload();
         RetroConfig.captureColdStart();
         assertFalse(RetroConfig.isRetroUi());
+    }
+
+    @Test
+    public void classicChatButtonsNeedRetroUi() {
+        store.put(RetroConfig.classicChatButtons.getKey(), true);
+        reload();
+        RetroConfig.captureColdStart();
+        assertTrue(RetroConfig.isClassicChatButtons());
+
+        store.put(RetroConfig.upstreamUiDebug.getKey(), true);
+        reload();
+        RetroConfig.captureColdStart();
+        assertTrue(RetroConfig.classicChatButtons.Bool());
+        assertFalse(RetroConfig.isClassicChatButtons());
     }
 }

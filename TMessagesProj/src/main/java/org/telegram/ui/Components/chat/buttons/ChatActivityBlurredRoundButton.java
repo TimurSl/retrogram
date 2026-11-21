@@ -27,6 +27,7 @@ import org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory;
 import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
 import org.telegram.ui.Components.blur3.drawable.color.BlurredBackgroundColorProvider;
 
+import app.retrogram.ui.legacy.ClassicRoundButtons;
 import me.vkryl.android.animator.BoolAnimator;
 import me.vkryl.android.animator.FactorAnimator;
 
@@ -52,12 +53,16 @@ public class ChatActivityBlurredRoundButton extends FrameLayout implements Facto
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        backgroundDrawable.setBounds(0, 0, w, h);
+        if (backgroundDrawable != null) {
+            backgroundDrawable.setBounds(0, 0, w, h);
+        }
     }
 
     @Override
     public void draw(@NonNull Canvas canvas) {
-        backgroundDrawable.draw(canvas);
+        if (backgroundDrawable != null) {
+            backgroundDrawable.draw(canvas);
+        }
         super.draw(canvas);
     }
 
@@ -131,7 +136,7 @@ public class ChatActivityBlurredRoundButton extends FrameLayout implements Facto
                 return;
             }
 
-            loadingIndicatorDrawable = new CircularProgressDrawable(AndroidUtilities.dp(18), AndroidUtilities.dp(1.7f), 0xFF757575);
+            loadingIndicatorDrawable = new CircularProgressDrawable(AndroidUtilities.dp(18), AndroidUtilities.dp(1.7f), classicSizeDp > 0 ? ClassicRoundButtons.iconColor(resourcesProvider) : 0xFF757575);
             loadingIndicatorDrawable.setAngleOffset(90);
 
             loadingIndicatorView = new ImageView(getContext());
@@ -202,6 +207,10 @@ public class ChatActivityBlurredRoundButton extends FrameLayout implements Facto
     }
 
     public void updateColors() {
+        if (classicSizeDp > 0) {
+            applyClassicStyle();
+            return;
+        }
         if (backgroundDrawable != null) {
             backgroundDrawable.updateColors();
             invalidate();
@@ -212,6 +221,35 @@ public class ChatActivityBlurredRoundButton extends FrameLayout implements Facto
         int rad = dp(22);
         int pressedColor = Theme.multAlpha(color, .15f);
         setBackground(Theme.createInsetRoundRectDrawable(pressedColor, rad, dp(6)));
+    }
+
+    // Retrogram (WP 2.3): classic 12.1.1 solid circle with shadow instead of the glass drawable. 0 = glass.
+    private int classicSizeDp;
+
+    /** Retrogram: a button drawn like the 12.1.1 page-down button; no blurred drawable is created. */
+    public static ChatActivityBlurredRoundButton createClassic(
+        Context context,
+        Theme.ResourcesProvider resourcesProvider,
+        @DrawableRes int res,
+        int iconSize,
+        int sizeDp
+    ) {
+        final ChatActivityBlurredRoundButton button = new ChatActivityBlurredRoundButton(context);
+        button.resourcesProvider = resourcesProvider;
+        button.classicSizeDp = sizeDp;
+        button.setIcon(res, iconSize);
+        button.applyClassicStyle();
+        return button;
+    }
+
+    private void applyClassicStyle() {
+        final int color = ClassicRoundButtons.iconColor(resourcesProvider);
+        setIconColor(color);
+        if (loadingIndicatorDrawable != null) {
+            loadingIndicatorDrawable.setColor(color);
+        }
+        setBackground(ClassicRoundButtons.background(getContext(), classicSizeDp, resourcesProvider));
+        invalidate();
     }
 
     private void checkUi_IconViewVisibility() {

@@ -18,6 +18,8 @@ import org.telegram.ui.Components.ScaleStateListAnimator;
 import org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory;
 import org.telegram.ui.Components.blur3.drawable.color.BlurredBackgroundColorProvider;
 
+import app.retrogram.RetroConfig;
+
 
 @SuppressLint("ViewConstructor")
 public class ChatActivityBlurredRoundPageDownButton extends FrameLayout {
@@ -95,7 +97,9 @@ public class ChatActivityBlurredRoundPageDownButton extends FrameLayout {
         @DrawableRes int res
     ) {
         ChatActivityBlurredRoundPageDownButton button = new ChatActivityBlurredRoundPageDownButton(context, resourcesProvider);
-        button.addButtonView(ChatActivityBlurredRoundButton.create(context, factory, colorProvider, resourcesProvider, res, iconSize), size);
+        button.addButtonView(RetroConfig.isClassicChatButtons()
+            ? ChatActivityBlurredRoundButton.createClassic(context, resourcesProvider, res, iconSize, size)
+            : ChatActivityBlurredRoundButton.create(context, factory, colorProvider, resourcesProvider, res, iconSize), size);
         ScaleStateListAnimator.apply(button, .13f, 2f);
 
         return button;

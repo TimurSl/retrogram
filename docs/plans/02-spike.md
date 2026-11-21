@@ -81,3 +81,19 @@ reply/edit bars, voice/video record overlay, attach button and AI/rich-text butt
   "Classic input bar" on (used for the under-keyboard drawable, its path and bounds; `BotKeyboardView` still uses the constant).
 - **Still 12.4 in that panel:** the inline search field with reaction icons at the top (12.1.1 had a search button in the bottom bar instead).
 
+## Opt-in "Classic chat buttons" (WP 2.3, 2026-11-21, not build-verified, not yet run on a device)
+
+- **12.1.1 reference** (`ChatActivity.createView`, `9cbf0333`): page down, mentions and reactions were `FrameLayout`s with a 46x46 image view whose background was
+  `CombinedDrawable(pagedown_shadow, createSimpleSelectorCircleDrawable(42dp, chat_goDownButton, listSelector))`, icon tinted `chat_goDownButtonIcon`, counter on top.
+- **13.1.1**: all side controls (attach side button, page down, mention, reactions, poll votes, search up/down) are `ChatActivityBlurredRoundPageDownButton`s built by
+  `ChatActivitySideControlsButtonsLayout`, each wrapping a `ChatActivityBlurredRoundButton` (44dp glass circle in a 56dp view, `glass_defaultIcon` tint).
+- **Change:** Settings → Retrogram → "Classic chat buttons (experimental)", off by default (`RetroConfig.isClassicChatButtons()`). When on,
+  `ChatActivityBlurredRoundPageDownButton.create` builds the inner button with `ChatActivityBlurredRoundButton.createClassic(...)`: no blurred drawable is created; the view
+  background is `app.retrogram.ui.legacy.ClassicRoundButtons.background(...)` (the 12.1.1 shadow + 42dp circle, centered in the view by an inset, ripple from the
+  view background). `updateColors()` rebuilds it on theme change. Layout, stacking, counters and animations are unchanged.
+- **Theme key:** 13.x removed `chat_goDownButtonIcon` (12.1.1 default 0xff8e959b). The icon and loading spinner use `chat_messagePanelIcons`, which has the same default and
+  is set by the bundled themes, instead of re-adding a key to `Theme`.
+- **Assets:** `res/drawable-{m,h,xh,xxh}dpi/pagedown_shadow.png` restored from `9cbf0333` (13.x deleted them).
+- **Not covered:** the reply/forward buttons (`ChatActivityActionsButtonsLayout`) and the channel bottom-bar buttons (`ChatActivityChannelButtonsLayout`), which use the same
+  button class through `ChatActivityBlurredRoundButton.create` and keep the (opaque, WP 4.1) glass look; the counter keeps the 13.1.1 `CounterView` style for mentions
+  (12.1.1 used a plain rounded `SimpleTextView` there).

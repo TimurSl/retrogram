@@ -33,6 +33,9 @@ Solid 12.1.1 tab strip (`EmojiView`'s bottom/top tab bar), no glass tabs; search
 Check the new content types added since (stickers/emoji packs, "profile" tab) are still reachable in the tab strip.
 
 ### WP 2.3 — Round buttons (M)
+> **Status: side controls written behind an opt-in switch, not build-verified, not run on a device (2026-11-21).** See the last section of
+> [`02-spike.md`](02-spike.md). Not yet covered: the reply/forward buttons (`ChatActivityActionsButtonsLayout`) and the channel bottom-bar buttons
+> (`ChatActivityChannelButtonsLayout`), which 12.1.1 did not have as round buttons.
 Replace `ChatActivityBlurredRoundButton` (page down, mentions, reactions) with the classic
 `ChatActivity` floating buttons (solid circle, shadow, counter badge). Keep the new ones (e.g. any "live comments"
 or "AI" buttons that exist in 13.x) as small solid circles stacked above.
