@@ -5,6 +5,8 @@ import static org.telegram.messenger.AndroidUtilities.lerp;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
@@ -121,11 +123,11 @@ public class ChatActivityActionsButtonsLayout extends LinearLayout {
             return;
         }
         holder.textView.setText(text);
-        holder.textView.setTextColor(Theme.getColor(Theme.key_glass_defaultText, resourcesProvider));
+        holder.textView.setTextColor(Theme.getColor(classicStyle ? Theme.key_actionBarActionModeDefaultIcon : Theme.key_glass_defaultText, resourcesProvider));
         Drawable image = null;
         if (iconRes != 0) {
             image = getContext().getResources().getDrawable(iconRes).mutate();
-            image.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_glass_defaultIcon, resourcesProvider), PorterDuff.Mode.MULTIPLY));
+            image.setColorFilter(new PorterDuffColorFilter(Theme.getColor(classicStyle ? Theme.key_actionBarActionModeDefaultIcon : Theme.key_glass_defaultIcon, resourcesProvider), PorterDuff.Mode.MULTIPLY));
         }
         holder.textView.setCompoundDrawablesWithIntrinsicBounds(iconLeft ? image : null, null, iconLeft ? null : image, null);
     }
@@ -157,6 +159,72 @@ public class ChatActivityActionsButtonsLayout extends LinearLayout {
     public void updateColors() {
         replyButton.button.updateColors();
         forwardButton.button.updateColors();
+        if (classicStyle) {
+            applyClassicColors(replyButton);
+            applyClassicColors(forwardButton);
+            invalidate();
+        }
+    }
+
+    // Retrogram (WP 2.3b): the 12.1.1 selection-mode bar ("bottomMessagesActionContainer", 9cbf0333 ChatActivity):
+    // one full-width solid bar with the compose shadow on top, Reply on the left and Forward on the right, both as plain
+    // text buttons with a rectangular pressed state. The two buttons slide up with the bar instead of in from the sides.
+    private static final int CLASSIC_BAR_HEIGHT = 50;
+    private boolean classicStyle;
+    private Paint classicBarPaint;
+
+    public void setClassicStyle() {
+        if (classicStyle) {
+            return;
+        }
+        classicStyle = true;
+        classicBarPaint = new Paint();
+        setWillNotDraw(false);
+        replyButton.button.setFlatStyle();
+        forwardButton.button.setFlatStyle();
+        replyButton.button.setLayoutParams(LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, CLASSIC_BAR_HEIGHT, Gravity.BOTTOM));
+        forwardButton.button.setLayoutParams(LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, CLASSIC_BAR_HEIGHT, Gravity.BOTTOM));
+        // The gap between the buttons is part of the bar: it takes taps so they do not reach the messages under it.
+        final View gap = new View(getContext());
+        gap.setClickable(true);
+        addView(gap, indexOfChild(forwardButton.button), LayoutHelper.createLinear(0, CLASSIC_BAR_HEIGHT, 1f));
+        replyButton.textView.setPadding(dp(14), 0, dp(21), 0);
+        replyButton.textView.setCompoundDrawablePadding(dp(7));
+        applyClassicColors(replyButton);
+        applyClassicColors(forwardButton);
+        checkButtonsPositionsAndVisibility();
+        invalidate();
+    }
+
+    private void applyClassicColors(ButtonHolder holder) {
+        final int color = Theme.getColor(Theme.key_actionBarActionModeDefaultIcon, resourcesProvider);
+        holder.button.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_actionBarActionModeDefaultSelector, resourcesProvider), 3));
+        holder.textView.setTextColor(color);
+        for (Drawable d : holder.textView.getCompoundDrawables()) {
+            if (d != null) {
+                d.setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.MULTIPLY));
+            }
+        }
+    }
+
+    private int classicBarTop() {
+        return getMeasuredHeight() - dp(CLASSIC_BAR_HEIGHT) + Math.round(dp(54) * (1f - totalVisibilityFactor));
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+        if (!classicStyle || totalVisibilityFactor <= 0) {
+            return;
+        }
+        final int top = classicBarTop();
+        final Drawable shadow = Theme.chat_composeShadowDrawable;
+        if (shadow != null) {
+            shadow.setBounds(0, top - shadow.getIntrinsicHeight(), getMeasuredWidth(), top);
+            shadow.draw(canvas);
+        }
+        classicBarPaint.setColor(Theme.getColor(Theme.key_chat_messagePanelBackground, resourcesProvider));
+        canvas.drawRect(0, top, getMeasuredWidth(), getMeasuredHeight(), classicBarPaint);
     }
 
     @Override
@@ -170,6 +238,9 @@ public class ChatActivityActionsButtonsLayout extends LinearLayout {
         if (totalVisibilityFactor != factor) {
             totalVisibilityFactor = factor;
             checkButtonsPositionsAndVisibility();
+            if (classicStyle) {
+                invalidate();
+            }
         }
     }
 
@@ -180,6 +251,13 @@ public class ChatActivityActionsButtonsLayout extends LinearLayout {
 
     private void checkHolderPositionsAndVisibility(ButtonHolder holder) {
         final float visibility = totalVisibilityFactor * holder.visibilityAnimator.getFloatValue();
+        if (classicStyle) {
+            holder.button.setTranslationX(0);
+            holder.button.setTranslationY(dp(54) * (1f - totalVisibilityFactor));
+            holder.button.setAlpha(visibility);
+            holder.button.setVisibility(visibility > 0 ? VISIBLE : INVISIBLE);
+            return;
+        }
         final float offsetY = -dp(54) * (1f - visibility);
         float offsetX = getMeasuredWidth() / 2f * (1f - AnimatorUtils.DECELERATE_INTERPOLATOR.getInterpolation(visibility));
         if (holder == replyButton) {

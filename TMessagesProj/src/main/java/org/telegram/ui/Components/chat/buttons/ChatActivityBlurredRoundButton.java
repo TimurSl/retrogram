@@ -59,7 +59,7 @@ public class ChatActivityBlurredRoundButton extends FrameLayout implements Facto
     public void draw(@NonNull Canvas canvas) {
         if (classicBackground != null) {
             app.retrogram.ui.legacy.ClassicRoundButton.draw(canvas, classicBackground, getWidth(), getHeight());
-        } else {
+        } else if (!flatStyle) {
             backgroundDrawable.draw(canvas);
         }
         super.draw(canvas);
@@ -74,6 +74,14 @@ public class ChatActivityBlurredRoundButton extends FrameLayout implements Facto
         classicViewSizeDp = viewSizeDp;
         classicBackground = app.retrogram.ui.legacy.ClassicRoundButton.createBackground(getContext(), resourcesProvider);
         updateClassicPressedSelector();
+        invalidate();
+    }
+
+    // Retrogram (WP 2.3b): no shape at all; the parent draws a full-width bar and sets the pressed background.
+    private boolean flatStyle;
+
+    public void setFlatStyle() {
+        flatStyle = true;
         invalidate();
     }
 
@@ -232,6 +240,9 @@ public class ChatActivityBlurredRoundButton extends FrameLayout implements Facto
         setIconColor(Theme.getColor(Theme.key_glass_defaultIcon, resourcesProvider));
         if (classicBackground != null) {
             setClassicStyle(classicViewSizeDp);
+            return;
+        }
+        if (flatStyle) {
             return;
         }
         int rad = dp(22);

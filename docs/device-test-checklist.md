@@ -20,7 +20,7 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 | Classic input bar (experimental) | off | chats opened afterwards |
 | Classic chat header (experimental) | off | chats opened afterwards |
 | Classic emoji panel (experimental) | off | chats opened afterwards |
-| Classic chat buttons (experimental) | off | chats opened afterwards |
+| Classic chat buttons (experimental): round buttons + selection bar | off | chats opened afterwards |
 | Classic theme colors (experimental) | off | after restart |
 
 ## Checks
@@ -62,7 +62,10 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 - [ ] Mentions / reactions buttons in a group stack above it the same way; long-press "read all" still works
 - [ ] Search in chat: up/down buttons look the same; pressed state is a round highlight, not a square
 - [ ] Night theme: circle and arrow readable; switch theme while a chat is open
-- [ ] Turn it off: the glass circles return (new chats)
+- [ ] Long-press a message: a full-width solid bar at the bottom with Reply on the left and Forward on the right (12.1.1 style), shadow line on top; it slides up, no pills
+- [ ] Select several messages / a message that cannot be replied to: Reply hides, Forward stays on the right; tapping the empty middle of the bar does nothing
+- [ ] Nothing visible through the strip under the bar (navigation bar area), gesture and 3-button nav
+- [ ] Turn it off: the glass circles and pills return (new chats)
 
 **Classic theme colors (switch on, restart, theme "Blue" / default)**
 - [ ] Chat list: blue action bar with white icons and title, white status text; search icon; folder tabs

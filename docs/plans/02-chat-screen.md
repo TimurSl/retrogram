@@ -40,8 +40,13 @@ Check the new content types added since (stickers/emoji packs, "profile" tab) ar
 > the shadow PNGs are revived from `9cbf0333`) instead of its glass drawable, with a pressed overlay of the same size. Covered: scroll down, mentions,
 > reactions, poll votes, search up/down. Kept as they were: the icon color (`key_glass_defaultIcon`, 12.1.1's `key_chat_goDownButtonIcon` no longer exists),
 > the 13.x counter (`CounterView`, colors `key_chat_goDownButtonCounter*` as in 12.1.1), the stacking animation, the attach side button.
-> Not covered: the selection-mode Reply/Forward pills (`ChatActivityActionsButtonsLayout`) and the channel bottom bar (`ChatActivityChannelButtonsLayout`), which
-> were full-width bars in 12.1.1 (separate WP), and the same layout in stories, bookmarks and the deleted-messages viewer.
+> **WP 2.3b (same switch, written, not run on a device):** the selection-mode Reply/Forward pills (`ChatActivityActionsButtonsLayout`) become the 12.1.1
+> `bottomMessagesActionContainer`: one full-width 50dp bar in `key_chat_messagePanelBackground` with `chat_composeShadowDrawable` on top, Reply (or NagramXF's
+> Save/Share replacement) as a text button on the left and Forward on the right, colors `key_actionBarActionModeDefaultIcon` / `...Selector`, rectangular pressed
+> state; buttons and bar slide up together instead of in from the sides. The gap between the buttons takes taps. Unknown until seen on a device: what shows
+> under the bar in the navigation-bar inset while the input island is faded out.
+> Not covered: the channel bottom bar (`ChatActivityChannelButtonsLayout`, a full-width "Mute/Join" bar in 12.1.1, separate WP) and the side buttons in stories,
+> bookmarks and the deleted-messages viewer.
 Replace `ChatActivityBlurredRoundButton` (page down, mentions, reactions) with the classic
 `ChatActivity` floating buttons (solid circle, shadow, counter badge). Keep the new ones (e.g. any "live comments"
 or "AI" buttons that exist in 13.x) as small solid circles stacked above.
