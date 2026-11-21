@@ -33,7 +33,7 @@ Solid 12.1.1 tab strip (`EmojiView`'s bottom/top tab bar), no glass tabs; search
 Check the new content types added since (stickers/emoji packs, "profile" tab) are still reachable in the tab strip.
 
 ### WP 2.3 — Round buttons (M)
-> **Status: first step (WP 2.3a) written, not compiled outside CI, not run on a device (2026-11-21).**
+> **Status: WP 2.3a–c written and built green in CI (run 99, APK artifact `retrogram-normal`), not run on a device (2026-11-21).**
 > Opt-in switch Settings → Retrogram → "Classic chat buttons (experimental)", off by default, applies to chats opened afterwards.
 > When on, `ChatActivity` tells `ChatActivitySideControlsButtonsLayout` to create its buttons in the classic style: each `ChatActivityBlurredRoundButton`
 > draws `app.retrogram.ui.legacy.ClassicRoundButton` (a 42dp `key_chat_goDownButton` circle over the 46dp `pagedown_shadow` image, both as in 12.1.1;
