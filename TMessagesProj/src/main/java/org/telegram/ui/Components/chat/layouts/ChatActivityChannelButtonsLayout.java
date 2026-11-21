@@ -90,8 +90,31 @@ public class ChatActivityChannelButtonsLayout extends FrameLayout implements Fac
         for (ButtonHolder holder : buttonHolders) {
             if (holder != null) {
                 holder.button.updateColors();
+                if (classicStyle) {
+                    applyClassicStyle(holder.button);
+                }
             }
         }
+    }
+
+    // Retrogram (WP 2.3c): the 12.1.1 channel bar ("bottomOverlayChat", 9cbf0333 ChatActivity): the side buttons are plain
+    // icons in key_chat_fieldOverlayText with a round ripple, no circles, and the center has no accent pill (the caller keeps the
+    // input island full width and colors the text). Set before the first showButton().
+    private boolean classicStyle;
+
+    public void setClassicStyle() {
+        classicStyle = true;
+    }
+
+    public boolean isClassicStyle() {
+        return classicStyle;
+    }
+
+    private void applyClassicStyle(ChatActivityBlurredRoundButton button) {
+        final int color = Theme.getColor(Theme.key_chat_fieldOverlayText, resourcesProvider);
+        button.setFlatStyle();
+        button.setIconColor(color);
+        button.setBackground(Theme.createSelectorDrawable(Theme.multAlpha(color, .10f), Theme.RIPPLE_MASK_CIRCLE_20DP));
     }
 
     public FrameLayout getContainer() {
@@ -135,6 +158,9 @@ public class ChatActivityChannelButtonsLayout extends FrameLayout implements Fac
                 button.setContentDescription(getString(R.string.BroadcastGroupInfo));
             }
 
+            if (classicStyle) {
+                applyClassicStyle(button);
+            }
             ScaleStateListAnimator.apply(button, .13f, 2f);
             button.setVisibility(GONE);
             button.setOnClickListener(v -> {
@@ -429,7 +455,7 @@ public class ChatActivityChannelButtonsLayout extends FrameLayout implements Fac
 
     @Override
     protected void dispatchDraw(@NonNull Canvas canvas) {
-        final int accentAlpha = (int) (255 * totalVisibilityFactor * animatorCenterAccentBackground.getFloatValue());
+        final int accentAlpha = classicStyle ? 0 : (int) (255 * totalVisibilityFactor * animatorCenterAccentBackground.getFloatValue());
         if (accentAlpha > 0) {
             tmpRect.set(
                 totalWidthLeft + dp(10),

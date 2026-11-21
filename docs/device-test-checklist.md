@@ -20,7 +20,7 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 | Classic input bar (experimental) | off | chats opened afterwards |
 | Classic chat header (experimental) | off | chats opened afterwards |
 | Classic emoji panel (experimental) | off | chats opened afterwards |
-| Classic chat buttons (experimental): round buttons + selection bar | off | chats opened afterwards |
+| Classic chat buttons (experimental): round buttons, selection bar, channel bar | off | chats opened afterwards |
 | Classic theme colors (experimental) | off | after restart |
 
 ## Checks
@@ -65,6 +65,9 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 - [ ] Long-press a message: a full-width solid bar at the bottom with Reply on the left and Forward on the right (12.1.1 style), shadow line on top; it slides up, no pills
 - [ ] Select several messages / a message that cannot be replied to: Reply hides, Forward stays on the right; tapping the empty middle of the bar does nothing
 - [ ] Nothing visible through the strip under the bar (navigation bar area), gesture and 3-button nav
+- [ ] Channel you are subscribed to / not subscribed to: one full-width bar with blue "Mute"/"Unmute"/"Join" text, no blue pill; search icon left, gift or
+      direct-messages icon right as plain icons (round ripple on tap), not circles; each one still works
+- [ ] Group where you cannot write, closed topic, bot "Start": text readable, nothing overlaps
 - [ ] Turn it off: the glass circles and pills return (new chats)
 
 **Classic theme colors (switch on, restart, theme "Blue" / default)**

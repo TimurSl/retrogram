@@ -45,8 +45,11 @@ Check the new content types added since (stickers/emoji packs, "profile" tab) ar
 > Save/Share replacement) as a text button on the left and Forward on the right, colors `key_actionBarActionModeDefaultIcon` / `...Selector`, rectangular pressed
 > state; buttons and bar slide up together instead of in from the sides. The gap between the buttons takes taps. Unknown until seen on a device: what shows
 > under the bar in the navigation-bar inset while the input island is faded out.
-> Not covered: the channel bottom bar (`ChatActivityChannelButtonsLayout`, a full-width "Mute/Join" bar in 12.1.1, separate WP) and the side buttons in stories,
-> bookmarks and the deleted-messages viewer.
+> **WP 2.3c (same switch, written, not run on a device):** the channel / read-only bottom bar (`ChatActivityChannelButtonsLayout`). In 13.x its center "pill" is the
+> input island itself, narrowed by `setInputBubbleOffsets` to leave room for round glass side buttons (search, gift, direct messages, info). In classic mode the island
+> keeps its full width (so with "Classic input bar" on it is the flat full-width bar of 12.1.1), the side buttons are plain icons in `key_chat_fieldOverlayText` with a round
+> ripple (as 12.1.1's `bottomGiftButton` / `bottomSuggestButton`), and Mute/Join/Unmute is blue `key_chat_fieldOverlayText` text with no accent pill. The bot "Start"
+> button keeps its filled style. Not covered: the side buttons in stories, bookmarks and the deleted-messages viewer.
 Replace `ChatActivityBlurredRoundButton` (page down, mentions, reactions) with the classic
 `ChatActivity` floating buttons (solid circle, shadow, counter badge). Keep the new ones (e.g. any "live comments"
 or "AI" buttons that exist in 13.x) as small solid circles stacked above.

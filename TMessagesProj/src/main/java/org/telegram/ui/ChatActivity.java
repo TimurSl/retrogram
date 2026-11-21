@@ -9149,6 +9149,7 @@ public class ChatActivity extends BaseFragment implements
                 bottomViewsVisibilityController.setViewVisible(BOTTOM_OVERLAY_CHAT_CONTAINER, visibility == VISIBLE, getMeasuredWidth() > 0);
             }
         };
+        if (app.retrogram.RetroConfig.isClassicChatButtons()) bottomChannelButtonsLayout.setClassicStyle();
         bottomChannelButtonsLayout.setVisibility(View.INVISIBLE);
         bottomChannelButtonsLayout.setClipChildren(false);
         bottomChannelButtonsLayout.setAccentColor(getThemedColor(Theme.key_featuredStickers_addButton));
@@ -9217,7 +9218,9 @@ public class ChatActivity extends BaseFragment implements
                 && chatActivityEnterView.isIOSInputStyle()
                 && bottomViewsVisibilityController.getVisibility(MESSAGE_INPUT_CONTAINER) > 0.01f;
             if (!iosInputActive) {
-                chatInputViewsContainer.setInputBubbleOffsets(l, r);
+                // Retrogram classic chat buttons (WP 2.3c): the bar stays full width under the flat side icons, as in 12.1.1.
+                final boolean classicBar = bottomChannelButtonsLayout.isClassicStyle();
+                chatInputViewsContainer.setInputBubbleOffsets(classicBar ? 0 : l, classicBar ? 0 : r);
             }
         });
 
@@ -30341,7 +30344,8 @@ public class ChatActivity extends BaseFragment implements
 
 
 
-        bottomOverlayChatText.setTextColorKey(accentTextButton ? Theme.key_featuredStickers_buttonText : Theme.key_glass_defaultText);
+        bottomOverlayChatText.setTextColorKey(bottomChannelButtonsLayout.isClassicStyle() ? Theme.key_chat_fieldOverlayText // Retrogram WP 2.3c: blue text, no pill (12.1.1)
+            : accentTextButton ? Theme.key_featuredStickers_buttonText : Theme.key_glass_defaultText);
 
         bottomChannelButtonsLayout.setCenterAccentBackground(accentTextButton, animated);
         bottomChannelButtonsLayout.updateWrappingVisible(animated);
