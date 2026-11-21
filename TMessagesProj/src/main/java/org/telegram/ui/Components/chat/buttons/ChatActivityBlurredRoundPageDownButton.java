@@ -75,6 +75,11 @@ public class ChatActivityBlurredRoundPageDownButton extends FrameLayout {
         buttonView.setEnabled(enabled, animated);
     }
 
+    /** Retrogram (WP 2.3a): classic 12.1.1 solid circle; {@code size} is the size passed to {@link #addButtonView}. */
+    public void setClassicStyle(int size) {
+        buttonView.setClassicStyle(size);
+    }
+
     public void reverseIconByY() {
         buttonView.reverseIconByY();
     }

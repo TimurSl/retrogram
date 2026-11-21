@@ -84,6 +84,12 @@ public class ChatActivitySideControlsButtonsLayout extends FrameLayout implement
         this.gravity = gravity;
     }
 
+    // Retrogram (WP 2.3a): buttons created after this is set draw the classic 12.1.1 solid circle (not the attach button).
+    private boolean classicStyle;
+    public void setClassicStyle(boolean classicStyle) {
+        this.classicStyle = classicStyle;
+    }
+
     public void setOnClickListener(ButtonOnClickListener onClickListener) {
         this.onClickListener = onClickListener;
     }
@@ -253,6 +259,9 @@ public class ChatActivitySideControlsButtonsLayout extends FrameLayout implement
                 return false;
             });
 
+            if (classicStyle && buttonId != BUTTON_ATTACH) {
+                button.setClassicStyle(size);
+            }
             if (buttonId == BUTTON_SEARCH_UP) {
                 button.reverseIconByY();
             }

@@ -57,8 +57,29 @@ public class ChatActivityBlurredRoundButton extends FrameLayout implements Facto
 
     @Override
     public void draw(@NonNull Canvas canvas) {
-        backgroundDrawable.draw(canvas);
+        if (classicBackground != null) {
+            app.retrogram.ui.legacy.ClassicRoundButton.draw(canvas, classicBackground, getWidth(), getHeight());
+        } else {
+            backgroundDrawable.draw(canvas);
+        }
         super.draw(canvas);
+    }
+
+    // Retrogram (WP 2.3a): the 12.1.1 solid circle with a shadow instead of the glass drawable; null = upstream look.
+    private android.graphics.drawable.Drawable classicBackground;
+    private int classicViewSizeDp;
+
+    /** Switches this button to the classic 12.1.1 look; {@code viewSizeDp} is the button's square size. */
+    public void setClassicStyle(int viewSizeDp) {
+        classicViewSizeDp = viewSizeDp;
+        classicBackground = app.retrogram.ui.legacy.ClassicRoundButton.createBackground(getContext(), resourcesProvider);
+        updateClassicPressedSelector();
+        invalidate();
+    }
+
+    private void updateClassicPressedSelector() {
+        final int color = Theme.getColor(Theme.key_glass_defaultIcon, resourcesProvider);
+        setBackground(app.retrogram.ui.legacy.ClassicRoundButton.createPressedSelector(Theme.multAlpha(color, .15f), classicViewSizeDp));
     }
 
     @Override
@@ -209,6 +230,10 @@ public class ChatActivityBlurredRoundButton extends FrameLayout implements Facto
 
         final int color = Theme.getColor(Theme.key_glass_defaultIcon, resourcesProvider);
         setIconColor(Theme.getColor(Theme.key_glass_defaultIcon, resourcesProvider));
+        if (classicBackground != null) {
+            setClassicStyle(classicViewSizeDp);
+            return;
+        }
         int rad = dp(22);
         int pressedColor = Theme.multAlpha(color, .15f);
         setBackground(Theme.createInsetRoundRectDrawable(pressedColor, rad, dp(6)));

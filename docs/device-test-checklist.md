@@ -20,6 +20,7 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 | Classic input bar (experimental) | off | chats opened afterwards |
 | Classic chat header (experimental) | off | chats opened afterwards |
 | Classic emoji panel (experimental) | off | chats opened afterwards |
+| Classic chat buttons (experimental) | off | chats opened afterwards |
 | Classic theme colors (experimental) | off | after restart |
 
 ## Checks
@@ -55,6 +56,13 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 **Emoji panel (classic emoji panel on)**
 - [ ] Open emoji, GIFs, stickers: a full-width bottom bar with tab icons, search and backspace; no floating pill
 - [ ] Tab switching, scrolling under the bar, backspace repeat, sticker settings button
+
+**Chat buttons (classic chat buttons on)**
+- [ ] Scroll up in a long chat: the scroll-down button is a solid white (theme) circle with a soft shadow, no glass; unread counter on top
+- [ ] Mentions / reactions buttons in a group stack above it the same way; long-press "read all" still works
+- [ ] Search in chat: up/down buttons look the same; pressed state is a round highlight, not a square
+- [ ] Night theme: circle and arrow readable; switch theme while a chat is open
+- [ ] Turn it off: the glass circles return (new chats)
 
 **Classic theme colors (switch on, restart, theme "Blue" / default)**
 - [ ] Chat list: blue action bar with white icons and title, white status text; search icon; folder tabs

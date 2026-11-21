@@ -33,6 +33,15 @@ Solid 12.1.1 tab strip (`EmojiView`'s bottom/top tab bar), no glass tabs; search
 Check the new content types added since (stickers/emoji packs, "profile" tab) are still reachable in the tab strip.
 
 ### WP 2.3 — Round buttons (M)
+> **Status: first step (WP 2.3a) written, not compiled outside CI, not run on a device (2026-11-21).**
+> Opt-in switch Settings → Retrogram → "Classic chat buttons (experimental)", off by default, applies to chats opened afterwards.
+> When on, `ChatActivity` tells `ChatActivitySideControlsButtonsLayout` to create its buttons in the classic style: each `ChatActivityBlurredRoundButton`
+> draws `app.retrogram.ui.legacy.ClassicRoundButton` (a 42dp `key_chat_goDownButton` circle over the 46dp `pagedown_shadow` image, both as in 12.1.1;
+> the shadow PNGs are revived from `9cbf0333`) instead of its glass drawable, with a pressed overlay of the same size. Covered: scroll down, mentions,
+> reactions, poll votes, search up/down. Kept as they were: the icon color (`key_glass_defaultIcon`, 12.1.1's `key_chat_goDownButtonIcon` no longer exists),
+> the 13.x counter (`CounterView`, colors `key_chat_goDownButtonCounter*` as in 12.1.1), the stacking animation, the attach side button.
+> Not covered: the selection-mode Reply/Forward pills (`ChatActivityActionsButtonsLayout`) and the channel bottom bar (`ChatActivityChannelButtonsLayout`), which
+> were full-width bars in 12.1.1 (separate WP), and the same layout in stories, bookmarks and the deleted-messages viewer.
 Replace `ChatActivityBlurredRoundButton` (page down, mentions, reactions) with the classic
 `ChatActivity` floating buttons (solid circle, shadow, counter badge). Keep the new ones (e.g. any "live comments"
 or "AI" buttons that exist in 13.x) as small solid circles stacked above.
