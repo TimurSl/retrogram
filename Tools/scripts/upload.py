@@ -7,7 +7,8 @@ Usage:
     python Tools/scripts/upload.py <apk-dir> [<apk-dir> ...]
 
 Environment:
-    TELEGRAM_APP_ID, TELEGRAM_APP_HASH   api_id / api_hash from my.telegram.org
+    TELEGRAM_BOT_APP_ID, TELEGRAM_BOT_APP_HASH   api_id / api_hash for the uploader (my.telegram.org),
+                                         separate from the ones compiled into the APK
     TELEGRAM_BOT_TOKEN                   token of a bot that is an admin of the channel
     TELEGRAM_CHAT_ID                     channel: @username or numeric id (-100...)
     COMMIT_ID, COMMIT_URL, COMMIT_MESSAGE, BRANCH, BUILD_LABEL   caption data
@@ -94,7 +95,7 @@ async def main() -> int:
         print(f"No APKs found in {dirs}", file=sys.stderr)
         return 1
 
-    missing = [n for n in ("TELEGRAM_APP_ID", "TELEGRAM_APP_HASH", "TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID")
+    missing = [n for n in ("TELEGRAM_BOT_APP_ID", "TELEGRAM_BOT_APP_HASH", "TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID")
                if not env(n)]
     if missing:
         print(f"Missing environment: {', '.join(missing)}", file=sys.stderr)
@@ -110,8 +111,8 @@ async def main() -> int:
 
     client = Client(
         "retrogram_ci",
-        api_id=int(env("TELEGRAM_APP_ID")),
-        api_hash=env("TELEGRAM_APP_HASH"),
+        api_id=int(env("TELEGRAM_BOT_APP_ID")),
+        api_hash=env("TELEGRAM_BOT_APP_HASH"),
         bot_token=env("TELEGRAM_BOT_TOKEN"),
         in_memory=True,
         no_updates=True,

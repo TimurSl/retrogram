@@ -72,12 +72,17 @@ jobs:
       # Branch pushes and PRs only need a compile check (and the POCO is arm64): one ABI keeps the
       # NDK build short. Tags and manual runs build every ABI.
       NATIVE_TARGET: ${{ (github.event_name == 'pull_request' || (github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/'))) && 'arm64-v8a' || '' }}
-      TELEGRAM_APP_ID: ${{ secrets.TELEGRAM_APP_ID }}
-      TELEGRAM_APP_HASH: ${{ secrets.TELEGRAM_APP_HASH }}
+      # api_id / api_hash compiled into the APK. Optional: without them the build uses a placeholder
+      # that compiles but cannot log in (tags still require them, release builds refuse the placeholder).
+      # Kept apart from the channel bot's TELEGRAM_BOT_APP_ID / TELEGRAM_BOT_APP_HASH below.
+      TELEGRAM_APP_ID: ${{ secrets.TELEGRAM_BUILD_APP_ID }}
+      TELEGRAM_APP_HASH: ${{ secrets.TELEGRAM_BUILD_APP_HASH }}
     steps:
       - name: Check secrets (tags only)
         if: env.IS_TAG == 'true'
         env:
+          TELEGRAM_BUILD_APP_ID: ${{ secrets.TELEGRAM_BUILD_APP_ID }}
+          TELEGRAM_BUILD_APP_HASH: ${{ secrets.TELEGRAM_BUILD_APP_HASH }}
           S_KEYSTORE: ${{ secrets.KEYSTORE_B64 }}
           S_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           S_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
@@ -85,7 +90,7 @@ jobs:
           S_GOOGLE: ${{ secrets.GOOGLE_SERVICES_JSON_B64 }}
         run: |
           missing=0
-          for v in TELEGRAM_APP_ID TELEGRAM_APP_HASH S_KEYSTORE S_KEYSTORE_PASSWORD S_KEY_ALIAS S_KEY_PASSWORD S_GOOGLE; do
+          for v in TELEGRAM_BUILD_APP_ID TELEGRAM_BUILD_APP_HASH S_KEYSTORE S_KEYSTORE_PASSWORD S_KEY_ALIAS S_KEY_PASSWORD S_GOOGLE; do
             if [ -z "${!v}" ]; then echo "::error::Missing secret for $v"; missing=1; fi
           done
           exit $missing
@@ -273,22 +278,25 @@ jobs:
 
       # --- Continuous deployment: Telegram channel -------------------------
       # Every push to the default branch (plus tags, and manual runs with `telegram` ticked) posts
-      # the APK to the channel, captioned with the commit message. Needs the TELEGRAM_BOT_TOKEN and
-      # TELEGRAM_CHAT_ID secrets (and TELEGRAM_APP_ID / TELEGRAM_APP_HASH); skipped without them.
+      # the APK to the channel, captioned with the commit message. Needs the TELEGRAM_BOT_APP_ID,
+      # TELEGRAM_BOT_APP_HASH, TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID secrets; skipped without them.
+      # The bot's api_id/api_hash are separate from the TELEGRAM_BUILD_* ones baked into the APK.
       # Uploads go through MTProto (Tools/scripts/upload.py), so the 50 MB Bot API limit does not apply.
       - name: Decide on Telegram upload
         id: tg
         env:
           ON_DEFAULT: ${{ github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
           DISPATCH: ${{ github.event_name == 'workflow_dispatch' && inputs.telegram }}
+          S_APP_ID: ${{ secrets.TELEGRAM_BOT_APP_ID }}
+          S_APP_HASH: ${{ secrets.TELEGRAM_BOT_APP_HASH }}
           S_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           S_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           if [ "$ON_DEFAULT" != true ] && [ "$IS_TAG" != true ] && [ "$DISPATCH" != true ]; then
             echo "enabled=false" >> "$GITHUB_OUTPUT"; exit 0
           fi
-          if [ -z "$S_TOKEN" ] || [ -z "$S_CHAT" ] || [ -z "$TELEGRAM_APP_ID" ] || [ -z "$TELEGRAM_APP_HASH" ]; then
-            echo "::warning::Telegram upload skipped: set the TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, TELEGRAM_APP_ID and TELEGRAM_APP_HASH secrets."
+          if [ -z "$S_TOKEN" ] || [ -z "$S_CHAT" ] || [ -z "$S_APP_ID" ] || [ -z "$S_APP_HASH" ]; then
+            echo "::warning::Telegram upload skipped: set the TELEGRAM_BOT_APP_ID, TELEGRAM_BOT_APP_HASH, TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID secrets."
             echo "enabled=false" >> "$GITHUB_OUTPUT"; exit 0
           fi
           echo "enabled=true" >> "$GITHUB_OUTPUT"
@@ -305,6 +313,11 @@ jobs:
         if: steps.tg.outputs.enabled == 'true'
         continue-on-error: true
         env:
+          # Override the job-level build credentials so the uploader can never pick them up.
+          TELEGRAM_APP_ID: ''
+          TELEGRAM_APP_HASH: ''
+          TELEGRAM_BOT_APP_ID: ${{ secrets.TELEGRAM_BOT_APP_ID }}
+          TELEGRAM_BOT_APP_HASH: ${{ secrets.TELEGRAM_BOT_APP_HASH }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           COMMIT_ID: ${{ github.sha }}
