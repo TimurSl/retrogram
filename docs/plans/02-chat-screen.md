@@ -39,11 +39,13 @@ Replace `ChatActivityBlurredRoundButton` (page down, mentions, reactions) with t
 or "AI" buttons that exist in 13.x) as small solid circles stacked above.
 
 ### WP 2.4 — Top panels and bars (L)
+> **Status:** chat header, top panels and (2.4c) forum topic strip and hashtag tabs are flat behind "Classic chat header"; not yet done: group-call capsule, the side topic strip.
 `ChatActivityTopPanelLayout` → classic stacked panels: pinned message, group-call, translate, "report spam",
 "join/mute" bottom bar, topic header. Solid backgrounds, divider lines; no top fade.
 Action bar solid; `FLAG_CHAT_BLUR` (12.1-style blur) default **off** on AVERAGE-class devices.
 
 ### WP 2.5 — Message list chrome (M)
+> **Status: audited, no code needed** (`ChatActionCell` has no glass; see `02-spike.md`). Not checked on a device.
 Date pill ("sticky date"), unread-messages bar, scroll-to-reply highlight and the blurred "service" bubble
 backgrounds: keep the 12.1.1 drawing (`Theme.chat_actionBackgroundPaint`, not blur3-based ones).
 

@@ -486,8 +486,10 @@ public class TopicsTabsView extends FrameLayout implements NotificationCenter.No
 
     public void setTopMenuBackgroundDrawable(BlurredBackgroundDrawable sideMenuBackgroundDrawable) {
         this.topMenuBackgroundDrawable = sideMenuBackgroundDrawable;
-        this.topMenuBackgroundDrawable.setRadius(dp(18));
-        this.topMenuBackgroundDrawable.setPadding(dp(7));
+        // Retrogram: classic chat header draws the topic strip as a flat full-width bar.
+        final boolean classic = app.retrogram.RetroConfig.isClassicChatHeader();
+        this.topMenuBackgroundDrawable.setRadius(classic ? 0 : dp(18));
+        this.topMenuBackgroundDrawable.setPadding(classic ? 0 : dp(7));
     }
 
 

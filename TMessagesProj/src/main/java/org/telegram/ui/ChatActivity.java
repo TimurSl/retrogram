@@ -8538,7 +8538,8 @@ public class ChatActivity extends BaseFragment implements
             hashtagSearchTabs.setPadding(0, dp(7.66f), 0, dp(7.66f));
             hashtagSearchTabs.setBackground(glassBackgroundDrawableFactory.create(hashtagSearchTabs)
                 .setColorProvider(BlurredBackgroundProviderImpl.topPanelChatActivity(resourceProvider))
-                .setRadius(dp(18)).setPadding(dp(7f)));
+                .setRadius(app.retrogram.RetroConfig.isClassicChatHeader() ? 0 : dp(18))
+                .setPadding(app.retrogram.RetroConfig.isClassicChatHeader() ? 0 : dp(7f)));
 
             contentView.addView(hashtagSearchTabs, LayoutHelper.createFrameMarginPx(LayoutHelper.MATCH_PARENT, 50, Gravity.FILL_HORIZONTAL | Gravity.TOP, 0, -dp(5), 0, 0));
         }

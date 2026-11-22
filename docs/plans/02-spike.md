@@ -90,3 +90,9 @@ reply/edit bars, voice/video record overlay, attach button and AI/rich-text butt
   (12.1.1 grey, `0xff8e959b`; the 13.1.1 theme has no `chat_goDownButtonIcon` key). Sizes, positions, the counter badge (`CounterView`) and the animations are untouched.
 - **Not done:** the circle is 44dp as in 12.4 (12.1.1 used 42dp); the glass factory drawable is still created and updated (not drawn), so it still takes part in blur-source bookkeeping; the elevation shadow is clipped if a parent sets `clipChildren`
   (not seen in the chat layouts, check on a device); other glass circles outside the chat (media viewer, profile) are Phase 4.
+
+### Message list chrome (WP 2.5, 2026-11-22) and flat topic / hashtag tabs (WP 2.4c, written, not compiled outside CI, not run on a device)
+- **WP 2.5 needs no code.** `ChatActionCell` (service messages and the floating date pill, `floatingDateView`) has no blur3/glass reference; it draws with `key_paint_chatActionBackground`, the 12.1.1 paint.
+  The unread-messages bar and the scroll-to-reply highlight are plain message cells. Check on a device with a wallpaper, light and night.
+- **WP 2.4c:** with "Classic chat header" on, the forum topic strip (`TopicsTabsView.setTopMenuBackgroundDrawable`) and the hashtag-search tab bar (`hashtagSearchTabs` in `ChatActivity`) use radius 0 and padding 0, like `topPanelLayout`.
+  Caveat: the topic strip's draw bounds are `TOP_TABS_HEIGHT + 7 + 7` tall (the glass padding was inset inside them), so the flat bar is 14dp taller than the old pill and the tab row may sit off-centre in it. The side strip (tablet) is unchanged.
