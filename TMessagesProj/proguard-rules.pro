@@ -263,3 +263,17 @@
 -keep class ru.noties.jlatexmath.** { *; }
 -dontwarn org.scilab.forge.jlatexmath.**
 -keep class org.telegram.tgnet.** { *; }
+
+# Retrogram XMPP (Smack): providers, SASL mechanisms and managers are found by name at run time.
+-keep class org.jivesoftware.** { *; }
+-keep class org.jxmpp.** { *; }
+-keep class org.minidns.** { *; }
+-dontwarn org.jivesoftware.**
+-dontwarn org.jxmpp.**
+-dontwarn org.minidns.**
+-dontwarn org.hsluv.**
+-dontwarn javax.xml.stream.**
+-dontwarn javax.security.sasl.**
+-dontwarn javax.naming.**
+-dontwarn java.lang.management.**
+-dontwarn javax.security.auth.callback.**

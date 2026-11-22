@@ -434,6 +434,22 @@ dependencies {
     implementation "io.noties.markwon:inline-parser:4.6.2"
     implementation "io.noties.markwon:ext-latex:4.6.2"
 
+    // Retrogram XMPP client (app.retrogram.xmpp). The Android flavours of Smack use the platform's XmlPullParser
+    // and SASL implementation. The Smack POMs list JUnit and Mockito as compile dependencies; they must not ship.
+    def smackExcludes = {
+        exclude group: 'org.junit.jupiter'
+        exclude group: 'org.junit.platform'
+        exclude group: 'org.mockito'
+        exclude group: 'net.bytebuddy'
+        exclude group: 'org.objenesis'
+        exclude group: 'org.opentest4j'
+        exclude group: 'org.apiguardian'
+    }
+    implementation('org.igniterealtime.smack:smack-android:4.5.0', smackExcludes)
+    implementation('org.igniterealtime.smack:smack-android-extensions:4.5.0', smackExcludes)
+    implementation('org.igniterealtime.smack:smack-tcp:4.5.0', smackExcludes)
+    implementation('org.igniterealtime.smack:smack-experimental:4.5.0', smackExcludes)
+
     // wear auth
     implementation 'com.google.android.gms:play-services-wearable:18.0.0'
 }
