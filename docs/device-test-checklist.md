@@ -9,7 +9,7 @@ How to test a build: Actions tab → latest green "Build" run on the branch → 
 retention). It installs next to nothing else (package `app.retrogram.messenger`) and will not update over a differently signed build. Push notifications will not work
 (placeholder `google-services.json`) and login needs a real `api_id` (open decision 2 in `docs/plans/README.md`), so what you can test depends on that.
 
-Send me screenshots (light and night theme if you can) and say which switch was on. Switches live in N-Settings → Retrogram.
+Since 2026-11-22 all the classic switches below are on by default (fresh installs; a stored choice is kept). Send me screenshots (light and night theme if you can) and say which switch was on. Switches live in N-Settings → Retrogram.
 
 ## Switches (N-Settings → Retrogram)
 | Switch | Default | Applies |
@@ -17,11 +17,11 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 | Classic interface | on | after restart |
 | Remote update checks | off | after restart |
 | Classic settings page | on | next time Settings opens |
-| Classic input bar (experimental) | off | chats opened afterwards |
-| Classic chat header (experimental) | off | chats opened afterwards |
-| Classic emoji panel (experimental) | off | chats opened afterwards |
-| Classic round buttons (experimental) | off | chats opened afterwards |
-| Classic theme colors (experimental) | off | after restart |
+| Classic input bar (experimental) | on | chats opened afterwards |
+| Classic chat header (experimental) | on | chats opened afterwards |
+| Classic emoji panel (experimental) | on | chats opened afterwards |
+| Classic round buttons (experimental) | on | chats opened afterwards |
+| Classic theme colors (experimental) | on | after restart |
 
 ## Checks
 **Shell (tested once, 2026-11-07)**
@@ -56,6 +56,7 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 **Emoji panel (classic emoji panel on)**
 - [ ] Open emoji, GIFs, stickers: a full-width bottom bar with tab icons, search and backspace; no floating pill
 - [ ] Tab switching, scrolling under the bar, backspace repeat, sticker settings button
+- [ ] Inline search box (top of each page): normal grey box, readable hint/text in light and night; tab, category-strip and sticker-set-name colors
 
 **Round buttons (classic round buttons on)**
 - [ ] Page-down, mentions and reactions: solid circle (white on the default theme) with a soft shadow, arrow/icon visible, counter badge above it
@@ -66,6 +67,11 @@ Send me screenshots (light and night theme if you can) and say which switch was 
 - [ ] Chat list: blue action bar with white icons and title, white status text; search icon; folder tabs
 - [ ] Chat screen action bar, profile and settings pages, sheets and dialogs: nothing unreadable (dark text on dark, white on white)
 - [ ] Switch to a dark theme and back: no leftovers
+
+**Top panels, attach and share sheets (retro on; added 2026-11-22, not yet seen)**
+- [ ] Chat list: call bar / archive hint / auth hint under the folder tabs are a flat full-width strip, no rounded card, no fade band under the tabs
+- [ ] Attach sheet (paperclip): bottom tab bar is a full-width solid strip, no floating pill, no fade behind it; tabs still tappable and scroll if many
+- [ ] Share sheet: caption bar, "Send" bar and the emoji panel under the caption are flat and full width, no fade at the bottom
 
 **Glass leftovers (retro on)**
 - [ ] Any blurred or translucent panel you can find: share sheet, attach sheet, photo viewer, profile of another user, chat action bar, top panels (pinned, translate)

@@ -70,6 +70,10 @@ Keep this patch under ~150 lines so it survives merges. It also gives a quick wi
 become solid) before Phases 1–3 are finished.
 
 ### WP 4.2 — Sweep list (L)
+> **Progress (2026-11-22, written, not build-verified):** `ChatAttachAlert`: in retro mode the bottom tab bar is a flat full-width strip (radius 0, no 7dp inset, no rounded outline clip) and
+> `bottomFadeView` stays hidden (also after `showLayout`). `ShareAlert`: the caption bar, the "Send"/picker bar, the timestamp bar and the emoji panel behind the caption are flat
+> (radius 0, drawable inset 0; the views keep their padding) and `bottomFadeView` is gone. Left: `PhotoViewer` (dark UI, a few blur3 pills), `ContactsActivity` / `CallLogActivity` / `TopicsFragment` search pills,
+> the attach sheet's caption pill (`captionContainerBg`, `emojiViewChildBg`), `StarGiftPreviewSheet`, Bulletins, ItemOptions, `BlurSettingsBottomSheet`.
 Open each, switch to retro mode, fix layout leftovers (padding reserved for floating bars, "glass" margins):
 ShareAlert, ChatAttachAlert (incl. Gram/Rich/Poll layouts), PhotoViewer controls, ContactsActivity,
 CallLogActivity, TopicsFragment, PeerColorActivity, StatisticActivity, ChannelAdminLogActivity, SelectAudioAlert,
