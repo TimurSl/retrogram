@@ -7,8 +7,10 @@ import android.content.Context;
 import android.graphics.BlendMode;
 import android.graphics.BlendModeColorFilter;
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.view.Gravity;
 import android.widget.FrameLayout;
@@ -19,6 +21,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.CircularProgressDrawable;
 import org.telegram.ui.Components.CubicBezierInterpolator;
@@ -27,6 +30,7 @@ import org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory;
 import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
 import org.telegram.ui.Components.blur3.drawable.color.BlurredBackgroundColorProvider;
 
+import app.retrogram.RetroConfig;
 import me.vkryl.android.animator.BoolAnimator;
 import me.vkryl.android.animator.FactorAnimator;
 
@@ -49,16 +53,54 @@ public class ChatActivityBlurredRoundButton extends FrameLayout implements Facto
     private CircularProgressDrawable loadingIndicatorDrawable;
     private Theme.ResourcesProvider resourcesProvider;
 
+    // Retrogram (WP 2.3): classic 12.1.1 look, a solid 42dp circle in chat_goDownButton with the soft pagedown_shadow, instead of the 44dp glass circle.
+    public static final int CLASSIC_CIRCLE_SIZE = 42;
+    private static final int CLASSIC_SHADOW_SIZE = 46;
+    private boolean classic;
+    private Drawable classicShadow;
+    private final Paint classicPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
         backgroundDrawable.setBounds(0, 0, w, h);
+        if (classicShadow != null) {
+            final int s = dp(CLASSIC_SHADOW_SIZE);
+            final int l = (w - s) / 2, t = (h - s) / 2;
+            classicShadow.setBounds(l, t, l + s, t + s);
+        }
     }
 
     @Override
     public void draw(@NonNull Canvas canvas) {
-        backgroundDrawable.draw(canvas);
+        if (classic) {
+            if (classicShadow != null) {
+                classicShadow.draw(canvas);
+            }
+            canvas.drawCircle(getWidth() / 2f, getHeight() / 2f, dp(CLASSIC_CIRCLE_SIZE) / 2f, classicPaint);
+        } else {
+            backgroundDrawable.draw(canvas);
+        }
         super.draw(canvas);
+    }
+
+    /** Switches this button to the classic round look when the Retrogram switch is on. Safe to call again after a theme change. */
+    private void applyClassicStyle() {
+        classic = RetroConfig.isClassicRoundButtons();
+        if (!classic) {
+            return;
+        }
+        if (classicShadow == null) {
+            classicShadow = getContext().getResources().getDrawable(R.drawable.pagedown_shadow).mutate();
+            classicShadow.setColorFilter(new PorterDuffColorFilter(0xff000000, PorterDuff.Mode.MULTIPLY));
+            if (getWidth() > 0) {
+                onSizeChanged(getWidth(), getHeight(), 0, 0);
+            }
+        }
+        classicPaint.setColor(Theme.getColor(Theme.key_chat_goDownButton, resourcesProvider));
+        final int pressedColor = Theme.multAlpha(Theme.getColor(Theme.key_glass_defaultIcon, resourcesProvider), .15f);
+        setBackground(Theme.createInsetRoundRectDrawable(pressedColor, dp(CLASSIC_CIRCLE_SIZE / 2f), dp(7)));
+        invalidate();
     }
 
     @Override
@@ -174,6 +216,7 @@ public class ChatActivityBlurredRoundButton extends FrameLayout implements Facto
         int rad = dp(22);
         int pressedColor = Theme.multAlpha(color, .15f);
         button.setBackground(Theme.createInsetRoundRectDrawable(pressedColor, rad, dp(6)));
+        button.applyClassicStyle();
 
         return button;
     }
@@ -197,6 +240,7 @@ public class ChatActivityBlurredRoundButton extends FrameLayout implements Facto
         int rad = dp(22);
         int pressedColor = Theme.multAlpha(color, .15f);
         button.setBackground(Theme.createInsetRoundRectDrawable(pressedColor, rad, dp(6)));
+        button.applyClassicStyle();
 
         return button;
     }
@@ -212,6 +256,7 @@ public class ChatActivityBlurredRoundButton extends FrameLayout implements Facto
         int rad = dp(22);
         int pressedColor = Theme.multAlpha(color, .15f);
         setBackground(Theme.createInsetRoundRectDrawable(pressedColor, rad, dp(6)));
+        applyClassicStyle();
     }
 
     private void checkUi_IconViewVisibility() {
