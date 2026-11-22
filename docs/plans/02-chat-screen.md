@@ -33,6 +33,13 @@ Solid 12.1.1 tab strip (`EmojiView`'s bottom/top tab bar), no glass tabs; search
 Check the new content types added since (stickers/emoji packs, "profile" tab) are still reachable in the tab strip.
 
 ### WP 2.3 — Round buttons (M)
+> **Status: first step written (opt-in), not build-verified, not run on a device.** Settings → Retrogram → "Classic round buttons (experimental)", off by default,
+> read when a button is created and on theme change (`RetroConfig.isClassicRoundButtons()`). All round chat buttons go through `ChatActivityBlurredRoundButton`
+> (page down, mentions, reactions, poll votes, search up/down, the reply/forward bar buttons and the channel buttons), so the change is inside that one class:
+> with the switch on it skips the blur3 circle and draws the 12.1.1 look, a solid 42dp circle filled with `key_chat_goDownButton` over the soft `pagedown_shadow`
+> (restored from `9cbf0333`, four densities); the pressed ripple is the inset circle at 42dp. Icons keep `key_glass_defaultIcon` (falls back to the panel icon color;
+> 13.1.1 dropped `chat_goDownButtonIcon`). The counter badge is the shared `CounterView`, unchanged. Not touched: button positions (still set by
+> `ChatActivitySideControlsButtonsLayout`; 12.1.1 sat 3dp further right and 5dp lower), the 13.x extra buttons keep the same circle.
 Replace `ChatActivityBlurredRoundButton` (page down, mentions, reactions) with the classic
 `ChatActivity` floating buttons (solid circle, shadow, counter badge). Keep the new ones (e.g. any "live comments"
 or "AI" buttons that exist in 13.x) as small solid circles stacked above.

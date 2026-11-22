@@ -53,6 +53,13 @@ object RetroConfig {
     val classicEmojiPanel = ConfigItem("RetroClassicEmojiPanel", ConfigItem.configTypeBool, false)
 
     /**
+     * Experimental: the page-down, mentions and reactions buttons (and the search up/down arrows) as the classic solid 42dp circles with the soft shadow
+     * (12.1.1) instead of the 12.4 glass circles. Off by default; read when the button is created and on theme change.
+     */
+    @JvmField
+    val classicRoundButtons = ConfigItem("RetroClassicRoundButtons", ConfigItem.configTypeBool, false)
+
+    /**
      * Experimental: the 12.1.1 default-theme palette (blue action bar, white icons, ...) for the keys whose default
      * changed in 13.1.1 (see [RetroThemeColors]). Off by default; applied at process start, so it needs a restart.
      * `RetroThemeColors.enabled()` reads the stored value itself because `Theme` can load before [init].
@@ -80,7 +87,7 @@ object RetroConfig {
     @JvmField
     val fontName = ConfigItem("RetroFontName", ConfigItem.configTypeString, "")
 
-    private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings, classicInput, classicChatHeader, classicEmojiPanel, classicColors)
+    private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings, classicInput, classicChatHeader, classicEmojiPanel, classicRoundButtons, classicColors)
 
     const val GIF_PROVIDER_KLIPY = 0
     const val GIF_PROVIDER_UNIGIF = 1
@@ -96,6 +103,10 @@ object RetroConfig {
     /** Whether the emoji panel uses the classic full-width bottom tab bar. */
     @JvmStatic
     fun isClassicEmojiPanel(): Boolean = retroUiAtStart && classicEmojiPanel.Bool()
+
+    /** Whether the chat's floating round buttons (page down, mentions, reactions, search arrows) use the classic solid circle. */
+    @JvmStatic
+    fun isClassicRoundButtons(): Boolean = retroUiAtStart && classicRoundButtons.Bool()
 
     /** Whether the chat screen uses the classic solid action bar. */
     @JvmStatic
