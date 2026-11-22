@@ -182,7 +182,12 @@ public final class XmppController {
         c.accountId = config.id;
         c.jid = jid;
         c.groupChat = group;
-        if (!group) {
+        if (!group && jid.indexOf('/') >= 0) {
+            // A private message to a room occupant: "Nick (room)".
+            String room = Jids.bare(jid);
+            int at = room.indexOf('@');
+            c.title = Jids.resource(jid) + " (" + (at > 0 ? room.substring(0, at) : room) + ")";
+        } else if (!group) {
             XmppContact ct = contact(jid);
             c.title = ct != null ? ct.name : "";
         }
@@ -277,7 +282,8 @@ public final class XmppController {
         m.groupChat = group;
         m.body = body;
         if (replyTo != null) {
-            m.replyToId = !replyTo.originId.isEmpty() && group ? replyTo.serverId.isEmpty() ? replyTo.stanzaId : replyTo.serverId : replyTo.stanzaId;
+            // In a group chat the id that counts is the one the room assigned.
+            m.replyToId = group && !replyTo.serverId.isEmpty() ? replyTo.serverId : replyTo.stanzaId;
             m.replyToBody = replyTo.body;
             m.replyToAuthor = replyTo.sender;
         }
@@ -793,7 +799,10 @@ public final class XmppController {
                 }
                 catchingUp = true;
             }
-            String last = store.getMeta(config.id, META_MAM_LAST);
+            runCatchUp(store.getMeta(config.id, META_MAM_LAST), true);
+        }
+
+        private void runCatchUp(String last, boolean retryFromScratch) {
             session.catchUp(last, 300, new Callback<String>() {
                 @Override
                 public void onResult(String newest) {
@@ -808,6 +817,13 @@ public final class XmppController {
 
                 @Override
                 public void onError(XmppError error) {
+                    if (retryFromScratch && last != null && !last.isEmpty() && "item-not-found".equals(error.condition)) {
+                        // The server no longer knows our marker (archive purged or replaced): start again from the newest page,
+                        // otherwise every later login would fail the same way.
+                        store.setMeta(config.id, META_MAM_LAST, "");
+                        runCatchUp("", false);
+                        return;
+                    }
                     synchronized (lock) {
                         catchingUp = false;
                     }
@@ -822,6 +838,9 @@ public final class XmppController {
             for (XmppConversation c : store.conversations(config.id)) {
                 if (c.groupChat && c.joined) {
                     done.add(c.jid);
+                    if (session.joinedRooms().contains(c.jid)) {
+                        continue;
+                    }
                     session.joinRoom(c.jid, c.nickname, c.password, false, store.newestTime(config.id, c.jid), null);
                 }
             }

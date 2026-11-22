@@ -1945,6 +1945,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         } else if (id == DrawerLayoutAdapter.nkbtnFeed) {
             com.exteragram.messenger.feed.ui.FeedActivity.presentFeed(getLastFragment());
             drawerLayoutContainer.closeDrawer(false);
+        } else if (id == DrawerLayoutAdapter.nkbtnXmpp) {
+            presentFragment(new app.retrogram.xmpp.ui.XmppChatsActivity());
+            drawerLayoutContainer.closeDrawer(false);
         } else if (id == DrawerLayoutAdapter.nkbtnQrCode) {
             Bundle qrArgs = new Bundle();
             qrArgs.putLong("user_id", UserConfig.getInstance(currentAccount).getClientUserId());
@@ -2267,6 +2270,10 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             return true;
         }
         if (AndroidUtilities.handleProxyIntent(this, intent, true)) {
+            return true;
+        }
+        // Retrogram XMPP: notification taps and xmpp: links.
+        if (app.retrogram.xmpp.ui.XmppLinks.handleIntent(this, intent)) {
             return true;
         }
         if (intent == null || !Intent.ACTION_MAIN.equals(intent.getAction())) {

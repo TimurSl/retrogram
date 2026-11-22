@@ -62,6 +62,7 @@ object DrawerMenuHelper {
         Entry(DrawerLayoutAdapter.nkbtnQrCode, R.string.QrCode, R.drawable.msg_qrcode),
         Entry(DrawerLayoutAdapter.nkbtnInvite, R.string.InviteFriends, R.drawable.msg_invited),
         Entry(DrawerLayoutAdapter.nkbtnFeatures, R.string.TelegramFeatures, R.drawable.msg_help),
+        Entry(DrawerLayoutAdapter.nkbtnXmpp, R.string.XmppDrawer, R.drawable.msg_discussion),
         Entry(DrawerLayoutAdapter.nkbtnRestartApp, R.string.RestartApp, R.drawable.msg_retry)
     )
 
@@ -76,6 +77,7 @@ object DrawerMenuHelper {
     fun defaultLayout(): MutableList<Int> = mutableListOf(
         DrawerLayoutAdapter.nkbtnGhostMode, DIVIDER,
         ID_MY_PROFILE, ID_EMOJI_STATUS, ID_NEW_GROUP, ID_CONTACTS, ID_CALLS,
+        DrawerLayoutAdapter.nkbtnXmpp,
         DrawerLayoutAdapter.nkbtnWallet,
         DrawerLayoutAdapter.nkbtnRecentChats, ID_SAVED, ID_SETTINGS, DIVIDER,
         DrawerLayoutAdapter.nkbtnInvite, DrawerLayoutAdapter.nkbtnFeatures, DIVIDER,

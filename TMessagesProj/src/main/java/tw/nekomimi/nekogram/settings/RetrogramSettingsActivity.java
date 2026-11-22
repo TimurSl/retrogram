@@ -70,6 +70,12 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
     private final AbstractConfigCell fontInfoRow = cellGroup.appendCell(new ConfigCellCustom("RetroFontInfo", CellGroup.ITEM_TYPE_TEXT, false));
     private final AbstractConfigCell dividerFont = cellGroup.appendCell(new ConfigCellDivider());
 
+    // XMPP client (app.retrogram.xmpp).
+    private final AbstractConfigCell headerXmpp = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.RetrogramXmpp)));
+    private final AbstractConfigCell xmppChatsRow = cellGroup.appendCell(new ConfigCellText("XmppSettingsChats", () -> presentFragment(new app.retrogram.xmpp.ui.XmppChatsActivity())));
+    private final AbstractConfigCell xmppAccountsRow = cellGroup.appendCell(new ConfigCellText("XmppSettingsAccounts", () -> presentFragment(new app.retrogram.xmpp.ui.XmppAccountsActivity())));
+    private final AbstractConfigCell dividerXmpp = cellGroup.appendCell(new ConfigCellDivider());
+
     // GIF provider. The UniGif rows are only in the list while UniGif is selected (see updateGifRows).
     private final AbstractConfigCell headerGifs = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.RetrogramGifs)));
     private final AbstractConfigCell gifProviderRow = cellGroup.appendCell(new ConfigCellSelectBox(null, RetroConfig.gifProvider, new String[]{

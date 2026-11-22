@@ -98,6 +98,8 @@ object MainMenuActions {
                 qrArgs.putLong("user_id", UserConfig.getInstance(currentAccount).clientUserId)
                 fragment.presentFragment(org.telegram.ui.QrShare.QrShareActivity(qrArgs))
             }
+            id == DrawerLayoutAdapter.nkbtnXmpp ->
+                fragment.presentFragment(app.retrogram.xmpp.ui.XmppChatsActivity())
             id == DrawerLayoutAdapter.nkbtnInvite ->
                 fragment.presentFragment(org.telegram.ui.InviteContactsActivity())
             id == DrawerLayoutAdapter.nkbtnFeatures ->

@@ -21,6 +21,7 @@ import org.jivesoftware.smack.roster.RosterEntry;
 import org.jivesoftware.smack.roster.RosterGroup;
 import org.jivesoftware.smack.roster.RosterListener;
 import org.jivesoftware.smack.roster.SubscribeListener;
+import org.jivesoftware.smack.roster.packet.RosterPacket;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smackx.bookmarks.BookmarkManager;
@@ -178,6 +179,8 @@ public final class XmppSession {
 
     private final ScheduledExecutorService serial;
     private final ExecutorService io;
+    /** One thread for everything that goes out in order: messages, typing, markers. */
+    private final ExecutorService outbox;
 
     private volatile XMPPTCPConnection connection;
     private volatile XmppConnectionState state = XmppConnectionState.DISCONNECTED;
@@ -220,6 +223,7 @@ public final class XmppSession {
         final String tag = "xmpp-" + config.jid;
         this.serial = Executors.newSingleThreadScheduledExecutor(daemon(tag + "-ctl"));
         this.io = Executors.newCachedThreadPool(daemon(tag + "-io"));
+        this.outbox = Executors.newSingleThreadExecutor(daemon(tag + "-out"));
     }
 
     private static ThreadFactory daemon(String name) {
@@ -305,6 +309,7 @@ public final class XmppSession {
         serial.schedule(() -> {
             serial.shutdown();
             io.shutdown();
+            outbox.shutdown();
         }, 3, TimeUnit.SECONDS);
     }
 
@@ -397,7 +402,11 @@ public final class XmppSession {
                 c.connect();
             }
             c.login();
-            afterLogin(c);
+            try {
+                afterLogin(c);
+            } catch (RuntimeException e) {
+                // A failure in the start-up work (storage, a listener) is not a reason to drop a working connection.
+            }
         } catch (Throwable t) {
             if (t instanceof InterruptedException) {
                 Thread.currentThread().interrupt();
@@ -545,7 +554,8 @@ public final class XmppSession {
 
         CarbonManager.getInstanceFor(c); // load the extension provider
 
-        c.addAsyncStanzaListener(stanzaListener, StanzaTypeFilter.MESSAGE);
+        // Synchronous, not async: async listeners run on a thread pool and would store a burst of messages out of order.
+        c.addSyncStanzaListener(stanzaListener, StanzaTypeFilter.MESSAGE);
     }
 
     private void afterLogin(XMPPTCPConnection c) {
@@ -747,25 +757,22 @@ public final class XmppSession {
 
     public void setContactGroups(String jid, List<String> groups, Callback<Void> cb) {
         run(cb, () -> {
-            Roster r = Roster.getInstanceFor(requireConnection());
-            RosterEntry e = r.getEntry(requireBare(jid));
+            XMPPTCPConnection c = requireConnection();
+            Roster r = Roster.getInstanceFor(c);
+            BareJid j = requireBare(jid);
+            RosterEntry e = r.getEntry(j);
             if (e == null) {
                 throw new XmppError(XmppError.Kind.INVALID, "not in roster");
             }
-            for (RosterGroup g : new ArrayList<>(e.getGroups())) {
-                if (!groups.contains(g.getName())) {
-                    g.removeEntry(e);
-                }
+            // One roster set with the complete list: adding groups one by one would replace the previous ones.
+            RosterPacket.Item item = new RosterPacket.Item(j, e.getName());
+            for (String g : groups) {
+                item.addGroupName(g);
             }
-            for (String name : groups) {
-                RosterGroup g = r.getGroup(name);
-                if (g == null) {
-                    g = r.createGroup(name);
-                }
-                if (!g.contains(e)) {
-                    g.addEntry(e);
-                }
-            }
+            RosterPacket set = new RosterPacket();
+            set.setType(org.jivesoftware.smack.packet.IQ.Type.set);
+            set.addRosterItem(item);
+            c.sendIqRequestAndWaitForResponse(set);
             r.reloadAndWait();
             publishRoster();
             return null;
@@ -865,7 +872,7 @@ public final class XmppSession {
     }
 
     public void send(XmppMessage m, Callback<Void> cb) {
-        io.execute(() -> {
+        outbox.execute(() -> {
             try {
                 doSend(m);
                 if (cb != null) {
@@ -881,7 +888,7 @@ public final class XmppSession {
 
     private void doSend(XmppMessage m) throws Exception {
         XMPPTCPConnection c = requireConnection();
-        EntityBareJid to = Jids.entityBare(m.conversation);
+        Jid to = m.conversation.indexOf('/') >= 0 ? Jids.from(m.conversation) : Jids.entityBare(m.conversation);
         if (to == null) {
             throw new XmppError(XmppError.Kind.INVALID, m.conversation);
         }
@@ -946,10 +953,10 @@ public final class XmppSession {
 
     /** Typing indicator (XEP-0085). Not stored by the server. */
     public void sendChatState(String conversation, boolean group, ChatState state) {
-        io.execute(() -> {
+        outbox.execute(() -> {
             try {
                 XMPPTCPConnection c = connection;
-                EntityBareJid to = Jids.entityBare(conversation);
+                Jid to = conversation.indexOf('/') >= 0 ? Jids.from(conversation) : Jids.entityBare(conversation);
                 if (c == null || !c.isAuthenticated() || to == null) {
                     return;
                 }
@@ -969,7 +976,7 @@ public final class XmppSession {
         if (group) {
             return; // markers are 1:1 only here; rooms would leak read state to everyone
         }
-        io.execute(() -> {
+        outbox.execute(() -> {
             try {
                 XMPPTCPConnection c = connection;
                 EntityBareJid to = Jids.entityBare(conversation);
@@ -1049,7 +1056,7 @@ public final class XmppSession {
             }
         }
         if (cs != null && !fromBare.equalsIgnoreCase(config.jid)) {
-            listener.onChatState(fromBare, fromJid.toString(), cs.getChatState());
+            listener.onChatState(type == Message.Type.groupchat ? fromBare : conversationKey(fromJid), fromJid.toString(), cs.getChatState());
         }
 
         XmlElement displayed = findExtension(message, "displayed", NS_MARKERS);
@@ -1070,6 +1077,18 @@ public final class XmppSession {
         } else if (type == Message.Type.groupchat && message.getSubject() != null && message.getBody() == null) {
             listener.onRoom(fromBare, true, message.getSubject(), null);
         }
+    }
+
+    /**
+     * The conversation a 1:1 message belongs to. A private message from a room occupant keeps the full
+     * address {@code room@host/nick}, so it does not mix with the room's own messages.
+     */
+    private String conversationKey(Jid peer) {
+        String bare = peer.asBareJid().toString();
+        if (rooms.containsKey(bare) && peer.hasResource()) {
+            return peer.toString();
+        }
+        return bare;
     }
 
     private static XmlElement findExtension(Stanza s, String name, String ns) {
@@ -1128,20 +1147,20 @@ public final class XmppSession {
             if (to == null) {
                 return null;
             }
-            m.conversation = to.asBareJid().toString();
+            m.conversation = conversationKey(to);
             m.sender = config.jid;
             m.outgoing = true;
         } else {
             if (from == null) {
                 return null;
             }
-            m.conversation = from.asBareJid().toString();
+            m.conversation = conversationKey(from);
             m.sender = from.toString();
             m.outgoing = from.asBareJid().toString().equalsIgnoreCase(config.jid) && to != null
                     && !to.asBareJid().toString().equalsIgnoreCase(config.jid);
             if (m.outgoing) {
                 // Archive result of something I sent.
-                m.conversation = to.asBareJid().toString();
+                m.conversation = conversationKey(to);
                 m.sender = config.jid;
             }
         }
@@ -1335,6 +1354,14 @@ public final class XmppSession {
                 MultiUserChatManager mgr = MultiUserChatManager.getInstanceFor(c);
                 MultiUserChat muc = mgr.getMultiUserChat(room);
                 if (muc.isJoined()) {
+                    if (nickname.equals(roomNicks.get(roomJid)) && rooms.containsKey(roomJid)) {
+                        // Already in: a second join (for instance the automatic re-join after login racing with the
+                        // user's own) must not leave first, that would close an empty room on the server.
+                        if (cb != null) {
+                            cb.onResult(null);
+                        }
+                        return;
+                    }
                     try {
                         muc.leave();
                     } catch (Exception ignored) {
@@ -1726,8 +1753,9 @@ public final class XmppSession {
     public static void register(XmppAccountConfig config, X509TrustManager trustManager, Callback<Void> cb) {
         Thread t = new Thread(() -> {
             XMPPTCPConnection c = null;
+            XmppSession tmp = null;
             try {
-                XmppSession tmp = new XmppSession(config, new Listener() {
+                tmp = new XmppSession(config, new Listener() {
                 }, trustManager);
                 c = new XMPPTCPConnection(tmp.buildConfiguration());
                 c.connect();
@@ -1740,7 +1768,15 @@ public final class XmppSession {
                 tmp.release();
                 cb.onResult(null);
             } catch (Throwable e) {
-                cb.onError(XmppError.from(e));
+                XmppError err = XmppError.from(e);
+                if (err.kind == XmppError.Kind.TLS_CERTIFICATE && tmp != null && tmp.pinnedTrust != null && tmp.pinnedTrust.lastRejected() != null) {
+                    err.certFingerprint = tmp.pinnedTrust.lastRejected().sha256;
+                    err.certSubject = tmp.pinnedTrust.lastRejected().subject;
+                }
+                if (tmp != null) {
+                    tmp.release();
+                }
+                cb.onError(err);
             } finally {
                 if (c != null) {
                     try {

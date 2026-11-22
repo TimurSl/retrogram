@@ -461,4 +461,84 @@ public class XmppIntegrationTest {
         await("wrong pin refused", () -> still.state == XmppConnectionState.FAILED);
         assertEquals(XmppError.Kind.TLS_CERTIFICATE, still.error.kind);
     }
+
+    @Test
+    public void privateMessageToARoomOccupantStaysOutOfTheRoom() throws Exception {
+        Client a = newUser("alice", 1).start();
+        Client b = newUser("bob", 2).start();
+        a.awaitOnline();
+        b.awaitOnline();
+        String room = unique("pm") + "@conference." + XmppTestSupport.DOMAIN;
+        sync((Callback<Void> cb) -> a.controller.joinRoom(room, "Alice", null, true, false, cb));
+        sync((Callback<Void> cb) -> b.controller.joinRoom(room, "Bob", null, false, false, cb));
+        await("both in room", () -> a.controller.session().occupants(room).size() == 2);
+
+        String toBob = room + "/Bob";
+        a.controller.sendText(toBob, false, "psst", null);
+        String fromAlice = room + "/Alice";
+        await("bob got the private message", () -> b.messages(fromAlice).size() == 1);
+        assertEquals("psst", b.messages(fromAlice).get(0).body);
+        assertFalse(b.messages(fromAlice).get(0).groupChat);
+        assertEquals(0, b.messages(room).size());
+        assertEquals("Alice (" + room.substring(0, room.indexOf('@')) + ")", b.controller.conversation(fromAlice).title);
+        // and the answer goes back through the room
+        b.controller.sendText(fromAlice, false, "hi", null);
+        await("alice got the answer", () -> a.messages(toBob).size() == 2);
+        assertEquals(0, a.messages(room).size());
+    }
+
+    @Test
+    public void contactGroupsCanBeSet() throws Exception {
+        Client a = newUser("alice", 1).start();
+        Client b = newUser("bob", 2).start();
+        a.awaitOnline();
+        b.awaitOnline();
+        befriend(a, b);
+        sync((Callback<Void> cb) -> a.controller.session().setContactGroups(b.config.jid, Arrays.asList("Friends", "Work"), cb));
+        try {
+            await("groups visible", () -> a.controller.contact(b.config.jid).groups.size() == 2);
+        } catch (AssertionError e) {
+            throw new AssertionError(e.getMessage() + " groups=" + a.controller.contact(b.config.jid).groups);
+        }
+        sync((Callback<Void> cb) -> a.controller.session().setContactGroups(b.config.jid, Arrays.asList("Work"), cb));
+        await("one group left", () -> a.controller.contact(b.config.jid).groups.equals(Arrays.asList("Work")));
+    }
+
+    @Test
+    public void aStaleArchiveMarkerIsResetInsteadOfBreakingEveryLogin() throws Exception {
+        Client a = newUser("alice", 1).start();
+        Client b = newUser("bob", 2).start();
+        a.awaitOnline();
+        b.awaitOnline();
+        befriend(a, b);
+        b.controller.stop();
+        await("bob offline", () -> b.state == XmppConnectionState.DISCONNECTED);
+        a.controller.sendText(b.config.jid, false, "while you were away", null);
+        await("on the server", () -> a.messages(b.config.jid).get(0).status >= XmppMessage.STATUS_SENT);
+        b.store.setMeta(b.config.id, "mam.last", "no-such-archive-id");
+        b.controller.start();
+        b.awaitOnline();
+        await("caught up despite the stale marker", () -> b.messages(a.config.jid).size() == 1);
+        await("marker replaced", () -> {
+            String m = b.store.getMeta(b.config.id, "mam.last");
+            return m != null && !m.isEmpty() && !m.equals("no-such-archive-id");
+        });
+    }
+
+    @Test
+    public void rapidMessagesArriveInTheOrderTheyWereWritten() throws Exception {
+        Client a = newUser("alice", 1).start();
+        Client b = newUser("bob", 2).start();
+        a.awaitOnline();
+        b.awaitOnline();
+        befriend(a, b);
+        for (int i = 0; i < 30; i++) {
+            a.controller.sendText(b.config.jid, false, "m" + i, null);
+        }
+        await("all arrived", () -> b.messages(a.config.jid).size() == 30);
+        List<XmppMessage> got = b.messages(a.config.jid);
+        for (int i = 0; i < 30; i++) {
+            assertEquals("m" + i, got.get(i).body);
+        }
+    }
 }

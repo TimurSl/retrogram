@@ -335,6 +335,12 @@ public class ApplicationLoader extends Application {
             DownloadController.getInstance(a);
         }
         BillingController.getInstance().startConnection();
+        // Retrogram: bring the XMPP accounts online (no-op without accounts).
+        try {
+            app.retrogram.xmpp.XmppManager.get().start();
+        } catch (Throwable e) {
+            FileLog.e(e);
+        }
     }
 
     public ApplicationLoader() {
