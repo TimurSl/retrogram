@@ -81,3 +81,12 @@ reply/edit bars, voice/video record overlay, attach button and AI/rich-text butt
   "Classic input bar" on (used for the under-keyboard drawable, its path and bounds; `BotKeyboardView` still uses the constant).
 - **Still 12.4 in that panel:** the inline search field with reaction icons at the top (12.1.1 had a search button in the bottom bar instead).
 
+
+### Classic round buttons (WP 2.3a, 2026-11-22, written, not compiled outside CI and not run on a device)
+- **Where:** all the chat's floating circles go through `ChatActivityBlurredRoundButton.create(...)`: `ChatActivitySideControlsButtonsLayout` (attach, scroll down, mentions, reactions, poll votes, search up/down, via `ChatActivityBlurredRoundPageDownButton`),
+  `ChatActivityActionsButtonsLayout` (reply, forward) and `ChatActivityChannelButtonsLayout` (search, gift, direct, giga-group info). One class, so the switch is a small diff there.
+- **Change:** Settings → Retrogram → "Classic round buttons (experimental)", off by default, read when a button is created (chats opened afterwards). When on, the button does not draw its blur3 drawable; its background is a solid
+  circle (`key_chat_goDownButton`, white by default) with a ripple, inset by the same 6dp click-zone margin, plus a 3dp elevation shadow through an oval `ViewOutlineProvider`. The icon is tinted `key_chat_messagePanelIcons`
+  (12.1.1 grey, `0xff8e959b`; the 13.1.1 theme has no `chat_goDownButtonIcon` key). Sizes, positions, the counter badge (`CounterView`) and the animations are untouched.
+- **Not done:** the circle is 44dp as in 12.4 (12.1.1 used 42dp); the glass factory drawable is still created and updated (not drawn), so it still takes part in blur-source bookkeeping; the elevation shadow is clipped if a parent sets `clipChildren`
+  (not seen in the chat layouts, check on a device); other glass circles outside the chat (media viewer, profile) are Phase 4.

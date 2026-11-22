@@ -9,7 +9,7 @@ and an acceptance check.
 | :--- | :--- | :--- |
 | [00-bootstrap.md](00-bootstrap.md) | 0 — import NagramXF, rebrand, `retrogram.plugins` switch, CI | in progress: 0.1 done (minus submodule forks); 0.2 partial; 0.3 (flag off), 0.4, 0.5 build-verified in CI (run 14, APK artifact); `plugins=true` also green (run 15, manual dispatch); WP 0.3 acceptance checks run in CI (run 16); nothing run on a device yet |
 | [01-main-shell.md](01-main-shell.md) | 1 — drawer + `DialogsActivity` as root | ready after WP 0.1 |
-| [02-chat-screen.md](02-chat-screen.md) | 2 — old chat screen | after Phase 1 |
+| [02-chat-screen.md](02-chat-screen.md) | 2 — old chat screen | in progress: opt-in switches for the input bar (2.1a), chat header and top panels (2.4a/b), emoji panel (2.2a) tested on a device; round buttons (2.3a) written, not yet run |
 | [03-profile-settings.md](03-profile-settings.md) | 3 — old profile and settings | after Phase 1 |
 | [04-global-sweep.md](04-global-sweep.md) | 4 — blur3 choke point, remaining glass, `glass-guard.sh` | spike can start after 0.1 |
 | [05-feature-audit.md](05-feature-audit.md) | 5 — 12.2 → 13.1.1 feature matrix | can start after 0.1 |

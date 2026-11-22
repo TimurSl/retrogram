@@ -9,14 +9,20 @@ import android.graphics.BlendModeColorFilter;
 import android.graphics.Canvas;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
+import android.graphics.drawable.InsetDrawable;
+import android.graphics.Outline;
 import android.os.Build;
 import android.view.Gravity;
+import android.view.View;
+import android.view.ViewOutlineProvider;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import app.retrogram.RetroConfig;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.ui.ActionBar.Theme;
@@ -57,7 +63,9 @@ public class ChatActivityBlurredRoundButton extends FrameLayout implements Facto
 
     @Override
     public void draw(@NonNull Canvas canvas) {
-        backgroundDrawable.draw(canvas);
+        if (!classic) {
+            backgroundDrawable.draw(canvas);
+        }
         super.draw(canvas);
     }
 
@@ -158,22 +166,64 @@ public class ChatActivityBlurredRoundButton extends FrameLayout implements Facto
             checkUi_LoadingViewVisibility();
         }
     }
+    /**
+     * Retrogram "classic round buttons": a solid circle with a shadow (Telegram 12.1.1 look) instead of the glass drawable.
+     * The circle is inset by {@link #CLICK_ZONE_MARGIN} like the glass one, so layouts and click zones stay as they are.
+     */
+    private boolean classic;
+
+    private int iconColor(Theme.ResourcesProvider resourcesProvider) {
+        return Theme.getColor(classic ? Theme.key_chat_messagePanelIcons : Theme.key_glass_defaultIcon, resourcesProvider);
+    }
+
+    private void applyBackground() {
+        final int color = iconColor(resourcesProvider);
+        if (!classic) {
+            setBackground(Theme.createInsetRoundRectDrawable(Theme.multAlpha(color, .15f), dp(22), dp(CLICK_ZONE_MARGIN)));
+            return;
+        }
+        final int fill = Theme.getColor(Theme.key_chat_goDownButton, resourcesProvider);
+        final int inset = dp(CLICK_ZONE_MARGIN);
+        setBackground(new InsetDrawable(
+            Theme.createSimpleSelectorCircleDrawable(dp(BUTTON_SIZE), fill, Theme.multAlpha(color, .15f)), inset));
+    }
+
+    private void applyClassicShape() {
+        classic = true;
+        setElevation(dp(3));
+        setOutlineProvider(new ViewOutlineProvider() {
+            @Override
+            public void getOutline(View view, Outline outline) {
+                final int inset = dp(CLICK_ZONE_MARGIN);
+                outline.setOval(inset, inset, view.getWidth() - inset, view.getHeight() - inset);
+            }
+        });
+    }
+
+    private static ChatActivityBlurredRoundButton newButton(
+        Context context,
+        BlurredBackgroundDrawableViewFactory factory,
+        BlurredBackgroundColorProvider colorProvider,
+        Theme.ResourcesProvider resourcesProvider
+    ) {
+        final ChatActivityBlurredRoundButton button = new ChatActivityBlurredRoundButton(context);
+        button.resourcesProvider = resourcesProvider;
+        button.setBlurredBackgroundDrawable(factory.create(button, colorProvider));
+        if (RetroConfig.isClassicRoundButtons()) {
+            button.applyClassicShape();
+        }
+        return button;
+    }
+
     public static ChatActivityBlurredRoundButton create(
         Context context,
         BlurredBackgroundDrawableViewFactory factory,
         BlurredBackgroundColorProvider colorProvider,
         Theme.ResourcesProvider resourcesProvider
     ) {
-        ChatActivityBlurredRoundButton button;
-
-        final int color = Theme.getColor(Theme.key_glass_defaultIcon, resourcesProvider);
-        button = new ChatActivityBlurredRoundButton(context);
-        button.resourcesProvider = resourcesProvider;
-        button.setBlurredBackgroundDrawable(factory.create(button, colorProvider));
-        button.setIconColor(color);
-        int rad = dp(22);
-        int pressedColor = Theme.multAlpha(color, .15f);
-        button.setBackground(Theme.createInsetRoundRectDrawable(pressedColor, rad, dp(6)));
+        final ChatActivityBlurredRoundButton button = newButton(context, factory, colorProvider, resourcesProvider);
+        button.setIconColor(button.iconColor(resourcesProvider));
+        button.applyBackground();
 
         return button;
     }
@@ -186,17 +236,10 @@ public class ChatActivityBlurredRoundButton extends FrameLayout implements Facto
         @DrawableRes int res,
         int iconSize
     ) {
-        ChatActivityBlurredRoundButton button;
-
-        final int color = Theme.getColor(Theme.key_glass_defaultIcon, resourcesProvider);
-        button = new ChatActivityBlurredRoundButton(context);
-        button.resourcesProvider = resourcesProvider;
-        button.setBlurredBackgroundDrawable(factory.create(button, colorProvider));
+        final ChatActivityBlurredRoundButton button = newButton(context, factory, colorProvider, resourcesProvider);
         button.setIcon(res, iconSize);
-        button.setIconColor(color);
-        int rad = dp(22);
-        int pressedColor = Theme.multAlpha(color, .15f);
-        button.setBackground(Theme.createInsetRoundRectDrawable(pressedColor, rad, dp(6)));
+        button.setIconColor(button.iconColor(resourcesProvider));
+        button.applyBackground();
 
         return button;
     }
@@ -207,11 +250,8 @@ public class ChatActivityBlurredRoundButton extends FrameLayout implements Facto
             invalidate();
         }
 
-        final int color = Theme.getColor(Theme.key_glass_defaultIcon, resourcesProvider);
-        setIconColor(Theme.getColor(Theme.key_glass_defaultIcon, resourcesProvider));
-        int rad = dp(22);
-        int pressedColor = Theme.multAlpha(color, .15f);
-        setBackground(Theme.createInsetRoundRectDrawable(pressedColor, rad, dp(6)));
+        setIconColor(iconColor(resourcesProvider));
+        applyBackground();
     }
 
     private void checkUi_IconViewVisibility() {
