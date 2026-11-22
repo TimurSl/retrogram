@@ -29,6 +29,9 @@ For each of the four areas below, list: (a) the glass-specific code (grep `blur3
   `ChatActivityEnterView` and move 12.1.1-only drawing helpers to `app.retrogram.ui.legacy`.
 
 ### WP 2.2 — Emoji / sticker / GIF panel (L)
+> **Status (2026-11-22):** classic panel is opt-in (WP 2.2a, see `02-spike.md`). Added: with it on, `EmojiView` no longer uses `glassDesign` colors, so the inline search box,
+> its icons, the tab icons, the category strip and the sticker-set name cells use the 12.1.1 keys (`key_chat_emojiSearchBackground`, `key_chat_emojiPanelIcon`, ...) instead of
+> translucent `key_glass_defaultIcon` tints. The search box itself is not a leftover: 12.1.1 had the same inline field (18dp box in a 36dp row, 10/6/10/8 margins). Not build-verified, not run on a device.
 Solid 12.1.1 tab strip (`EmojiView`'s bottom/top tab bar), no glass tabs; search field in-panel as before.
 Check the new content types added since (stickers/emoji packs, "profile" tab) are still reachable in the tab strip.
 
@@ -50,6 +53,12 @@ or "AI" buttons that exist in 13.x) as small solid circles stacked above.
 Action bar solid; `FLAG_CHAT_BLUR` (12.1-style blur) default **off** on AVERAGE-class devices.
 
 ### WP 2.5 — Message list chrome (M)
+> **Status (2026-11-22): checked by code reading, no change needed.** The sticky date pill (`ChatActivity.floatingDateView`), date/service rows, the unread bar and "joined"-style
+> service messages are all `ChatActionCell`/`ChatUnreadCell`, drawn with `Theme.key_paint_chatActionBackground` (+ `...Darken`) and the wallpaper shader matrix, exactly as in 12.1.1.
+> `diff` of `ChatActionCell` between `9cbf0333` and 13.1.1 shows no blur3/glass code, only new shapes for 13.x message types (gift/wallet/offer cards, 20dp instead of 16dp pill radius,
+> bot buttons; the 16dp to 20dp radius change is only for the card-style layouts, the plain date pill is the same 11dp-corner `backgroundPath`). `ChatMessageCell`, `ChatUnreadCell` and
+> `ChatLoadingCell` have no blur3 either. The only message-list glass was the top/bottom fade (`ChatActivityFadeView`, hidden by WP 2.4a). To confirm on a device: pill
+> shape and color on a wallpaper chat in light and night themes.
 Date pill ("sticky date"), unread-messages bar, scroll-to-reply highlight and the blurred "service" bubble
 backgrounds: keep the 12.1.1 drawing (`Theme.chat_actionBackgroundPaint`, not blur3-based ones).
 
