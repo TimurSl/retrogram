@@ -64,6 +64,18 @@ Includes most features from exteraGram and AyuGram.
 
 6. Open the project in Android Studio to start building.
 
+### Continuous deployment to Telegram
+
+Every push to the default branch (and every `v*` tag) posts the built APK to a Telegram channel, captioned with the commit message. Manual runs of the Build workflow can do the same with the `telegram` input. To enable it, add these repository secrets (Settings → Secrets and variables → Actions):
+
+| Secret | Value |
+| --- | --- |
+| `TELEGRAM_APP_ID`, `TELEGRAM_APP_HASH` | API credentials from [my.telegram.org](https://my.telegram.org/auth) (already used for the build) |
+| `TELEGRAM_BOT_TOKEN` | Token of a bot from [@BotFather](https://t.me/BotFather); add the bot to the channel as an admin with "Post messages" |
+| `TELEGRAM_CHAT_ID` | The channel: `@username` for a public one, or its numeric id (`-100…`) |
+
+Without them the step is skipped with a warning. The upload goes through MTProto (`Tools/scripts/upload.py`), so the Bot API's 50 MB file limit doesn't apply. A failed upload leaves the build green and adds a warning.
+
 ### Notice
 
 This project reverse-engineered and uses some code from closed-source projects.

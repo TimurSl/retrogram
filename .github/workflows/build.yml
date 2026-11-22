@@ -24,6 +24,10 @@ on:
         description: 'Upload the APKs as workflow artifacts'
         type: boolean
         default: true
+      telegram:
+        description: 'Post the APKs to the Telegram channel'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -266,6 +270,58 @@ jobs:
       - name: Warn when the APK could not be uploaded
         if: steps.upload.outcome == 'failure'
         run: echo "::warning::APK built but not uploaded (artifact storage quota?). The build log has the file name and size."
+
+      # --- Continuous deployment: Telegram channel -------------------------
+      # Every push to the default branch (plus tags, and manual runs with `telegram` ticked) posts
+      # the APK to the channel, captioned with the commit message. Needs the TELEGRAM_BOT_TOKEN and
+      # TELEGRAM_CHAT_ID secrets (and TELEGRAM_APP_ID / TELEGRAM_APP_HASH); skipped without them.
+      # Uploads go through MTProto (Tools/scripts/upload.py), so the 50 MB Bot API limit does not apply.
+      - name: Decide on Telegram upload
+        id: tg
+        env:
+          ON_DEFAULT: ${{ github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+          DISPATCH: ${{ github.event_name == 'workflow_dispatch' && inputs.telegram }}
+          S_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          S_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          if [ "$ON_DEFAULT" != true ] && [ "$IS_TAG" != true ] && [ "$DISPATCH" != true ]; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          if [ -z "$S_TOKEN" ] || [ -z "$S_CHAT" ] || [ -z "$TELEGRAM_APP_ID" ] || [ -z "$TELEGRAM_APP_HASH" ]; then
+            echo "::warning::Telegram upload skipped: set the TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, TELEGRAM_APP_ID and TELEGRAM_APP_HASH secrets."
+            echo "enabled=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          echo "enabled=true" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Python (Telegram upload)
+        if: steps.tg.outputs.enabled == 'true' && !matrix.plugins
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # The build already succeeded; a Telegram outage must not turn it red.
+      - name: Post APK to Telegram
+        id: tg_post
+        if: steps.tg.outputs.enabled == 'true'
+        continue-on-error: true
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          COMMIT_ID: ${{ github.sha }}
+          COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
+          BRANCH: ${{ github.ref_name }}
+          APK_DIR: ${{ steps.apk.outputs.dir }}
+        run: |
+          # The checked-out commit is the one that was built (also covers tags and manual runs).
+          export COMMIT_MESSAGE="$(git log -1 --format=%B "$COMMIT_ID")"
+          ver=$(sed -n 's/^APP_VERSION_NAME=//p' gradle.properties)
+          type=$([ "$IS_TAG" = "true" ] && echo release || echo debug)
+          export BUILD_LABEL="Retrogram ${ver} · ${type}$([ "$PLUGINS" = "true" ] && echo ' · plugins')"
+          pip install --disable-pip-version-check -q -r Tools/scripts/requirements.txt
+          python Tools/scripts/upload.py "$APK_DIR"
+      - name: Warn when the APK could not be posted to Telegram
+        if: steps.tg_post.outcome == 'failure'
+        run: echo "::warning::APK built but the Telegram upload failed; see the 'Post APK to Telegram' step."
 
   release:
     name: GitHub release

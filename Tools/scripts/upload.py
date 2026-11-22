@@ -1,126 +1,134 @@
-import os
+"""Post CI-built APKs to a Telegram channel (continuous deployment).
+
+Uploads go through MTProto (Pyrogram, logged in as a bot), not the HTTP Bot API,
+so the 50 MB Bot API upload limit does not apply.
+
+Usage:
+    python Tools/scripts/upload.py <apk-dir> [<apk-dir> ...]
+
+Environment:
+    TELEGRAM_APP_ID, TELEGRAM_APP_HASH   api_id / api_hash from my.telegram.org
+    TELEGRAM_BOT_TOKEN                   token of a bot that is an admin of the channel
+    TELEGRAM_CHAT_ID                     channel: @username or numeric id (-100...)
+    COMMIT_ID, COMMIT_URL, COMMIT_MESSAGE, BRANCH, BUILD_LABEL   caption data
+    TELEGRAM_ABIS                        optional, comma separated ABI filter (default: all APKs)
+"""
+
+import asyncio
 import contextlib
+import html
+import os
+import re
+import sys
 from pathlib import Path
-from sys import argv
 
 from pyrogram import Client
-from pyrogram.types import InputMediaDocument, LinkPreviewOptions
+from pyrogram.enums import ParseMode
+from pyrogram.types import InputMediaDocument
 
-api_id = os.environ.get("APP_ID")
-api_hash = os.environ.get("APP_HASH")
-artifacts_path = Path("artifacts")
-test_version = argv[3] == "test" if len(argv) > 2 else None
-metadata_chat_id = argv[4] if len(argv) > 3 else None
+CAPTION_LIMIT = 1024  # Telegram media caption limit, counted on the rendered text
+ATTEMPTS = 3
 
-def find_apk(abi: str) -> Path:
-    dirs = list(artifacts_path.glob("*"))
-    for dir in dirs:
-        if dir.is_dir():
-            apks = list(dir.glob("*.apk"))
-            for apk in apks:
-                if abi in apk.name:
-                    return apk
 
-def get_commit_info():
-    commit_id_raw = os.environ.get("COMMIT_ID") or "unknown"
-    commit_id = commit_id_raw[:7]
-    commit_url = os.environ.get("COMMIT_URL") or "https://github.com/risin42/NagramX/commits"
-    commit_message = os.environ.get("COMMIT_MESSAGE") or "unknown"
-    return commit_id, commit_url, commit_message
+def env(name: str, default: str = "") -> str:
+    return (os.environ.get(name) or default).strip()
 
-def get_caption() -> str:
-    commit_id, commit_url, commit_message = get_commit_info()
-    pre = "Test version." if test_version else "Release version."
-    caption = f"{pre}\n\n"
-    caption += f"Commit Message:\n<blockquote expandable>{commit_message}</blockquote>\n\n"
-    caption += f"See commit details [{commit_id}]({commit_url})"
-    return caption
 
-def get_document() -> list["InputMediaDocument"]:
-    documents = []
-    abis = ["arm64-v8a"]
-    for abi in abis:
-        if apk := find_apk(abi):
-            documents.append(
-                InputMediaDocument(
-                    media = str(apk),
-                )
-            )
-    if not documents:
-        documents.append(
-        InputMediaDocument(
-            media = str("TMessagesProj/src/main/" + "ic_launcher_nagram_block_round-playstore.png")
-        ))
-    base_caption = get_caption()
-    if base_caption and len(base_caption) > 1024:
-        base_caption = base_caption[:1020] + "..."
-    ai_summary = get_ai_summary()
-    if ai_summary and len(base_caption + ai_summary) > 1024:
-        ai_summary = ""
-    documents[-1].caption = base_caption + ai_summary
-    print(documents)
-    return documents
+def find_apks(dirs: list[str]) -> list[Path]:
+    abis = [a.strip() for a in env("TELEGRAM_ABIS").split(",") if a.strip()]
+    apks = sorted({p for d in dirs for p in Path(d).rglob("*.apk")})
+    if abis:
+        apks = [p for p in apks if any(abi in p.name for abi in abis)]
+    return apks
 
-def get_metadata():
-    commit_id = "<code>" + (os.environ.get("COMMIT_ID") or "unknown")[:7] + "</code>"
-    commit_message = "<code>" + (os.environ.get("COMMIT_MESSAGE") or "unknown") + "</code>"
-    build_timestamp = "<code>" + (os.environ.get("BUILD_TIMESTAMP") or "-1") + "</code>"
-    return build_timestamp + " " + commit_id + "\n" + commit_message
 
-def get_ai_summary():
-    ai_summary = os.environ.get("AI_SUMMARY", "")
-    if ai_summary:
-        return "\n\n" + "<blockquote expandable>" + normalize_message(ai_summary) + "</blockquote>"
-    return ""
+TRAILER = re.compile(r"^[A-Za-z][A-Za-z0-9-]*: \S")
 
-def normalize_message(text: str) -> str:
-    return (text or "").replace("\\n", "\n")
 
-def retry(func):
-    async def wrapper(*args, **kwargs):
-        for _ in range(3):
-            try:
-                return await func(*args, **kwargs)
-            except Exception as e:
-                print(e)
-    return wrapper
+def strip_trailers(message: str) -> str:
+    """Drop the git trailer block (Co-Authored-By:, Signed-off-by:, ...) at the end of a message."""
+    paragraphs = message.strip().split("\n\n")
+    if len(paragraphs) > 1 and all(TRAILER.match(line) for line in paragraphs[-1].splitlines()):
+        paragraphs.pop()
+    return "\n\n".join(paragraphs).strip()
 
-@retry
-async def send_to_channel(client: "Client", cid: str):
+
+def build_caption() -> str:
+    commit_id = env("COMMIT_ID", "unknown")
+    short_id = commit_id[:7]
+    commit_url = env("COMMIT_URL")
+    branch = env("BRANCH")
+    label = env("BUILD_LABEL", "CI build")
+
+    header = f"<b>{html.escape(label)}</b>"
+    commit_ref = (f'<a href="{html.escape(commit_url, quote=True)}">{short_id}</a>'
+                  if commit_url else f"<code>{short_id}</code>")
+    footer = commit_ref + (f" on <code>{html.escape(branch)}</code>" if branch else "")
+
+    # Budget the commit message so the rendered caption stays under the limit.
+    # Markup does not count towards the limit, only visible text does.
+    visible_overhead = len(label) + len(short_id) + len(branch) + 16
+    budget = CAPTION_LIMIT - visible_overhead
+    message = strip_trailers(env("COMMIT_MESSAGE")) or "(no commit message)"
+    if len(message) > budget:
+        message = message[: budget - 1].rstrip() + "…"
+
+    return f"{header}\n\n<blockquote expandable>{html.escape(message)}</blockquote>\n\n{footer}"
+
+
+async def with_retry(what: str, func):
+    for attempt in range(1, ATTEMPTS + 1):
+        try:
+            return await func()
+        except Exception as e:  # noqa: BLE001 - network / flood errors, retry all
+            print(f"{what}: attempt {attempt}/{ATTEMPTS} failed: {e!r}", file=sys.stderr)
+            if attempt == ATTEMPTS:
+                raise
+            await asyncio.sleep(10 * attempt)
+
+
+async def main() -> int:
+    dirs = sys.argv[1:] or ["."]
+    apks = find_apks(dirs)
+    if not apks:
+        print(f"No APKs found in {dirs}", file=sys.stderr)
+        return 1
+
+    missing = [n for n in ("TELEGRAM_APP_ID", "TELEGRAM_APP_HASH", "TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID")
+               if not env(n)]
+    if missing:
+        print(f"Missing environment: {', '.join(missing)}", file=sys.stderr)
+        return 1
+
+    chat_id: int | str = env("TELEGRAM_CHAT_ID")
     with contextlib.suppress(ValueError):
-        cid = int(cid)
-    await client.send_media_group(
-        cid,
-        media = get_document(),
-    )
+        chat_id = int(chat_id)
 
-@retry
-async def send_metadata(client: "Client", cid: str):
-    with contextlib.suppress(ValueError):
-        cid = int(cid)
-    await client.send_message(
-        chat_id = cid,
-        text = get_metadata(),
-    )
+    caption = build_caption()
+    print("APKs:\n  " + "\n  ".join(str(p) for p in apks))
+    print("Caption:\n" + caption)
 
-def get_client(bot_token: str):
-    return Client(
-        "helper_bot",
-        api_id=api_id,
-        api_hash=api_hash,
-        bot_token=bot_token,
+    client = Client(
+        "retrogram_ci",
+        api_id=int(env("TELEGRAM_APP_ID")),
+        api_hash=env("TELEGRAM_APP_HASH"),
+        bot_token=env("TELEGRAM_BOT_TOKEN"),
+        in_memory=True,
+        no_updates=True,
     )
+    async with client:
+        if len(apks) == 1:
+            await with_retry("send_document", lambda: client.send_document(
+                chat_id, str(apks[0]), caption=caption, parse_mode=ParseMode.HTML))
+        else:
+            # Albums take up to 10 files; the caption goes on the last one so it shows under the group.
+            media = [InputMediaDocument(str(p)) for p in apks[:10]]
+            media[-1] = InputMediaDocument(str(apks[min(len(apks), 10) - 1]),
+                                           caption=caption, parse_mode=ParseMode.HTML)
+            await with_retry("send_media_group", lambda: client.send_media_group(chat_id, media))
+    print("Posted to Telegram.")
+    return 0
 
-async def main():
-    bot_token = argv[1]
-    chat_id = argv[2]
-    client = get_client(bot_token)
-    await client.start()
-    await send_to_channel(client, chat_id)
-    if metadata_chat_id:
-        await send_metadata(client, metadata_chat_id)
-    await client.log_out()
 
 if __name__ == "__main__":
-    from asyncio import run
-    run(main())
+    sys.exit(asyncio.run(main()))
