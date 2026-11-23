@@ -1854,27 +1854,34 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
 
         emojiViewChildBg = iBlur3FactoryFrostedLiquidGlass.create(sizeNotifierFrameLayout, BlurredBackgroundProviderImpl.inputFieldShareAlert(resourcesProvider));
         emojiViewChildBg.enableInAppKeyboardOptimization();
-        emojiViewChildBg.setRadius(dp(29), dp(29), 0, 0);
+        // Retrogram: flat full-width bars (12.1.1) instead of floating rounded glass pills.
+        final boolean retroFlat = app.retrogram.RetroConfig.isRetroUi();
+        final int barRadius = retroFlat ? 0 : dp(22);
+        final int barInset = retroFlat ? 0 : dp(9);
+        if (retroFlat) {
+            bottomFadeView.setVisibility(View.GONE);
+        }
+        emojiViewChildBg.setRadius(retroFlat ? 0 : dp(29), retroFlat ? 0 : dp(29), 0, 0);
         emojiViewChildBg.setThickness(dp(32));
         emojiViewChildBg.setIntensity(0.4f);
 
         captionContainerBg = iBlur3FactoryLiquidGlass.create(frameLayout2, BlurredBackgroundProviderImpl.inputFieldShareAlert(resourcesProvider));
-        captionContainerBg.setRadius(dp(22));
-        captionContainerBg.setPadding(dp(9));
+        captionContainerBg.setRadius(barRadius);
+        captionContainerBg.setPadding(barInset);
         frameLayout2.setPadding(dp(9), dp(7), dp(9), dp(7));
 
         if (pickerBottomLayout != null) {
             BlurredBackgroundDrawable d = iBlur3FactoryLiquidGlass.create(pickerBottomLayout, BlurredBackgroundProviderImpl.inputFieldShareAlert(resourcesProvider));
-            d.setPadding(dp(9));
-            d.setRadius(dp(22));
+            d.setPadding(barInset);
+            d.setRadius(barRadius);
             pickerBottomLayout.setBackground(d);
             pickerBottomLayout.setPadding(dp(9), dp(9), dp(9), dp(9));
         }
 
         if (timestampFrameLayout != null) {
             BlurredBackgroundDrawable d = iBlur3FactoryLiquidGlass.create(timestampFrameLayout, BlurredBackgroundProviderImpl.inputFieldShareAlert(resourcesProvider));
-            d.setPadding(dp(9));
-            d.setRadius(dp(22));
+            d.setPadding(barInset);
+            d.setRadius(barRadius);
             timestampFrameLayout.setBackground(d);
             timestampFrameLayout.setPadding(dp(9), dp(9), dp(9), dp(9));
         }

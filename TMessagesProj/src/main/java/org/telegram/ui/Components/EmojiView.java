@@ -1714,13 +1714,15 @@ public class EmojiView extends FrameLayout implements
 
     private final GlassEngine glassEngine = new GlassEngine();
 
-    public EmojiView(BaseFragment fragment, boolean needAnimatedEmoji, boolean needStickers, boolean needGif, final Context context, boolean needSearch, final TLRPC.ChatFull chatFull, ViewGroup parentView, boolean shouldDrawBackground, Theme.ResourcesProvider resourcesProvider, boolean frozenAtStart, boolean glassDesign) {
+    public EmojiView(BaseFragment fragment, boolean needAnimatedEmoji, boolean needStickers, boolean needGif, final Context context, boolean needSearch, final TLRPC.ChatFull chatFull, ViewGroup parentView, boolean shouldDrawBackground, Theme.ResourcesProvider resourcesProvider, boolean frozenAtStart, boolean glassDesignRequested) {
         super(context);
         this.shouldDrawBackground = shouldDrawBackground;
         this.fragment = fragment;
         this.allowAnimatedEmoji = needAnimatedEmoji;
         this.resourcesProvider = resourcesProvider;
-        this.glassDesign = glassDesign;
+        // Retrogram: the classic panel keeps the 12.1.1 theme colors (search box, tab icons, set names), not the translucent glass tints.
+        this.glassDesign = glassDesignRequested && !app.retrogram.RetroConfig.isClassicEmojiPanel();
+        final boolean glassDesign = this.glassDesign;
 
         blurredBackgroundSourceColor = new BlurredBackgroundSourceColor();
         blurredBackgroundSourceColor.setColor(getThemedColor(Theme.key_windowBackgroundWhite));

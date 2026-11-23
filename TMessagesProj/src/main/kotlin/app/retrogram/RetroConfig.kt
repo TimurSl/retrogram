@@ -33,39 +33,39 @@ object RetroConfig {
 
     /**
      * Experimental: the chat input bar as a flat, full-width bar flush with the bottom (12.1.1 geometry) instead of the
-     * floating rounded "island". Off by default; read when a chat is created.
+     * floating rounded "island". On by default (device-confirmed); read when a chat is created.
      */
     @JvmField
-    val classicInput = ConfigItem("RetroClassicInput", ConfigItem.configTypeBool, false)
+    val classicInput = ConfigItem("RetroClassicInput", ConfigItem.configTypeBool, true)
 
     /**
      * Experimental: the chat screen's top bar as the classic solid action bar (12.1.1) instead of the 12.4 floating glass pills,
-     * and without the top/bottom fade overlay. Off by default; read when a chat is created.
+     * and without the top/bottom fade overlay. On by default (device-confirmed); read when a chat is created.
      */
     @JvmField
-    val classicChatHeader = ConfigItem("RetroClassicChatHeader", ConfigItem.configTypeBool, false)
+    val classicChatHeader = ConfigItem("RetroClassicChatHeader", ConfigItem.configTypeBool, true)
 
     /**
      * Experimental: the emoji / GIF / sticker panel with its bottom tab strip as a full-width solid bar (12.1.1) instead of the
-     * floating glass pills for the tabs, search and backspace buttons. Off by default; read when the panel is created.
+     * floating glass pills for the tabs, search and backspace buttons. On by default (device-confirmed); read when the panel is created.
      */
     @JvmField
-    val classicEmojiPanel = ConfigItem("RetroClassicEmojiPanel", ConfigItem.configTypeBool, false)
+    val classicEmojiPanel = ConfigItem("RetroClassicEmojiPanel", ConfigItem.configTypeBool, true)
 
     /**
      * Experimental: the page-down, mentions and reactions buttons (and the search up/down arrows) as the classic solid 42dp circles with the soft shadow
-     * (12.1.1) instead of the 12.4 glass circles. Off by default; read when the button is created and on theme change.
+     * (12.1.1) instead of the 12.4 glass circles. On by default (not yet device-checked); read when the button is created and on theme change.
      */
     @JvmField
-    val classicRoundButtons = ConfigItem("RetroClassicRoundButtons", ConfigItem.configTypeBool, false)
+    val classicRoundButtons = ConfigItem("RetroClassicRoundButtons", ConfigItem.configTypeBool, true)
 
     /**
      * Experimental: the 12.1.1 default-theme palette (blue action bar, white icons, ...) for the keys whose default
-     * changed in 13.1.1 (see [RetroThemeColors]). Off by default; applied at process start, so it needs a restart.
+     * changed in 13.1.1 (see [RetroThemeColors]). On by default (not yet device-checked); applied at process start, so it needs a restart.
      * `RetroThemeColors.enabled()` reads the stored value itself because `Theme` can load before [init].
      */
     @JvmField
-    val classicColors = ConfigItem("RetroClassicColors", ConfigItem.configTypeBool, false)
+    val classicColors = ConfigItem("RetroClassicColors", ConfigItem.configTypeBool, true)
 
     /** GIF panel source: 0 = Telegram's GIF bot (KLIPY), 1 = UniGif over HTTP (docs/plans/08-unigif.md). Read live. */
     @JvmField

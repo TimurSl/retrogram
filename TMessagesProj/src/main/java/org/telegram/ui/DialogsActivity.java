@@ -4946,9 +4946,14 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             }
         }
 
-        topBubblesFadeView = new DialogsActivityTopBubblesFadeView(context);
-        topBubblesFadeView.setColor(Theme.getColor(Theme.key_windowBackgroundWhite));
-        contentView.addView(topBubblesFadeView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 100, Gravity.TOP));
+        if (app.retrogram.RetroConfig.isRetroUi()) {
+            // Retrogram: no fade under the folder tabs / top panels (12.1.1 had none); every use is null-guarded.
+            topBubblesFadeView = null;
+        } else {
+            topBubblesFadeView = new DialogsActivityTopBubblesFadeView(context);
+            topBubblesFadeView.setColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+            contentView.addView(topBubblesFadeView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 100, Gravity.TOP));
+        }
 
         searchViewPagerIndex = contentView.getChildCount();
 
@@ -5060,7 +5065,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 .setColorProvider(BlurredBackgroundProviderImpl.topPanel(resourceProvider))
                 .setPadding(dp(7));
 
-            topPanelLayout.setPadding(dp(11), dp(21), dp(11), dp(21));
+            final int topPanelSidePadding = app.retrogram.RetroConfig.isRetroUi() ? 0 : dp(11);
+            topPanelLayout.setPadding(topPanelSidePadding, dp(21), topPanelSidePadding, dp(21));
             topPanelLayout.setBlurredBackground(topPanelLayoutBackground);
             topPanelLayout.setDefaultRadiusDp(communityId != 0 ? 18 : 24);
 

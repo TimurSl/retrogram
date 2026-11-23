@@ -2779,12 +2779,18 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
         containerView.addView(bottomFadeView, LayoutHelper.createFrameMatchParent());
 
         BlurredBackgroundDrawable tabsViewBackground = iBlur3FactoryLiquidGlass.create(buttonsRecyclerViewWrapper, BlurredBackgroundProviderImpl.mainTabs(resourcesProvider));
-        tabsViewBackground.setRadius(dp(56 / 2f));
-        tabsViewBackground.setPadding(dp(7));
+        // Retrogram: the tab bar is a flat, full-width solid strip (12.1.1) instead of a floating glass pill, and nothing fades behind it.
+        final boolean retro = app.retrogram.RetroConfig.isRetroUi();
+        tabsViewBackground.setRadius(retro ? 0 : dp(56 / 2f));
+        tabsViewBackground.setPadding(retro ? 0 : dp(7));
         buttonsRecyclerViewWrapper.setBackground(tabsViewBackground);
         buttonsRecyclerView.setPadding(dp(11), dp(11), dp(11), dp(11));
-        buttonsRecyclerView.setClipToOutline(true);
-        buttonsRecyclerView.setOutlineProvider(ViewOutlineProviderImpl.boundsWithPaddingRoundRect(dp(11), dp(56 / 2f)));
+        if (retro) {
+            bottomFadeView.setVisibility(View.GONE);
+        } else {
+            buttonsRecyclerView.setClipToOutline(true);
+            buttonsRecyclerView.setOutlineProvider(ViewOutlineProviderImpl.boundsWithPaddingRoundRect(dp(11), dp(56 / 2f)));
+        }
 
         buttonsRecyclerView.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
         buttonsRecyclerViewWrapper.addView(buttonsRecyclerView, LayoutHelper.createFrameMatchParent());
@@ -4796,7 +4802,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
             fadeView.setFadeHeightBottom(disableFade ? 0 : dp(48));
         }
         if (bottomFadeView != null) {
-            bottomFadeView.setVisibility(disableFade ? View.INVISIBLE : View.VISIBLE);
+            bottomFadeView.setVisibility(disableFade || app.retrogram.RetroConfig.isRetroUi() ? View.INVISIBLE : View.VISIBLE);
         }
         actionBar.setVisibility(nextAttachLayout.needsActionBar() != 0 ? View.VISIBLE : View.INVISIBLE);
         // actionBarShadow.setVisibility(actionBar.getVisibility());

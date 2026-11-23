@@ -81,3 +81,10 @@ reply/edit bars, voice/video record overlay, attach button and AI/rich-text butt
   "Classic input bar" on (used for the under-keyboard drawable, its path and bounds; `BotKeyboardView` still uses the constant).
 - **Still 12.4 in that panel:** the inline search field with reaction icons at the top (12.1.1 had a search button in the bottom bar instead).
 
+
+### Classic emoji panel: search box and tab colors (2026-11-22, not yet run)
+- **Finding:** the inline search field at the top of the panel is not a 12.4 leftover (12.1.1 `EmojiView.SearchField` has the same 18dp rounded box, 36dp row, 10/6/10/8 margins). What differed was its colors:
+  `glassDesign` (passed in by the chat) tints the box, icons, hint and text from `key_glass_defaultIcon` at 6-80% alpha instead of `key_chat_emojiSearchBackground` / `key_chat_emojiSearchIcon`.
+- **Change:** with "Classic emoji panel" on, `EmojiView`'s constructor ignores the requested `glassDesign` (it becomes a local that shadows the field, so the rest of the constructor is unchanged). That one flag also feeds
+  `EmojiTabsStrip` / `ScrollSlidingTabStrip` (selector paint), `StickerCategoriesListView` and `StickerSetNameCell`, so those go back to the 12.1.1 keys too. Colors only; no layout changes.
+- **Look at on a device:** search box contrast in light and night, tab icon selected/unselected colors, sticker set name text, category strip icons.

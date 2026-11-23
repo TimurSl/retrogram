@@ -23,7 +23,7 @@ public final class RetroThemeColors {
             final android.content.SharedPreferences p = tw.nekomimi.nekogram.NekoConfig.getPreferences();
             return p.getBoolean("RetroUi", true)
                     && !p.getBoolean("RetroUpstreamUiDebug", false)
-                    && p.getBoolean(PREF_KEY, false);
+                    && p.getBoolean(PREF_KEY, true);
         } catch (Throwable ignore) {
             return false;
         }

@@ -106,6 +106,9 @@ live on the tab bar: **Archived chats** (if not elsewhere), **Wallet**, **QR sha
 Phase 5 can tick it off.
 
 ### WP 1.5 — Cleanup of 12.4 leftovers on this screen (S)
+> **Status (2026-11-22): partly done, not build-verified.** In retro mode `DialogsActivityTopPanelLayout` (call bar, archive/auth/gift-auction hint cells, community requests) draws a flat full-width strip
+> (no 24dp rounded card, no 4dp side inset, no side padding in the layout) and `topBubblesFadeView` (the fade under the folder tabs and panels) is not created (all its uses are null-guarded).
+> Vertical geometry is unchanged, so there is a 7dp inner margin above and below the content. Still open: the group-call capsule (`CapsuleBlobDrawable`) keeps its rounded shape; the in-list search pills of `ContactsActivity` / `CallLogActivity`.
 Hide in retro mode the search/FAB glass layers that remain in the layout `onMeasure/onLayout` code
 (lines ~1073, ~1102, ~1353) so no empty offsets remain at the top or bottom.
 
