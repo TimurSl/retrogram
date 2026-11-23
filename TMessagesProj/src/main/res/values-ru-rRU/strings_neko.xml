@@ -271,4 +271,10 @@
     <string name="DonateDesc">Если вам нравится Nagram XF, пожалуйста, поддержите разработку.</string>
     <string name="DonateInfo">Нравится этот клиент? **Поддержать разработку**</string>
     <string name="iOSMessageInputField">Поле ввода сообщений в стиле iOS</string>
-    <string name="iOSMessageInputFieldNotice">Перемещает значок вложений влево и разделяет кнопки на отдельные пузыри. Пока включено, переопределяет режим меню вложений</string></resources>
+    <string name="iOSMessageInputFieldNotice">Перемещает значок вложений влево и разделяет кнопки на отдельные пузыри. Пока включено, переопределяет режим меню вложений</string>
+    <string name="RetroHashtags">Хэштеги+</string>
+    <string name="RetroFavorites">Избранное</string>
+    <string name="RetroGames">Игры</string>
+    <string name="RetroGamesEmpty">В ваших чатах пока нет игр. Здесь появляются игры, которые боты отправляли в чаты, открытые на этом устройстве.</string>
+    <string name="RetroGamesInfo">Игры из чатов, сохранённых на этом устройстве. Нажмите на игру, чтобы открыть её сообщение, затем нажмите «Играть».</string>
+</resources>

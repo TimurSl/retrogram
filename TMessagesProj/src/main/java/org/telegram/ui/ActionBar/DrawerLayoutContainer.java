@@ -133,6 +133,7 @@ public class DrawerLayoutContainer extends FrameLayout {
             drawerPosition = 0;
         }
         drawerLayout.setTranslationX(drawerPosition);
+        applyRetroParallax();
         if (drawerPosition > 0 && drawerListView != null && drawerListView.getVisibility() != View.VISIBLE) {
             drawerListView.setVisibility(View.VISIBLE);
         }
@@ -143,6 +144,53 @@ public class DrawerLayoutContainer extends FrameLayout {
         }
         setScrimOpacity(drawerPosition / (float) drawerLayout.getMeasuredWidth());
     }
+
+    /**
+     * Retrogram: while the drawer opens, the screen behind it moves a little to the right with it and is dimmed, as in
+     * Graph Messenger / 12.1.1 (13.1.1 dropped the dim and never had the shift). Phones only; tablets keep the drawer
+     * as an overlay because their content is split into several panes.
+     */
+    private boolean retroDrawerEffects() {
+        return app.retrogram.RetroLook.enabled() && !AndroidUtilities.isTablet();
+    }
+
+    private void applyRetroParallax() {
+        if (!retroDrawerEffects()) {
+            return;
+        }
+        final float shift = drawerPosition * app.retrogram.RetroLook.DRAWER_PARALLAX;
+        final int drawerIndex = indexOfChild(drawerLayout);
+        for (int i = 0, n = drawerIndex >= 0 ? drawerIndex : getChildCount(); i < n; i++) {
+            final View child = getChildAt(i);
+            if (child != drawerLayout && child.getTranslationX() != shift) {
+                child.setTranslationX(shift);
+            }
+        }
+    }
+
+    @Override
+    protected boolean drawChild(Canvas canvas, View child, long drawingTime) {
+        final boolean result = super.drawChild(canvas, child, drawingTime);
+        if (scrimOpacity > 0 && child != drawerLayout && retroDrawerEffects() && child == lastVisibleContentChild()) {
+            scrimPaint.setColor(((int) (app.retrogram.RetroLook.DRAWER_SCRIM_ALPHA * scrimOpacity)) << 24);
+            canvas.drawRect(0, 0, getWidth(), getHeight(), scrimPaint);
+        }
+        return result;
+    }
+
+    /** The top-most visible view under the drawer: the dim goes right above it, so the drawer itself stays undimmed. */
+    private View lastVisibleContentChild() {
+        final int drawerIndex = drawerLayout != null ? indexOfChild(drawerLayout) : -1;
+        for (int i = (drawerIndex >= 0 ? drawerIndex : getChildCount()) - 1; i >= 0; i--) {
+            final View v = getChildAt(i);
+            if (v != drawerLayout && v.getVisibility() == VISIBLE) {
+                return v;
+            }
+        }
+        return null;
+    }
+
+    private final Paint scrimPaint = new Paint();
 
     @Keep
     public float getDrawerPosition() {

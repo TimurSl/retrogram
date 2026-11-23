@@ -277,4 +277,9 @@
     <string name="DonateAfdian">Afdian</string>
     <string name="DonateKoFi">Ko-fi</string>
     <string name="DonateInfo">Подобається цей клієнт? **Підтримати розробку**</string>
+    <string name="RetroHashtags">Хештеги+</string>
+    <string name="RetroFavorites">Обране</string>
+    <string name="RetroGames">Ігри</string>
+    <string name="RetroGamesEmpty">У ваших чатах поки немає ігор. Тут з’являються ігри, які боти надсилали в чати, відкриті на цьому пристрої.</string>
+    <string name="RetroGamesInfo">Ігри з чатів, збережених на цьому пристрої. Натисніть на гру, щоб відкрити її повідомлення, потім натисніть «Грати».</string>
 </resources>
