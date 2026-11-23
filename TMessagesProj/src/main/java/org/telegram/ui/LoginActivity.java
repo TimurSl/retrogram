@@ -801,6 +801,8 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
         if (BuildVars.SUPPORTS_PASSKEYS) moreButtonView.addSubItem(4, R.drawable.menu_passkey_add, getString(R.string.PasskeyLogin));
         moreButtonView.addSubItem(2, R.drawable.msg_permissions, getString(R.string.CustomApi)).setContentDescription(getString(R.string.CustomApi));
         moreButtonView.addSubItem(3, R.drawable.msg_retry, getString(R.string.TestBackend));
+        // Retrogram: sign in to an XMPP account instead; it then appears in the drawer like a Telegram account.
+        moreButtonView.addSubItem(5, R.drawable.msg_discussion, getString(R.string.XmppLoginMenu));
         moreButtonView.setDelegate(id -> {
             if (id == 0) {
                 presentFragment(new ProxyListActivity());
@@ -822,6 +824,8 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
                 if (phoneView != null) {
                     phoneView.requestPasskey(true, true);
                 }
+            } else if (id == 5) {
+                presentFragment(app.retrogram.xmpp.ui.XmppAccountEditActivity.forLogin());
             }
         });
         moreButtonView.setSubMenuOpenSide(1);
@@ -1661,6 +1665,8 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
         }
         clearCurrentState();
         if (getParentActivity() instanceof LaunchActivity) {
+            // Retrogram: a Telegram login makes a Telegram account current again, also when an XMPP account was.
+            app.retrogram.xmpp.XmppAccounts.setSelected(0);
             if (newAccount) {
                 newAccount = false;
                 pendingSwitchingAccount = true;

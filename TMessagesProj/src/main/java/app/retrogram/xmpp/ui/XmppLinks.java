@@ -35,6 +35,10 @@ public final class XmppLinks {
                 if (c != null) {
                     XmppConversation conv = c.conversation(jid);
                     boolean group = conv != null && conv.groupChat;
+                    // Like a Telegram notification of another account: that account becomes the current one first.
+                    if (XmppHome.activeAccount() != account) {
+                        activity.switchToXmppAccount(account);
+                    }
                     activity.presentFragment(new XmppChatActivity(account, jid, group));
                     return true;
                 }
@@ -73,26 +77,34 @@ public final class XmppLinks {
             activity.presentFragment(new XmppAccountsActivity());
             return;
         }
-        XmppChatsActivity chats = new XmppChatsActivity();
-        activity.presentFragment(chats);
-        if (jid == null) {
+        long current = XmppHome.activeAccount();
+        BaseFragment base;
+        if (current != 0) {
+            // An XMPP account is the current account: the link is handled on its chat list, with that account.
+            base = LaunchActivity.getSafeLastFragment();
+        } else {
+            XmppChatsActivity chats = new XmppChatsActivity();
+            activity.presentFragment(chats);
+            base = chats;
+        }
+        if (jid == null || base == null) {
             return;
         }
         String action = query.split("[;&]")[0].toLowerCase();
-        run(chats, jid, action);
+        run(base, jid, action, current);
     }
 
-    private static void run(BaseFragment f, String jid, String action) {
+    private static void run(BaseFragment f, String jid, String action, long preferred) {
         switch (action) {
             case "join":
-                XmppDialogs.pickAccount(f, -1, c -> XmppDialogs.joinRoom(f, c, jid, false, room -> f.presentFragment(new XmppChatActivity(c.accountId(), room, true))));
+                XmppDialogs.pickAccount(f, preferred, c -> XmppDialogs.joinRoom(f, c, jid, false, room -> f.presentFragment(new XmppChatActivity(c.accountId(), room, true))));
                 break;
             case "roster":
             case "subscribe":
-                XmppDialogs.pickAccount(f, -1, c -> XmppDialogs.addContact(f, c, jid));
+                XmppDialogs.pickAccount(f, preferred, c -> XmppDialogs.addContact(f, c, jid));
                 break;
             default:
-                XmppDialogs.pickAccount(f, -1, c -> {
+                XmppDialogs.pickAccount(f, preferred, c -> {
                     c.openChat(jid);
                     f.presentFragment(new XmppChatActivity(c.accountId(), jid, false));
                 });

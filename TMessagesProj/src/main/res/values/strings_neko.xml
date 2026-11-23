@@ -386,6 +386,11 @@
     <string name="XmppDisabled">Disabled</string>
     <string name="XmppDisconnect">Disconnect</string>
     <string name="XmppDrawer">XMPP</string>
+    <string name="XmppLoginMenu">XMPP</string>
+    <string name="XmppLoginTitle">Your XMPP account</string>
+    <string name="XmppLoginSubtitle">Enter the address and password of your XMPP (Jabber) account. It will appear in the menu next to your Telegram accounts.</string>
+    <string name="XmppAccountSettings">Account settings</string>
+    <string name="XmppHomeEmptyTitle">No chats yet</string>
     <string name="XmppEditAccount">Edit account</string>
     <string name="XmppEditMessage">Edit</string>
     <string name="XmppEdited">edited</string>

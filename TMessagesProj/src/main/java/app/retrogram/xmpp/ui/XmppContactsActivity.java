@@ -20,6 +20,7 @@ import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.HeaderCell;
+import org.telegram.ui.Cells.TextCell;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
 
@@ -33,7 +34,10 @@ import app.retrogram.xmpp.core.XmppContact;
 import app.retrogram.xmpp.core.XmppController;
 import app.retrogram.xmpp.core.XmppShow;
 
-/** The roster of every account, with pending contact requests on top. */
+/**
+ * The roster of every account, with pending contact requests on top. With an account id it is the "New Message"
+ * screen of that account (the chat list's pencil button): its contacts only, with the new-chat actions on top.
+ */
 public class XmppContactsActivity extends BaseFragment implements XmppController.Events {
 
     private static final int MENU_SEARCH = 1;
@@ -57,6 +61,19 @@ public class XmppContactsActivity extends BaseFragment implements XmppController
         }
     }
 
+    /** "New Message" screen: an action row (new group, add contact, ...). */
+    private static final class Action {
+        final int icon;
+        final String text;
+        final Runnable run;
+
+        Action(int icon, String text, Runnable run) {
+            this.icon = icon;
+            this.text = text;
+            this.run = run;
+        }
+    }
+
     private static final class Entry {
         final XmppController controller;
         final XmppContact contact;
@@ -72,6 +89,16 @@ public class XmppContactsActivity extends BaseFragment implements XmppController
     private TextView emptyView;
     private final List<Object> rows = new ArrayList<>();
     private String query = "";
+    /** 0 = every account; otherwise only this account, as its "New Message" screen. */
+    private final long accountFilter;
+
+    public XmppContactsActivity() {
+        this(0);
+    }
+
+    public XmppContactsActivity(long accountId) {
+        this.accountFilter = accountId;
+    }
 
     @Override
     public boolean onFragmentCreate() {
@@ -89,14 +116,19 @@ public class XmppContactsActivity extends BaseFragment implements XmppController
     public View createView(Context context) {
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setAllowOverlayTitle(true);
-        actionBar.setTitle(LocaleController.getString(R.string.XmppContacts));
+        actionBar.setTitle(LocaleController.getString(accountFilter != 0 ? R.string.NewMessageTitle : R.string.XmppContacts));
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
                     finishFragment();
                 } else if (id == MENU_ADD) {
-                    XmppDialogs.pickAccount(XmppContactsActivity.this, -1, c -> XmppDialogs.addContact(XmppContactsActivity.this, c, ""));
+                    XmppController only = accountFilter != 0 ? XmppManager.get().controller(accountFilter) : null;
+                    if (only != null) {
+                        XmppDialogs.addContact(XmppContactsActivity.this, only, "");
+                    } else {
+                        XmppDialogs.pickAccount(XmppContactsActivity.this, -1, c -> XmppDialogs.addContact(XmppContactsActivity.this, c, ""));
+                    }
                 }
             }
         });
@@ -126,7 +158,9 @@ public class XmppContactsActivity extends BaseFragment implements XmppController
         listView.setAdapter(adapter);
         listView.setOnItemClickListener((view, position) -> {
             Object row = rows.get(position);
-            if (row instanceof Entry) {
+            if (row instanceof Action) {
+                ((Action) row).run.run();
+            } else if (row instanceof Entry) {
                 Entry e = (Entry) row;
                 e.controller.openChat(e.contact.jid);
                 presentFragment(new XmppChatActivity(e.controller.accountId(), e.contact.jid, false));
@@ -156,6 +190,13 @@ public class XmppContactsActivity extends BaseFragment implements XmppController
     private void rebuild() {
         rows.clear();
         List<XmppController> controllers = XmppManager.get().controllers();
+        if (accountFilter != 0) {
+            controllers.removeIf(c -> c.accountId() != accountFilter);
+            if (!controllers.isEmpty() && query.isEmpty()) {
+                addActions(controllers.get(0));
+            }
+        }
+        int actions = rows.size();
         boolean multiple = controllers.size() > 1;
         for (XmppController c : controllers) {
             List<Object> mine = new ArrayList<>();
@@ -189,8 +230,23 @@ public class XmppContactsActivity extends BaseFragment implements XmppController
             adapter.notifyDataSetChanged();
         }
         if (emptyView != null) {
-            emptyView.setVisibility(rows.isEmpty() ? View.VISIBLE : View.GONE);
+            emptyView.setVisibility(rows.size() == actions ? View.VISIBLE : View.GONE);
         }
+    }
+
+    private void addActions(XmppController c) {
+        long id = c.accountId();
+        rows.add(new Action(R.drawable.msg_groups, LocaleController.getString(R.string.XmppCreateGroup), () ->
+                XmppDialogs.joinRoom(this, c, "", true, room -> presentFragment(new XmppChatActivity(id, room, true), true))));
+        rows.add(new Action(R.drawable.msg_discussion, LocaleController.getString(R.string.XmppJoinGroup), () ->
+                XmppDialogs.joinRoom(this, c, "", false, room -> presentFragment(new XmppChatActivity(id, room, true), true))));
+        rows.add(new Action(R.drawable.msg_addcontact, LocaleController.getString(R.string.XmppAddContact), () ->
+                XmppDialogs.addContact(this, c, "")));
+        rows.add(new Action(R.drawable.msg_edit, LocaleController.getString(R.string.XmppNewChat), () ->
+                XmppDialogs.newChat(this, c, jid -> {
+                    c.openChat(jid);
+                    presentFragment(new XmppChatActivity(id, jid, false), true);
+                })));
     }
 
     @Override
@@ -207,6 +263,7 @@ public class XmppContactsActivity extends BaseFragment implements XmppController
         private static final int HEADER = 0;
         private static final int REQUEST = 1;
         private static final int CONTACT = 2;
+        private static final int ACTION = 3;
         private final Context context;
 
         Adapter(Context context) {
@@ -215,7 +272,7 @@ public class XmppContactsActivity extends BaseFragment implements XmppController
 
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
-            return holder.getItemViewType() == CONTACT;
+            return holder.getItemViewType() == CONTACT || holder.getItemViewType() == ACTION;
         }
 
         @Override
@@ -226,7 +283,7 @@ public class XmppContactsActivity extends BaseFragment implements XmppController
         @Override
         public int getItemViewType(int position) {
             Object r = rows.get(position);
-            return r instanceof Header ? HEADER : r instanceof Request ? REQUEST : CONTACT;
+            return r instanceof Header ? HEADER : r instanceof Request ? REQUEST : r instanceof Action ? ACTION : CONTACT;
         }
 
         @Override
@@ -236,6 +293,10 @@ public class XmppContactsActivity extends BaseFragment implements XmppController
                 HeaderCell h = new HeaderCell(context);
                 h.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                 v = h;
+            } else if (viewType == ACTION) {
+                TextCell t = new TextCell(context);
+                t.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                v = t;
             } else {
                 v = new XmppContactCell(context);
             }
@@ -248,6 +309,11 @@ public class XmppContactsActivity extends BaseFragment implements XmppController
             Object r = rows.get(position);
             if (r instanceof Header) {
                 ((HeaderCell) holder.itemView).setText(((Header) r).text);
+            } else if (r instanceof Action) {
+                Action a = (Action) r;
+                boolean divider = position + 1 < rows.size() && rows.get(position + 1) instanceof Action;
+                ((TextCell) holder.itemView).setTextAndIcon(a.text, a.icon, divider);
+                ((TextCell) holder.itemView).setColors(Theme.key_windowBackgroundWhiteBlueIcon, Theme.key_windowBackgroundWhiteBlueButton);
             } else if (r instanceof Request) {
                 Request q = (Request) r;
                 XmppContactCell cell = (XmppContactCell) holder.itemView;

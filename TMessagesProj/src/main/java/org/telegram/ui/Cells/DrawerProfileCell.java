@@ -277,6 +277,12 @@ public class DrawerProfileCell extends FrameLayout implements NotificationCenter
     }
 
     public void setUser(TLRPC.User user, boolean accountsShown) {
+        if (app.retrogram.xmpp.XmppAccounts.selected() != 0) {
+            // Retrogram: an XMPP account is the current account; Telegram user updates must not replace its header.
+            this.accountsShown = accountsShown;
+            setArrowState(false);
+            return;
+        }
         int account = UserConfig.selectedAccount;
         if (account != lastAccount) {
             if (lastAccount >= 0) {
@@ -344,6 +350,31 @@ public class DrawerProfileCell extends FrameLayout implements NotificationCenter
         avatarDrawable.setColor(Theme.getColor(Theme.key_avatar_backgroundInProfileBlue));
         avatarImageView.setForUserOrChat(user, avatarDrawable);
 
+        applyBackground(true);
+        updateRightDrawable = true;
+    }
+
+    /**
+     * Retrogram: shows an XMPP account (the current account) instead of a Telegram user: name, address in place of the
+     * phone number, and the vCard photo or coloured initials.
+     */
+    public void setXmppAccount(CharSequence name, CharSequence address, android.graphics.Bitmap photo, AvatarDrawable fallback, boolean accountsShown) {
+        this.user = null;
+        this.accountsShown = accountsShown;
+        setArrowState(false);
+        nameTextView.setText(name);
+        phoneTextView.setText(address);
+        statusGiftId = null;
+        animatedStatus.animateChange(null);
+        animatedStatus.setAlpha(0f);
+        status.set((Drawable) null, false);
+        status.setParticles(false, false);
+        fallback.setColor(Theme.getColor(Theme.key_avatar_backgroundInProfileBlue));
+        if (photo != null) {
+            avatarImageView.setImageBitmap(photo);
+        } else {
+            avatarImageView.setImageDrawable(fallback);
+        }
         applyBackground(true);
         updateRightDrawable = true;
     }

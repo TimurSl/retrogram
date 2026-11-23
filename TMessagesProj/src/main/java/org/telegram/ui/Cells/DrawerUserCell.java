@@ -179,7 +179,8 @@ public class DrawerUserCell extends FrameLayout implements NotificationCenter.No
         status.setColor(Theme.getColor(Theme.key_chats_verifiedBackground));
         imageView.getImageReceiver().setCurrentAccount(account);
         imageView.setForUserOrChat(user, avatarDrawable);
-        checkBox.setVisibility(account == UserConfig.selectedAccount ? VISIBLE : INVISIBLE);
+        // Retrogram: no check on the Telegram account while an XMPP account is the current one.
+        checkBox.setVisibility(account == UserConfig.selectedAccount && app.retrogram.xmpp.XmppAccounts.selected() == 0 ? VISIBLE : INVISIBLE);
     }
 
     public int getAccountNumber() {

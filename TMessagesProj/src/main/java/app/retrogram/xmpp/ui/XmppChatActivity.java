@@ -33,6 +33,7 @@ import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.EditTextBoldCursor;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
+import org.telegram.ui.Components.SizeNotifierFrameLayout;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -86,6 +87,7 @@ public class XmppChatActivity extends BaseFragment implements XmppController.Eve
     private TextView bannerText;
     private TextView emptyView;
     private ActionBarMenuItem otherItem;
+    private XmppChatHeader header;
 
     private final List<Object> rows = new ArrayList<>();
     private final Map<Long, Float> uploads = new HashMap<>();
@@ -158,11 +160,17 @@ public class XmppChatActivity extends BaseFragment implements XmppController.Eve
         ActionBarMenu menu = actionBar.createMenu();
         otherItem = menu.addItem(0, R.drawable.ic_ab_other);
         buildMenu();
-        actionBar.setTitleActionRunnable(this::showInfo);
+        Theme.createChatResources(context, false);
 
-        FrameLayout root = new FrameLayout(context);
+        // Telegram chat header: avatar, name, status; tapping it opens the info.
+        header = new XmppChatHeader(context);
+        header.setOnClickListener(v -> showInfo());
+        actionBar.addView(header, 0, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT, 56, 0, 40, 0));
+
+        // The chat wallpaper of the current theme, as in ChatActivity.
+        SizeNotifierFrameLayout root = new SizeNotifierFrameLayout(context, parentLayout);
+        root.setBackgroundImage(Theme.getCachedWallpaper(), Theme.isWallpaperMotion());
         fragmentView = root;
-        root.setBackgroundColor(Theme.getColor(Theme.key_chat_wallpaper));
 
         LinearLayout column = new LinearLayout(context);
         column.setOrientation(LinearLayout.VERTICAL);
@@ -199,6 +207,8 @@ public class XmppChatActivity extends BaseFragment implements XmppController.Eve
         emptyView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
         emptyView.setTextColor(Theme.getColor(Theme.key_chat_serviceText));
         emptyView.setGravity(Gravity.CENTER);
+        emptyView.setPadding(dp(16), dp(10), dp(16), dp(10));
+        emptyView.setBackground(Theme.createRoundRectDrawable(dp(16), Theme.getColor(Theme.key_chat_serviceBackground)));
         emptyView.setText(LocaleController.getString(R.string.XmppNoMessages));
         listFrame.addView(emptyView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER));
 
@@ -230,10 +240,15 @@ public class XmppChatActivity extends BaseFragment implements XmppController.Eve
         banner.setVisibility(View.GONE);
         column.addView(banner, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
 
+        View barShadow = new View(context);
+        barShadow.setBackgroundResource(R.drawable.compose_panel_shadow);
+        column.addView(barShadow, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 2));
+
         LinearLayout bar = new LinearLayout(context);
         bar.setOrientation(LinearLayout.HORIZONTAL);
         bar.setGravity(Gravity.BOTTOM);
         bar.setBackgroundColor(Theme.getColor(Theme.key_chat_messagePanelBackground));
+        bar.setPadding(dp(10), 0, 0, 0);
         column.addView(bar, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
 
         attachButton = new ImageView(context);
@@ -241,12 +256,12 @@ public class XmppChatActivity extends BaseFragment implements XmppController.Eve
         attachButton.setColorFilter(Theme.getColor(Theme.key_chat_messagePanelIcons));
         attachButton.setScaleType(ImageView.ScaleType.CENTER);
         attachButton.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), 1));
+        attachButton.setContentDescription(LocaleController.getString(R.string.AccDescrAttachButton));
         attachButton.setOnClickListener(v -> pickFile());
-        bar.addView(attachButton, LayoutHelper.createLinear(48, 48));
 
         input = new EditTextBoldCursor(context);
         input.setHint(LocaleController.getString(R.string.XmppMessageHint));
-        input.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 17);
+        input.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
         input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
         input.setMaxLines(6);
         input.setBackground(null);
@@ -276,12 +291,14 @@ public class XmppChatActivity extends BaseFragment implements XmppController.Eve
             }
         });
         bar.addView(input, LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1f));
+        bar.addView(attachButton, LayoutHelper.createLinear(48, 48));
 
         sendButton = new ImageView(context);
         sendButton.setImageResource(R.drawable.ic_send);
         sendButton.setColorFilter(Theme.getColor(Theme.key_chat_messagePanelSend));
         sendButton.setScaleType(ImageView.ScaleType.CENTER);
         sendButton.setVisibility(View.GONE);
+        sendButton.setContentDescription(LocaleController.getString(R.string.Send));
         sendButton.setOnClickListener(v -> send());
         bar.addView(sendButton, LayoutHelper.createLinear(48, 48));
 
@@ -395,12 +412,15 @@ public class XmppChatActivity extends BaseFragment implements XmppController.Eve
         }
         XmppConversation c = controller.conversation(jid);
         String name = c != null ? c.displayName() : XmppManager.get().nameOf(accountId, jid);
-        actionBar.setTitle(name);
+        if (header != null) {
+            XmppContact ct = group ? null : controller.contact(jid);
+            header.set(accountId, jid, name, !group, ct != null ? ct.show : null);
+        }
         updateSubtitle();
     }
 
     private void updateSubtitle() {
-        if (actionBar == null) {
+        if (actionBar == null || header == null) {
             return;
         }
         String sub;
@@ -428,7 +448,9 @@ public class XmppChatActivity extends BaseFragment implements XmppController.Eve
                 sub = XmppUi.showName(ct.show) + (ct.status.isEmpty() ? "" : " · " + ct.status);
             }
         }
-        actionBar.setSubtitle(sub);
+        boolean online = typingFrom != null || (!group && controller.state() == XmppConnectionState.ONLINE
+                && controller.contact(jid) != null && controller.contact(jid).show != XmppShow.OFFLINE);
+        header.setSubtitle(sub, online);
     }
 
     // ---------------------------------------------------------------------------------------------- list
@@ -543,6 +565,18 @@ public class XmppChatActivity extends BaseFragment implements XmppController.Eve
         return !group && controller.contact(m.conversation) != null;
     }
 
+    /** Telegram groups consecutive messages of one sender: only the last of a run gets the bubble tail. */
+    private boolean sameRun(int position, XmppMessage m) {
+        if (position < 0 || position >= rows.size() || !(rows.get(position) instanceof XmppMessage)) {
+            return false;
+        }
+        XmppMessage o = (XmppMessage) rows.get(position);
+        if (o.outgoing != m.outgoing || Math.abs(o.time - m.time) > 5 * 60 * 1000L) {
+            return false;
+        }
+        return m.outgoing || !group || (o.sender != null && o.sender.equals(m.sender));
+    }
+
     private final class Adapter extends RecyclerListView.SelectionAdapter {
         private static final int TYPE_MESSAGE = 0;
         private static final int TYPE_DATE = 1;
@@ -596,7 +630,9 @@ public class XmppChatActivity extends BaseFragment implements XmppController.Eve
                     qb = m.replyToBody;
                 }
                 float progress = uploads.containsKey(m.dbId) ? uploads.get(m.dbId) : -1f;
-                ((XmppMessageRow) holder.itemView).set(m, label, color, qa, qb, autoLoadImage(m), progress, (msg, loaded) -> {
+                boolean topNear = sameRun(position - 1, m);
+                boolean bottomNear = sameRun(position + 1, m);
+                ((XmppMessageRow) holder.itemView).set(m, label, color, qa, qb, autoLoadImage(m), progress, topNear, bottomNear, (msg, loaded) -> {
                     if (loaded) {
                         openUrl(msg.attachmentUrl);
                     } else {

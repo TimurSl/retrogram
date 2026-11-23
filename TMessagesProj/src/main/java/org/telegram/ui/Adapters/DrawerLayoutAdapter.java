@@ -46,6 +46,8 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter imple
     private final Context mContext;
     private final ArrayList<Item> items = new ArrayList<>(11);
     private final ArrayList<Integer> accountNumbers = new ArrayList<>();
+    // Retrogram: XMPP accounts, listed under the Telegram accounts (view type 6).
+    private final ArrayList<Long> xmppAccounts = new ArrayList<>();
     private boolean accountsShown;
     private DrawerProfileCell profileCell;
     private SideMenultItemAnimator itemAnimator;
@@ -76,7 +78,7 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter imple
     }
 
     private int getAccountRowsCount() {
-        return accountNumbers.size() + 2;
+        return accountNumbers.size() + xmppAccounts.size() + 2;
     }
 
     @Override
@@ -136,7 +138,7 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter imple
     @Override
     public boolean isEnabled(RecyclerView.ViewHolder holder) {
         int itemType = holder.getItemViewType();
-        return itemType == 3 || itemType == 4 || itemType == 5;
+        return itemType == 3 || itemType == 4 || itemType == 5 || itemType == 6;
     }
 
     @Override
@@ -157,6 +159,9 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter imple
                 break;
             case 5:
                 view = new DrawerAddCell(mContext);
+                break;
+            case 6:
+                view = new app.retrogram.xmpp.ui.DrawerXmppAccountCell(mContext);
                 break;
             case 1:
             default:
@@ -186,6 +191,10 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter imple
                 drawerUserCell.setAccount(accountNumbers.get(position - 2));
                 break;
             }
+            case 6: {
+                ((app.retrogram.xmpp.ui.DrawerXmppAccountCell) holder.itemView).setAccount(xmppAccounts.get(position - 2 - accountNumbers.size()));
+                break;
+            }
         }
     }
 
@@ -200,10 +209,12 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter imple
         if (accountsShown) {
             if (i < accountNumbers.size()) {
                 return 4;
+            } else if (i < accountNumbers.size() + xmppAccounts.size()) {
+                return 6;
             } else {
-                if (i == accountNumbers.size()) {
+                if (i == accountNumbers.size() + xmppAccounts.size()) {
                     return 5;
-                } else if (i == accountNumbers.size() + 1) {
+                } else if (i == accountNumbers.size() + xmppAccounts.size() + 1) {
                     return 2;
                 }
             }
@@ -250,8 +261,15 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter imple
             }
             return 0;
         });
+        xmppAccounts.clear();
+        xmppAccounts.addAll(app.retrogram.xmpp.ui.XmppHome.drawerAccounts());
 
         items.clear();
+        if (app.retrogram.xmpp.ui.XmppHome.isActive()) {
+            // An XMPP account is the current account: its own actions instead of the Telegram ones.
+            app.retrogram.xmpp.ui.XmppHome.addDrawerItems(items);
+            return;
+        }
         if (!UserConfig.getInstance(UserConfig.selectedAccount).isClientActivated()) {
             return;
         }

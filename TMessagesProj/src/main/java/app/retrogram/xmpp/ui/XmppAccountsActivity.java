@@ -201,6 +201,7 @@ public class XmppAccountsActivity extends BaseFragment implements XmppController
             if (which == 0) {
                 XmppManager.get().removeAccount(cfg.id, true);
                 updateRows();
+                XmppHome.onAccountRemoved(cfg.id);
             } else {
                 XmppDialogs.confirm(this, LocaleController.formatString(R.string.XmppDeleteOnServerQuestion, cfg.jid), R.string.Delete, () ->
                         c.session().deleteAccountOnServer(new Callback<Void>() {
@@ -209,6 +210,7 @@ public class XmppAccountsActivity extends BaseFragment implements XmppController
                                 AndroidUtilities.runOnUIThread(() -> {
                                     XmppManager.get().removeAccount(cfg.id, true);
                                     updateRows();
+                                    XmppHome.onAccountRemoved(cfg.id);
                                 });
                             }
 

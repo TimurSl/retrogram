@@ -21,6 +21,7 @@ public final class XmppAccounts {
     private static final String KEY_ACCOUNTS = "accounts";
     private static final String KEY_NEXT_ID = "next_id";
     private static final String KEY_BACKGROUND = "background_service";
+    private static final String KEY_SELECTED = "selected_account";
 
     private XmppAccounts() {
     }
@@ -80,7 +81,11 @@ public final class XmppAccounts {
         List<XmppAccountConfig> all = list();
         all.removeIf(c -> c.id == id);
         write(all);
-        prefs().edit().remove("show_" + id).remove("status_" + id).apply();
+        SharedPreferences.Editor e = prefs().edit().remove("show_" + id).remove("status_" + id);
+        if (prefs().getLong(KEY_SELECTED, 0) == id) {
+            e.remove(KEY_SELECTED);
+        }
+        e.apply();
     }
 
     public static synchronized boolean hasAccount(String jid) {
@@ -149,6 +154,18 @@ public final class XmppAccounts {
 
     public static void setPresence(long id, XmppShow show, String status) {
         prefs().edit().putString("show_" + id, show.name()).putString("status_" + id, status == null ? "" : status).apply();
+    }
+
+    // --- the XMPP account shown as the app's current account (drawer account switcher)
+
+    /** The XMPP account the main screen shows instead of the Telegram chat list, or 0 when a Telegram account is shown. */
+    public static long selected() {
+        return prefs().getLong(KEY_SELECTED, 0);
+    }
+
+    public static void setSelected(long id) {
+        // commit(), not apply(): the choice must survive the process being killed right after the switch.
+        prefs().edit().putLong(KEY_SELECTED, id).commit();
     }
 
     // --- settings

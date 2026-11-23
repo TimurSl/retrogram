@@ -681,7 +681,10 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
 
         LiteMode.addOnPowerSaverAppliedListener(onPowerSaverCallback = this::onPowerSaver);
         if (actionBarLayout.getFragmentStack().isEmpty() && (layersActionBarLayout == null || layersActionBarLayout.getFragmentStack().isEmpty())) {
-            if (!UserConfig.getInstance(currentAccount).isClientActivated()) {
+            BaseFragment xmppHome = app.retrogram.xmpp.ui.XmppHome.createHomeFragment();
+            if (xmppHome != null) {
+                actionBarLayout.addFragmentToStack(xmppHome);
+            } else if (!UserConfig.getInstance(currentAccount).isClientActivated()) {
                 actionBarLayout.addFragmentToStack(getClientNotActivatedFragment());
             } else {
                 MainTabsActivity mainTabsActivity = new MainTabsActivity();
@@ -1296,9 +1299,12 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     }
 
     public void switchToAccount(int account, boolean removeAll, GenericProvider<Void, MainTabsActivity> dialogsActivityProvider) {
-        if (account == UserConfig.selectedAccount || !UserConfig.isValidAccount(account)) {
+        // Retrogram: while an XMPP account is current, tapping the selected Telegram account goes back to it too.
+        boolean leavingXmpp = app.retrogram.xmpp.XmppAccounts.selected() != 0;
+        if ((account == UserConfig.selectedAccount && !leavingXmpp) || !UserConfig.isValidAccount(account)) {
             return;
         }
+        app.retrogram.xmpp.XmppAccounts.setSelected(0);
         switchingAccount = true;
 
         ConnectionsManager.getInstance(currentAccount).setAppPaused(true, false);
@@ -1346,6 +1352,58 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         switchingAccount = false;
     }
 
+    // Retrogram XMPP: an XMPP account can be the current account. Its chat list then replaces the Telegram one.
+
+    /** Makes the XMPP account the current account: its chat list becomes the main screen, the drawer shows its header and actions. */
+    public void switchToXmppAccount(long accountId) {
+        if (app.retrogram.xmpp.XmppManager.get().controller(accountId) == null) {
+            return;
+        }
+        app.retrogram.xmpp.ui.XmppHome.select(accountId);
+        resetHomeStack(new app.retrogram.xmpp.ui.XmppDialogsActivity(accountId));
+    }
+
+    /** Leaves XMPP mode (the current XMPP account was removed): back to the Telegram account, or to the login screen without one. */
+    public void exitXmppMode() {
+        app.retrogram.xmpp.ui.XmppHome.select(0);
+        if (UserConfig.getInstance(currentAccount).isClientActivated()) {
+            resetHomeStack(new MainTabsActivity());
+            bindHomeDrawerToDialogs();
+        } else {
+            resetHomeStack(getClientNotActivatedFragment());
+        }
+    }
+
+    /** XMPP accounts were added, removed or renamed: rebuild the drawer's account list. */
+    public void refreshDrawerAccounts() {
+        refreshDrawer(true);
+    }
+
+    private void resetHomeStack(BaseFragment home) {
+        if (AndroidUtilities.isTablet()) {
+            layersActionBarLayout.removeAllFragments();
+            rightActionBarLayout.removeAllFragments();
+            if (!tabletFullSize) {
+                if (rightActionBarLayout.getFragmentStack().isEmpty()) {
+                    backgroundTablet.setVisibility(View.VISIBLE);
+                }
+                rightActionBarLayout.getView().setVisibility(View.GONE);
+            }
+            layersActionBarLayout.getView().setVisibility(View.GONE);
+        }
+        actionBarLayout.removeAllFragments();
+        actionBarLayout.addFragmentToStack(home, INavigationLayout.FORCE_ATTACH_VIEW_AS_FIRST);
+        actionBarLayout.rebuildFragments(INavigationLayout.REBUILD_FLAG_REBUILD_LAST);
+        if (AndroidUtilities.isTablet()) {
+            layersActionBarLayout.rebuildFragments(INavigationLayout.REBUILD_FLAG_REBUILD_LAST);
+            rightActionBarLayout.rebuildFragments(INavigationLayout.REBUILD_FLAG_REBUILD_LAST);
+        }
+        refreshDrawer(true);
+        if (drawerLayoutContainer != null) {
+            drawerLayoutContainer.closeDrawer(false);
+        }
+    }
+
     private DialogsActivity getHomeDrawerDialogsActivity() {
         BaseFragment fragment = null;
         if (actionBarLayout != null && actionBarLayout.getFragmentStack() != null && !actionBarLayout.getFragmentStack().isEmpty()) {
@@ -1382,7 +1440,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         TLRPC.User user = UserConfig.getInstance(currentAccount).getCurrentUser();
         boolean accountsShown = drawerLayoutAdapter != null && drawerLayoutAdapter.isAccountsShown();
         if (sideMenuHeaderView != null) {
-            sideMenuHeaderView.setUser(user, accountsShown);
+            if (!app.retrogram.xmpp.ui.XmppHome.bindDrawerHeader(sideMenuHeaderView, accountsShown)) {
+                sideMenuHeaderView.setUser(user, accountsShown);
+            }
             sideMenuHeaderView.updateColors();
         }
         int childCount = sideMenu.getChildCount();
@@ -1460,7 +1520,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         drawerLayoutAdapter.setProfileCell(sideMenuHeaderView);
         sideMenuHeaderView.setAccountsShown(drawerLayoutAdapter.isAccountsShown(), false);
         TLRPC.User currentUser = UserConfig.getInstance(currentAccount).getCurrentUser();
-        if (currentUser != null) {
+        if (app.retrogram.xmpp.ui.XmppHome.bindDrawerHeader(sideMenuHeaderView, drawerLayoutAdapter.isAccountsShown())) {
+            sideMenuHeaderView.updateColors();
+        } else if (currentUser != null) {
             sideMenuHeaderView.setUser(currentUser, drawerLayoutAdapter.isAccountsShown());
         } else {
             sideMenuHeaderView.updateColors();
@@ -1473,7 +1535,12 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         });
         sideMenuHeaderView.setOnClickListener(v -> {
             if (sideMenuHeaderView.isInAvatar(drawerHeaderTouch[0], drawerHeaderTouch[1])) {
-                openSettings(sideMenuHeaderView.hasAvatar());
+                if (app.retrogram.xmpp.ui.XmppHome.isActive()) {
+                    app.retrogram.xmpp.ui.XmppHome.openAccountSettings();
+                    drawerLayoutContainer.closeDrawer(false);
+                } else {
+                    openSettings(sideMenuHeaderView.hasAvatar());
+                }
             } else if (drawerLayoutAdapter != null) {
                 drawerLayoutAdapter.setAccountsShown(!drawerLayoutAdapter.isAccountsShown(), true);
             }
@@ -1496,6 +1563,13 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             }
             if (view instanceof DrawerUserCell drawerUserCell) {
                 switchToAccount(drawerUserCell.getAccountNumber(), true);
+                drawerLayoutContainer.closeDrawer(false);
+                return;
+            }
+            if (view instanceof app.retrogram.xmpp.ui.DrawerXmppAccountCell xmppCell) {
+                if (xmppCell.getAccountId() != app.retrogram.xmpp.ui.XmppHome.activeAccount()) {
+                    switchToXmppAccount(xmppCell.getAccountId());
+                }
                 drawerLayoutContainer.closeDrawer(false);
                 return;
             }
@@ -4148,7 +4222,10 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             }
         }
         if (!pushOpened && !isNew) {
-            if (AndroidUtilities.isTablet()) {
+            BaseFragment xmppHome = actionBarLayout.getFragmentStack().isEmpty() ? app.retrogram.xmpp.ui.XmppHome.createHomeFragment() : null;
+            if (xmppHome != null) {
+                actionBarLayout.addFragmentToStack(xmppHome, INavigationLayout.FORCE_NOT_ATTACH_VIEW);
+            } else if (AndroidUtilities.isTablet()) {
                 if (!UserConfig.getInstance(currentAccount).isClientActivated()) {
                     if (layersActionBarLayout.getFragmentStack().isEmpty()) {
                         layersActionBarLayout.addFragmentToStack(getClientNotActivatedFragment(), INavigationLayout.FORCE_NOT_ATTACH_VIEW);

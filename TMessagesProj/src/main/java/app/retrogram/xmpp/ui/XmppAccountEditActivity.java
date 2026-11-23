@@ -8,9 +8,12 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+
+import androidx.core.graphics.ColorUtils;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
@@ -34,7 +37,12 @@ import app.retrogram.xmpp.core.XmppAccountConfig.Security;
 import app.retrogram.xmpp.core.XmppError;
 import app.retrogram.xmpp.core.XmppSession;
 
-/** Add an account or edit one. A new or changed account is test-logged-in before it is saved. */
+/**
+ * Add an account or edit one. A new or changed account is test-logged-in before it is saved.
+ * <p>
+ * {@link #forLogin()} is the same form laid out like the Telegram login screen; it is opened from the login screen's
+ * ⋮ menu (Add account → ⋮ → XMPP) and, once signed in, makes the new account the app's current account.
+ */
 public class XmppAccountEditActivity extends BaseFragment {
 
     private static final int DONE = 1;
@@ -55,9 +63,25 @@ public class XmppAccountEditActivity extends BaseFragment {
     private TextView advancedToggle;
     private Security security = Security.STARTTLS_REQUIRED;
     private AlertDialog progress;
+    private boolean loginMode;
 
     public XmppAccountEditActivity(long accountId) {
         this.accountId = accountId;
+    }
+
+    /** "Sign in with XMPP", opened from the login screen. Afterwards the new account is shown like a Telegram account. */
+    public static XmppAccountEditActivity forLogin() {
+        XmppAccountEditActivity f = new XmppAccountEditActivity(0);
+        f.loginMode = true;
+        return f;
+    }
+
+    @Override
+    public boolean isLightStatusBar() {
+        if (!loginMode) {
+            return super.isLightStatusBar();
+        }
+        return ColorUtils.calculateLuminance(Theme.getColor(Theme.key_windowBackgroundWhite)) > 0.7f;
     }
 
     @Override
@@ -85,17 +109,32 @@ public class XmppAccountEditActivity extends BaseFragment {
                 }
             }
         });
-        ActionBarMenu menu = actionBar.createMenu();
-        menu.addItemWithWidth(DONE, R.drawable.ic_ab_done, dp(56), LocaleController.getString(R.string.Done));
-
         ScrollView scroll = new ScrollView(context);
         scroll.setFillViewport(true);
         scroll.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
-        fragmentView = scroll;
         LinearLayout form = new LinearLayout(context);
         form.setOrientation(LinearLayout.VERTICAL);
         form.setPadding(dp(20), dp(12), dp(20), dp(24));
         scroll.addView(form, new ScrollView.LayoutParams(ScrollView.LayoutParams.MATCH_PARENT, ScrollView.LayoutParams.WRAP_CONTENT));
+        if (loginMode) {
+            // Telegram login look: no title bar colour, a centred header, the arrow button at the bottom right.
+            actionBar.setTitle("");
+            actionBar.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+            actionBar.setItemsColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText), false);
+            actionBar.setItemsBackgroundColor(Theme.getColor(Theme.key_listSelector), false);
+            actionBar.setCastShadows(false);
+            form.setPadding(dp(24), dp(8), dp(24), dp(96));
+            addLoginHeader(context, form);
+            FrameLayout root = new FrameLayout(context);
+            root.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+            root.addView(scroll, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+            root.addView(createNextButton(context), LayoutHelper.createFrame(56, 56, Gravity.RIGHT | Gravity.BOTTOM, 0, 0, 24, 24));
+            fragmentView = root;
+        } else {
+            ActionBarMenu menu = actionBar.createMenu();
+            menu.addItemWithWidth(DONE, R.drawable.ic_ab_done, dp(56), LocaleController.getString(R.string.Done));
+            fragmentView = scroll;
+        }
 
         jid = XmppUi.editText(context, LocaleController.getString(R.string.XmppAddressHint), InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
         jid.setText(config.jid);
@@ -154,6 +193,46 @@ public class XmppAccountEditActivity extends BaseFragment {
         hint.setPadding(0, dp(12), 0, 0);
         form.addView(hint, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
         return fragmentView;
+    }
+
+    private void addLoginHeader(Context context, LinearLayout form) {
+        FrameLayout iconFrame = new FrameLayout(context);
+        iconFrame.setBackground(Theme.createCircleDrawable(dp(100), Theme.getColor(Theme.key_chats_actionBackground)));
+        ImageView icon = new ImageView(context);
+        icon.setImageResource(R.drawable.msg_discussion);
+        icon.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        icon.setColorFilter(Theme.getColor(Theme.key_chats_actionIcon));
+        iconFrame.addView(icon, LayoutHelper.createFrame(52, 52, Gravity.CENTER));
+        form.addView(iconFrame, LayoutHelper.createLinear(100, 100, Gravity.CENTER_HORIZONTAL, 0, 16, 0, 0));
+
+        TextView title = new TextView(context);
+        title.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
+        title.setTypeface(AndroidUtilities.bold());
+        title.setGravity(Gravity.CENTER);
+        title.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+        title.setText(LocaleController.getString(R.string.XmppLoginTitle));
+        form.addView(title, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 20, 0, 0));
+
+        TextView subtitle = new TextView(context);
+        subtitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+        subtitle.setGravity(Gravity.CENTER);
+        subtitle.setLineSpacing(dp(2), 1f);
+        subtitle.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText6));
+        subtitle.setText(LocaleController.getString(R.string.XmppLoginSubtitle));
+        form.addView(subtitle, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 8, 8, 8, 24));
+    }
+
+    private View createNextButton(Context context) {
+        ImageView button = new ImageView(context);
+        button.setScaleType(ImageView.ScaleType.CENTER);
+        button.setImageResource(R.drawable.msg_arrow_forward);
+        button.setColorFilter(Theme.getColor(Theme.key_chats_actionIcon));
+        button.setBackground(Theme.createSimpleSelectorCircleDrawable(dp(56), Theme.getColor(Theme.key_chats_actionBackground),
+                Theme.getColor(Theme.key_chats_actionPressedBackground)));
+        button.setElevation(dp(2));
+        button.setContentDescription(LocaleController.getString(R.string.Done));
+        button.setOnClickListener(v -> save());
+        return button;
     }
 
     private EditTextBoldCursor addField(Context context, int hintRes, String value, int type) {
@@ -270,11 +349,18 @@ public class XmppAccountEditActivity extends BaseFragment {
             @Override
             public void onSuccess() {
                 hideProgress();
+                long savedId;
                 if (accountId == 0) {
-                    XmppManager.get().addAccount(c);
+                    savedId = XmppManager.get().addAccount(c).accountId();
                 } else {
-                    XmppManager.get().updateAccount(c);
+                    savedId = XmppManager.get().updateAccount(c).accountId();
                 }
+                if (loginMode && getParentActivity() instanceof org.telegram.ui.LaunchActivity) {
+                    // Like a Telegram login: the new account becomes the current one, the login screens go away.
+                    ((org.telegram.ui.LaunchActivity) getParentActivity()).switchToXmppAccount(savedId);
+                    return;
+                }
+                XmppHome.onAccountsChanged();
                 finishFragment();
             }
 
