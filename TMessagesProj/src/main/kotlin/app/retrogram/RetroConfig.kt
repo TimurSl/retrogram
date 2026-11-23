@@ -67,6 +67,20 @@ object RetroConfig {
     @JvmField
     val classicColors = ConfigItem("RetroClassicColors", ConfigItem.configTypeBool, true)
 
+    /**
+     * A small round pencil button beside your own messages that you can still edit; tapping it starts editing. Off by default
+     * (it is an option); read live.
+     */
+    @JvmField
+    val editMessageButton = ConfigItem("RetroEditMessageButton", ConfigItem.configTypeBool, false)
+
+    /**
+     * A small round bookmark button beside other people's messages (where Telegram shows no forward arrow); tapping it forwards
+     * the message to Telegram's own Saved Messages. Read live.
+     */
+    @JvmField
+    val saveMessageButton = ConfigItem("RetroSaveMessageButton", ConfigItem.configTypeBool, true)
+
     /** GIF panel source: 0 = Telegram's GIF bot (KLIPY), 1 = UniGif over HTTP (docs/plans/08-unigif.md). Read live. */
     @JvmField
     val gifProvider = ConfigItem("RetroGifProvider", ConfigItem.configTypeInt, 0)
@@ -87,7 +101,7 @@ object RetroConfig {
     @JvmField
     val fontName = ConfigItem("RetroFontName", ConfigItem.configTypeString, "")
 
-    private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings, classicInput, classicChatHeader, classicEmojiPanel, classicRoundButtons, classicColors)
+    private val items = listOf(retroUi, upstreamUiDebug, remoteMetadata, classicSettings, classicInput, classicChatHeader, classicEmojiPanel, classicRoundButtons, classicColors, editMessageButton, saveMessageButton)
 
     const val GIF_PROVIDER_KLIPY = 0
     const val GIF_PROVIDER_UNIGIF = 1

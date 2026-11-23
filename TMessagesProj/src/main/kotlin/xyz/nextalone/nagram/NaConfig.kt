@@ -1843,7 +1843,7 @@ object NaConfig {
         addConfig(
             "ShowAddToBookmark",
             ConfigItem.configTypeBool,
-            false
+            true
         )
     val sortByUnread =
         addConfig(

@@ -29,6 +29,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import app.retrogram.RetroFavoriteStore;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.DialogObject;
@@ -487,6 +488,12 @@ public class BookmarkManagerActivity extends BaseFragment {
 
                         TLObject peer = resolvePeer(messagesController, dialogId);
                         String title = resolveTitle(peer);
+                        if (peer == null) {
+                            final String savedTitle = RetroFavoriteStore.getTitle(accountId, dialogId);
+                            if (savedTitle != null) {
+                                title = savedTitle;
+                            }
+                        }
                         String username = resolveUsername(peer);
                         int category = resolveCategory(peer);
                         long sortDate = 0;

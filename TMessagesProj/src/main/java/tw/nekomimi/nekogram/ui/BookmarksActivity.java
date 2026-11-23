@@ -35,6 +35,7 @@ import com.radolyn.ayugram.database.entities.DeletedMessageFull;
 import com.radolyn.ayugram.messages.AyuMessagesController;
 import com.radolyn.ayugram.utils.AyuMessageUtils;
 
+import app.retrogram.RetroFavoriteStore;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.DialogObject;
@@ -42,10 +43,12 @@ import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.MediaController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesStorage;
+import org.telegram.messenger.UserObject;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.ConnectionsManager;
+import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenu;
@@ -212,6 +215,15 @@ public class BookmarksActivity extends NekoDelegateFragment {
                 TLRPC.Message message = MessagesStorage.getInstance(accountId).getMessage(dialogId, messageId);
                 MessageObject messageObject = null;
                 if (message != null) {
+                    // Keep a local copy so the favorite survives the chat being deleted or cleared.
+                    if (!RetroFavoriteStore.has(accountId, dialogId, messageId)) {
+                        RetroFavoriteStore.put(accountId, dialogId, message, chatTitleForFavorites());
+                    }
+                    messageObject = new MessageObject(accountId, message, false, true);
+                    if (messageObject.messageOwner.media != null) {
+                        messageObject.messageOwner.media.ttl_seconds = 0;
+                    }
+                } else if ((message = RetroFavoriteStore.get(accountId, dialogId, messageId)) != null) {
                     messageObject = new MessageObject(accountId, message, false, true);
                     if (messageObject.messageOwner.media != null) {
                         messageObject.messageOwner.media.ttl_seconds = 0;
@@ -248,6 +260,16 @@ public class BookmarksActivity extends NekoDelegateFragment {
                 }
             });
         });
+    }
+
+    private String chatTitleForFavorites() {
+        TLObject peer = getMessagesController().getUserOrChat(dialogId);
+        if (peer instanceof TLRPC.Chat) {
+            return ((TLRPC.Chat) peer).title;
+        } else if (peer instanceof TLRPC.User) {
+            return UserObject.getUserName((TLRPC.User) peer);
+        }
+        return null;
     }
 
     private MessageObject createMissingMessagePlaceholder(int accountId, long userId, int messageId) {

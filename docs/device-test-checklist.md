@@ -73,6 +73,15 @@ Since 2026-11-22 all the classic switches below are on by default (fresh install
 - [ ] Attach sheet (paperclip): bottom tab bar is a full-width solid strip, no floating pill, no fade behind it; tabs still tappable and scroll if many
 - [ ] Share sheet: caption bar, "Send" bar and the emoji panel under the caption are flat and full width, no fade at the bottom
 
+**Restored chat-list changes and message side buttons (added 2026-11-23, not yet seen)**
+- [ ] Opening the side panel moves and dims the chat list a little (phones); closing returns it
+- [ ] Pinned chats have a slightly lighter band; status dot on avatars (grey offline, accent online)
+- [ ] Three-dots menu on the chat list lists Saved Messages, Archive, Feed, Hashtags+, Favorites, Games, Scan QR, In-app browser
+- [ ] Classic input on: the area behind the system navigation bar is the input bar colour, not the wallpaper
+- [ ] Settings > Retrogram > "Edit button beside your messages" on: a pencil sits left of your own editable messages; tap starts editing; no pencil on polls, stories, messages past the edit window
+- [ ] "Save button beside messages" on (default): a bookmark sits right of other people's messages in groups and private chats (not in channels, which keep the forward arrow, nor in Saved Messages or no-forward chats); tap forwards to Saved Messages and shows the undo bar
+- [ ] Message menu "Add to Favorites" (star) on a message; open Favorites from the three-dots menu, the message is listed. Delete or clear that chat, reopen Favorites: the text/caption copy and the chat name are still there (media file only if still cached)
+
 **Glass leftovers (retro on)**
 - [ ] Any blurred or translucent panel you can find: share sheet, attach sheet, photo viewer, profile of another user, chat action bar, top panels (pinned, translate)
 - [ ] Scrolling a long chat and the chat list feels smooth (note device and refresh rate)

@@ -35567,6 +35567,24 @@ public class ChatActivity extends BaseFragment implements
         startEditingMessageObject(messageObject, false);
     }
 
+    private void saveFavoriteCopies(List<MessageObject> messages) {
+        for (MessageObject message : messages) {
+            if (message == null || message.messageOwner == null) {
+                continue;
+            }
+            final long did = message.getDialogId();
+            String title = null;
+            if (did == dialog_id) {
+                if (currentChat != null) {
+                    title = currentChat.title;
+                } else if (currentUser != null) {
+                    title = UserObject.getUserName(currentUser);
+                }
+            }
+            app.retrogram.RetroFavoriteStore.put(currentAccount, did, message.messageOwner, title);
+        }
+    }
+
     private void startEditingMessageObject(MessageObject messageObject, boolean asSuggestion) {
         if (messageObject == null || getParentActivity() == null) {
             return;
@@ -42408,6 +42426,32 @@ public class ChatActivity extends BaseFragment implements
         }
 
         @Override
+        public void didPressRetroEdit(ChatMessageCell cell) {
+            final MessageObject messageObject = cell.getMessageObject();
+            if (getParentActivity() == null || messageObject == null || !messageObject.canEditMessage(currentChat)) {
+                return;
+            }
+            startEditingMessageObject(messageObject);
+        }
+
+        @Override
+        public void didPressRetroSave(ChatMessageCell cell) {
+            final MessageObject messageObject = cell.getMessageObject();
+            if (getParentActivity() == null || messageObject == null) {
+                return;
+            }
+            final ArrayList<MessageObject> messages = new ArrayList<>();
+            final MessageObject.GroupedMessages group = getValidGroupedMessage(messageObject);
+            if (group != null && group.messages != null && !group.messages.isEmpty()) {
+                messages.addAll(group.messages);
+            } else {
+                messages.add(messageObject);
+            }
+            forwardMessages(messages, false, false, true, 0, getUserConfig().getClientUserId(), 0);
+            undoView.showWithAction(getUserConfig().getClientUserId(), UndoView.ACTION_FWD_MESSAGES, messages.size());
+        }
+
+        @Override
         public void didPressSideButton(ChatMessageCell cell) {
             if (getParentActivity() == null) {
                 return;
@@ -48636,6 +48680,11 @@ public class ChatActivity extends BaseFragment implements
                     BulletinFactory.of(this).createSimpleBulletin(R.raw.error, formatString(R.string.BookmarksLimitReached, BookmarksHelper.MAX_PER_CHAT)).show();
                 } else {
                     boolean added = result == ToggleResult.ADDED;
+                    if (added) {
+                        // Keep a local copy, so the favorite is still there if the chat is deleted later.
+                        saveFavoriteCopies(selectedObjectGroup != null && selectedObjectGroup.messages != null && !selectedObjectGroup.messages.isEmpty()
+                                ? selectedObjectGroup.messages : java.util.Collections.singletonList(selectedObject));
+                    }
                     Drawable drawable = ContextCompat.getDrawable(getParentActivity(), added ? R.drawable.msg_fave : R.drawable.msg_unfave);
                     if (drawable != null) {
                         drawable = drawable.mutate();
@@ -51179,7 +51228,9 @@ public class ChatActivity extends BaseFragment implements
                         } else {
                             bookmarked = BookmarksHelper.isBookmarked(currentAccount, selectedObject.getDialogId(), selectedObject.getId());
                         }
-                        items.add(getString(bookmarked ? R.string.RemoveBookmark : R.string.AddBookmark));
+                        items.add(app.retrogram.RetroConfig.isRetroUi()
+                                ? getString(bookmarked ? R.string.RetroRemoveFavorite : R.string.RetroAddFavorite)
+                                : getString(bookmarked ? R.string.RemoveBookmark : R.string.AddBookmark));
                         options.add(nkbtn_bookmark);
                         icons.add(bookmarked ? R.drawable.msg_unfave : R.drawable.msg_fave);
                     }

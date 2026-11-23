@@ -325,6 +325,11 @@ public class ChatInputViewsContainer extends FrameLayout {
         );
         tmpRect.inset(0, -dp(bubbleMargin()));
         tmpRect.offset(0, blurTop + (int) bubbleInputTranlationY);
+        if (classic() && maxBottomInset > 0) {
+            // Classic bar is flush with the content above the system navigation bar: paint the bar colour behind the
+            // navigation bar too, otherwise the chat wallpaper shows through there.
+            tmpRect.bottom += Math.round(maxBottomInset);
+        }
 
         blurredBackgroundDrawable.setBounds(tmpRect);
         if (drawInputBackground)

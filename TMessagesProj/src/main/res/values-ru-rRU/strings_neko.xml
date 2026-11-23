@@ -277,4 +277,10 @@
     <string name="RetroGames">Игры</string>
     <string name="RetroGamesEmpty">В ваших чатах пока нет игр. Здесь появляются игры, которые боты отправляли в чаты, открытые на этом устройстве.</string>
     <string name="RetroGamesInfo">Игры из чатов, сохранённых на этом устройстве. Нажмите на игру, чтобы открыть её сообщение, затем нажмите «Играть».</string>
+    <string name="RetroEditMessageButton">Кнопка «изменить» рядом с вашими сообщениями</string>
+    <string name="RetroEditMessageButtonInfo">Маленькая кнопка с карандашом рядом с вашими сообщениями, которые ещё можно изменить. Нажмите, чтобы начать редактирование.</string>
+    <string name="RetroSaveMessageButton">Кнопка «сохранить» рядом с сообщениями</string>
+    <string name="RetroSaveMessageButtonInfo">Маленькая кнопка-закладка рядом с чужими сообщениями. Нажмите, чтобы переслать сообщение в «Избранное» Telegram.</string>
+    <string name="RetroAddFavorite">В избранное</string>
+    <string name="RetroRemoveFavorite">Убрать из избранного</string>
 </resources>

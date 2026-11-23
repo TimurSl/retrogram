@@ -61,6 +61,8 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
     private final AbstractConfigCell classicEmojiPanelRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.classicEmojiPanel, getString(R.string.RetroClassicEmojiPanelInfo)));
     private final AbstractConfigCell classicRoundButtonsRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.classicRoundButtons, getString(R.string.RetroClassicRoundButtonsInfo)));
     private final AbstractConfigCell classicColorsRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.classicColors, getString(R.string.RetroClassicColorsInfo)));
+    private final AbstractConfigCell editMessageButtonRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.editMessageButton, getString(R.string.RetroEditMessageButtonInfo)));
+    private final AbstractConfigCell saveMessageButtonRow = cellGroup.appendCell(new ConfigCellTextCheck(RetroConfig.saveMessageButton, getString(R.string.RetroSaveMessageButtonInfo)));
     private final AbstractConfigCell dividerInterface = cellGroup.appendCell(new ConfigCellDivider());
 
     // Font. The row shows the picked file's name; updateFontRow() swaps it when the choice changes.
@@ -289,6 +291,8 @@ public class RetrogramSettingsActivity extends BaseNekoXSettingsActivity {
                 && !RetroConfig.classicChatHeader.getKey().equals(key)
                 && !RetroConfig.classicEmojiPanel.getKey().equals(key)
                 && !RetroConfig.classicRoundButtons.getKey().equals(key)
+                && !RetroConfig.editMessageButton.getKey().equals(key)
+                && !RetroConfig.saveMessageButton.getKey().equals(key)
                 && !isGifKey(key)) {
                 tooltip.showWithAction(0, UndoView.ACTION_NEED_RESTART, null, null);
             }

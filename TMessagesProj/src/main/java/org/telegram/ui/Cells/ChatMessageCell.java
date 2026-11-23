@@ -709,6 +709,12 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         default void didPressGroupImage(ChatMessageCell cell, ImageReceiver imageReceiver, TLRPC.MessageExtendedMedia media, float x, float y) {
         }
 
+        default void didPressRetroEdit(ChatMessageCell cell) {
+        }
+
+        default void didPressRetroSave(ChatMessageCell cell) {
+        }
+
         default void didPressSideButton(ChatMessageCell cell) {
         }
 
@@ -1747,6 +1753,12 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private float[] sideButtonPathCorners1, sideButtonPathCorners2;
     private static final int SIDE_BUTTON_SPONSORED_CLOSE = 4;
     private static final int SIDE_BUTTON_SPONSORED_MORE = 5;
+    /** Retrogram: pencil beside your own editable messages / bookmark beside other people's messages. */
+    private static final int SIDE_BUTTON_RETRO_EDIT = 6;
+    private static final int SIDE_BUTTON_RETRO_SAVE = 7;
+    private Drawable retroSideIcon;
+    private int retroSideIconRes;
+    private int retroSideIconColor;
     private float sideStartX, sideStartY;
     private float summarizeButtonX, summarizeButtonY;
 
@@ -5438,6 +5450,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                                 delegate.didPressSponsoredInfo(this, x, y);
                             } else if (pressedSideButton == 3) {
                                 delegate.didPressCommentButton(this);
+                            } else if (pressedSideButton == SIDE_BUTTON_RETRO_EDIT) {
+                                delegate.didPressRetroEdit(this);
+                            } else if (pressedSideButton == SIDE_BUTTON_RETRO_SAVE) {
+                                delegate.didPressRetroSave(this);
                             } else {
                                 delegate.didPressSideButton(this);
                             }
@@ -7118,6 +7134,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                     drawSideButton = 2;
                 }
             }
+            applyRetroSideButton(messageObject);
             drawSummarizeButton = TranslateController.isSummarizable(messageObject);
             hasReplyQuote = false;
             isReplyQuote = false;
@@ -19168,6 +19185,68 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         return messageObject.messageOwner.fwd_from != null && messageObject.messageOwner.fwd_from.saved_from_peer != null && (delegate == null || delegate.isReplyOrSelf());
     }
 
+    /**
+     * Retrogram: reuses the side-button slot (where Telegram puts the forward arrow) for a pencil on your own editable
+     * messages and a bookmark on other people's messages. Does not reserve any width: if the bubble leaves no room the
+     * button is simply not drawn (see drawSideButton).
+     */
+    private void applyRetroSideButton(MessageObject messageObject) {
+        if (drawSideButton != 0 || messageObject == null || messageObject.messageOwner == null || !messageObject.isSent()) {
+            return;
+        }
+        final boolean edit = messageObject.isOutOwner();
+        if (edit ? !app.retrogram.RetroConfig.editMessageButton.Bool() : !app.retrogram.RetroConfig.saveMessageButton.Bool()) {
+            return;
+        }
+        if (isRepliesChat || isPinnedChat || isReportChat || widePostsHideAuxiliaryActions
+                || messageObject.isSponsored() || messageObject.isEphemeral() || messageObject.isAyuDeleted()
+                || (messageObject.deleted && !messageObject.deletedByThanos) || messageObject.searchType != 0
+                || messageObject.type == MessageObject.TYPE_STORY) {
+            return;
+        }
+        if (currentMessagesGroup != null && currentPosition != null) {
+            final boolean last = (currentPosition.flags & MessageObject.POSITION_FLAG_BOTTOM) != 0 && (currentPosition.flags & (edit ? MessageObject.POSITION_FLAG_LEFT : MessageObject.POSITION_FLAG_RIGHT)) != 0;
+            if (!currentMessagesGroup.isDocuments && !last) {
+                return;
+            }
+        }
+        if (edit) {
+            if (messageObject.type == MessageObject.TYPE_POLL || !messageObject.canEditMessage(currentChat)) {
+                return;
+            }
+            drawSideButton = SIDE_BUTTON_RETRO_EDIT;
+        } else {
+            final long dialogId = messageObject.getDialogId();
+            if (dialogId == UserConfig.getInstance(currentAccount).getClientUserId() || DialogObject.isEncryptedDialog(dialogId)
+                    || MessagesController.getInstance(currentAccount).isPeerNoForwards(dialogId) || messageObject.messageOwner.noforwards
+                    || !messageObject.canForwardMessage()) {
+                return;
+            }
+            drawSideButton = SIDE_BUTTON_RETRO_SAVE;
+        }
+    }
+
+    private void drawRetroSideIcon(Canvas canvas) {
+        final int res = drawSideButton == SIDE_BUTTON_RETRO_EDIT ? R.drawable.msg_edit : R.drawable.msg_saved;
+        final int color = getThemedColor(Theme.key_chat_serviceIcon);
+        if (retroSideIcon == null || retroSideIconRes != res) {
+            final Drawable base = ContextCompat.getDrawable(getContext(), res);
+            retroSideIcon = base == null ? null : base.mutate();
+            retroSideIconRes = res;
+            retroSideIconColor = 0;
+        }
+        if (retroSideIcon == null) {
+            return;
+        }
+        if (retroSideIconColor != color) {
+            retroSideIcon.setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN));
+            retroSideIconColor = color;
+        }
+        final int cx = (int) (sideStartX + dp(16)), cy = (int) (sideStartY + dp(16));
+        retroSideIcon.setBounds(cx - dp(10), cy - dp(10), cx + dp(10), cy + dp(10));
+        retroSideIcon.draw(canvas);
+    }
+
     protected boolean checkNeedDrawShareButton(MessageObject messageObject) {
         if (!messageObject.isSaved && NaConfig.INSTANCE.getHideShareButtonInChannel().Bool()) return false;
         if (widePostsHideAuxiliaryActions) return false;
@@ -22351,6 +22430,8 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 Drawable goIconDrawable = getThemedDrawable(Theme.key_drawable_goIcon);
                 setDrawableBounds(goIconDrawable, sideStartX + dp(16) - goIconDrawable.getIntrinsicWidth() / 2f, sideStartY + dp(16) - goIconDrawable.getIntrinsicHeight() / 2f);
                 goIconDrawable.draw(canvas);
+            } else if (drawSideButton == SIDE_BUTTON_RETRO_EDIT || drawSideButton == SIDE_BUTTON_RETRO_SAVE) {
+                drawRetroSideIcon(canvas);
             } else if (drawSideButton == SIDE_BUTTON_SPONSORED_CLOSE) {
                 final int scx = (int) (sideStartX + dp(16)), scy = (int) (sideStartY + dp(16));
                 Drawable drawable = getThemedDrawable(Theme.key_drawable_closeIcon);

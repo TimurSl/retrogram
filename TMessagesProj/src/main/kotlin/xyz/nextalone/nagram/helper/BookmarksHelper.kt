@@ -2,6 +2,7 @@ package xyz.nextalone.nagram.helper
 
 import androidx.core.content.edit
 import org.telegram.messenger.UserConfig
+import app.retrogram.RetroFavoriteStore
 import xyz.nextalone.nagram.NaConfig
 import xyz.nextalone.nagram.ToggleResult
 import java.util.concurrent.ConcurrentHashMap
@@ -188,6 +189,7 @@ object BookmarksHelper {
         }
         cache.clear()
         migratedOwners.remove(accountId)
+        RetroFavoriteStore.clear(accountId)
     }
 
     @JvmStatic
@@ -223,6 +225,7 @@ object BookmarksHelper {
             val removed = current.removeAll(ids.toSet())
             if (removed) {
                 persist(k, current)
+                ids.forEach { RetroFavoriteStore.remove(accountId, dialogId, it) }
             }
             return ToggleResult.REMOVED
         }
@@ -260,6 +263,7 @@ object BookmarksHelper {
         val removed = current.removeAll(ids.toSet())
         if (removed) {
             persist(k, current)
+            ids.forEach { RetroFavoriteStore.remove(accountId, dialogId, it) }
         }
         return removed
     }

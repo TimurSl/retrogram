@@ -52,6 +52,10 @@
     <string name="RetroClassicEmojiPanelInfo">Full-width bottom tab bar in the emoji, GIF and sticker panel instead of the floating rounded tabs and buttons. Applies to chats opened afterwards.</string>
     <string name="RetroClassicRoundButtons">Classic round buttons (experimental)</string>
     <string name="RetroClassicRoundButtonsInfo">Solid round page-down, mentions and reactions buttons with a soft shadow instead of the glass circles. Applies to chats opened afterwards.</string>
+    <string name="RetroEditMessageButton">Edit button beside your messages</string>
+    <string name="RetroEditMessageButtonInfo">A small pencil button next to your own messages that can still be edited. Tap it to start editing.</string>
+    <string name="RetroSaveMessageButton">Save button beside messages</string>
+    <string name="RetroSaveMessageButtonInfo">A small bookmark button next to other people\'s messages. Tap it to forward the message to Telegram\'s Saved Messages.</string>
     <string name="RetroClassicColors">Classic theme colors (experimental)</string>
     <string name="RetroClassicColorsInfo">Telegram 12.1.1 colors for the default theme: blue action bar with white icons and the older text and link colors. Applied after restart. Dark themes are mostly unaffected.</string>
     <string name="RetroClassicSettingsInfo">Open Settings as the classic profile page of Telegram 12.1.1 instead of the new Settings screen. Takes effect the next time you open Settings.</string>
@@ -542,4 +546,6 @@
     <string name="XmppYouPrefix">You:</string>
     <string name="XmppGroups">Contact groups</string>
     <string name="XmppGroupsHint">Groups, separated by commas</string>
+    <string name="RetroAddFavorite">Add to Favorites</string>
+    <string name="RetroRemoveFavorite">Remove from Favorites</string>
 </resources>
