@@ -68,7 +68,8 @@ done < "$hits"
 
 echo "glass-guard ($mode${range:+ $range}): $total hit(s), $bad not allowed"
 if [ "$bad" -gt 0 ]; then
-  for f in "${!per_file[@]}"; do printf '%6d  %s\n' "${per_file[$f]}" "$f"; done | sort -rn | head -$([ "$mode" = range ] && echo 200 || echo 25)
+  # sed, not head: head exits early, sort then dies of SIGPIPE and pipefail turns that into a failed (exit 2) baseline.
+  for f in "${!per_file[@]}"; do printf '%6d  %s\n' "${per_file[$f]}" "$f"; done | sort -rn | sed -n "1,$([ "$mode" = range ] && echo 200 || echo 25)p"
 fi
 
 if [ "$mode" = baseline ]; then
