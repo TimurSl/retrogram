@@ -4973,9 +4973,21 @@ public class MediaDataController extends BaseController {
                     while (cursor.next()) {
                         NativeByteBuffer data = cursor.byteBufferValue(0);
                         if (data != null) {
-                            TLRPC.Message message = TLRPC.Message.TLdeserialize(data, data.readInt32(false), false);
-                            message.readAttachPath(data, selfId);
+                            TLRPC.Message message;
+                            try {
+                                message = TLRPC.Message.TLdeserialize(data, data.readInt32(false), false);
+                                if (message != null) {
+                                    message.readAttachPath(data, selfId);
+                                }
+                            } catch (Exception e) {
+                                // unparsable row: skip it instead of aborting the whole media load
+                                FileLog.e(e);
+                                message = null;
+                            }
                             data.reuse();
+                            if (message == null) {
+                                continue;
+                            }
                             message.id = cursor.intValue(1);
                             message.dialog_id = uid;
                             if (DialogObject.isEncryptedDialog(uid)) {
