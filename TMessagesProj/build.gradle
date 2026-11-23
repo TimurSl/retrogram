@@ -444,6 +444,8 @@ dependencies {
         exclude group: 'org.objenesis'
         exclude group: 'org.opentest4j'
         exclude group: 'org.apiguardian'
+        // the project already has xpp3_min (same org.xmlpull classes); two copies fail checkDuplicateClasses
+        exclude group: 'org.codelibs', module: 'xpp3'
     }
     implementation('org.igniterealtime.smack:smack-android:4.5.0', smackExcludes)
     implementation('org.igniterealtime.smack:smack-android-extensions:4.5.0', smackExcludes)
