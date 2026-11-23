@@ -4970,6 +4970,7 @@ public class MediaDataController extends BaseController {
 
 
                     HashSet<Long> groupsToLoad = tag != null ? new HashSet<>() : null;
+                    ArrayList<TLRPC.Message> brokenRows = new ArrayList<>();
                     while (cursor.next()) {
                         NativeByteBuffer data = cursor.byteBufferValue(0);
                         if (data != null) {
@@ -4993,6 +4994,13 @@ public class MediaDataController extends BaseController {
                             if (DialogObject.isEncryptedDialog(uid)) {
                                 message.random_id = cursor.longValue(2);
                             }
+                            if (hasBrokenReactions(message)) {
+                                // the stored row is misaligned at the reactions block: drop the reactions
+                                // and rewrite the row below so it stops failing to parse on every load
+                                message.reactions = null;
+                                MessageObject.normalizeFlags(message);
+                                brokenRows.add(message);
+                            }
 
                             if (skipPhotos && message.media != null && message.media.photo != null) {
                                 continue;
@@ -5011,6 +5019,7 @@ public class MediaDataController extends BaseController {
                         }
                     }
                     cursor.dispose();
+                    rewriteMediaRows(database, uid, topicId, type, brokenRows);
 
                     if (tag != null && !groupsToLoad.isEmpty()) {
                         for (long grouped_id : groupsToLoad) {
@@ -5076,6 +5085,119 @@ public class MediaDataController extends BaseController {
         messagesStorage.bindTaskToGuid(runnable, classGuid);
     }
 
+    private static boolean hasBrokenReactions(TLRPC.Message message) {
+        if (message == null || message.reactions == null) {
+            return false;
+        }
+        for (int i = 0, N = message.reactions.results.size(); i < N; i++) {
+            TLRPC.ReactionCount count = message.reactions.results.get(i);
+            if (count == null || count.reaction == null) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static String describeReactions(TLRPC.Message message) {
+        StringBuilder sb = new StringBuilder("message ").append(message.id).append(" flags=").append(message.flags);
+        if (message.reactions != null) {
+            sb.append(" reactions[class=").append(message.reactions.getClass().getSimpleName())
+                .append(" flags=").append(message.reactions.flags).append("]:");
+            for (int i = 0, N = message.reactions.results.size(); i < N; i++) {
+                TLRPC.ReactionCount c = message.reactions.results.get(i);
+                if (c == null) {
+                    sb.append(" null");
+                    continue;
+                }
+                sb.append(" {").append(c.getClass().getSimpleName())
+                    .append(" flags=").append(c.flags)
+                    .append(" chosen=").append(c.chosen)
+                    .append(" order=").append(c.chosen_order)
+                    .append(" reaction=").append(c.reaction == null ? "null" : c.reaction.getClass().getSimpleName())
+                    .append(" count=").append(c.count).append('}');
+            }
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Serializes a message for the media tables and verifies that its reactions block reads back intact.
+     * A block that does not is left out of the stored row (the live message is not modified) and logged,
+     * so a serialization mismatch can no longer poison the row.
+     */
+    private static NativeByteBuffer serializeMessageChecked(TLRPC.Message message) throws Exception {
+        MessageObject.normalizeFlags(message);
+        NativeByteBuffer data = new NativeByteBuffer(message.getObjectSize());
+        message.serializeToStream(data);
+        if (message.reactions == null) {
+            return data;
+        }
+        boolean broken;
+        int position = data.position();
+        try {
+            data.position(0);
+            TLRPC.Message copy = TLRPC.Message.TLdeserialize(data, data.readInt32(false), false);
+            broken = copy == null
+                || (copy.reactions != null && (hasBrokenReactions(copy) || copy.reactions.results.size() != message.reactions.results.size()));
+        } catch (Exception e) {
+            broken = true;
+        } finally {
+            data.position(position);
+        }
+        if (!broken) {
+            return data;
+        }
+        FileLog.e("media row: reactions did not survive serialization, storing the message without them: " + describeReactions(message));
+        data.reuse();
+        TLRPC.MessageReactions reactions = message.reactions;
+        int flags = message.flags;
+        try {
+            message.reactions = null;
+            MessageObject.normalizeFlags(message);
+            data = new NativeByteBuffer(message.getObjectSize());
+            message.serializeToStream(data);
+        } finally {
+            message.reactions = reactions;
+            message.flags = flags;
+        }
+        return data;
+    }
+
+    private static void rewriteMediaRows(SQLiteDatabase database, long uid, long topicId, int type, ArrayList<TLRPC.Message> messages) {
+        if (messages.isEmpty()) {
+            return;
+        }
+        SQLitePreparedStatement state = null;
+        try {
+            database.beginTransaction();
+            state = database.executeFast(topicId != 0
+                ? "UPDATE media_topics SET data = ? WHERE mid = ? AND uid = ? AND topic_id = ? AND type = ?"
+                : "UPDATE media_v4 SET data = ? WHERE mid = ? AND uid = ? AND type = ?");
+            for (TLRPC.Message message : messages) {
+                FileLog.e("media row: repairing unparsable reactions of message " + message.id + " in dialog " + uid);
+                NativeByteBuffer data = serializeMessageChecked(message);
+                state.requery();
+                int pointer = 1;
+                state.bindByteBuffer(pointer++, data);
+                state.bindInteger(pointer++, message.id);
+                state.bindLong(pointer++, uid);
+                if (topicId != 0) {
+                    state.bindLong(pointer++, topicId);
+                }
+                state.bindInteger(pointer++, type);
+                state.step();
+                data.reuse();
+            }
+            database.commitTransaction();
+        } catch (Exception e) {
+            FileLog.e(e);
+        } finally {
+            if (state != null) {
+                state.dispose();
+            }
+        }
+    }
+
     private void putMediaDatabase(long uid, long topicId, int type, ArrayList<TLRPC.Message> messages, int max_id, int min_id, boolean topReached) {
         getMessagesStorage().getStorageQueue().postRunnable(() -> {
             try {
@@ -5096,9 +5218,7 @@ public class MediaDataController extends BaseController {
                 for (TLRPC.Message message : messages) {
                     if (canAddMessageToMedia(message)) {
                         state2.requery();
-                        MessageObject.normalizeFlags(message);
-                        NativeByteBuffer data = new NativeByteBuffer(message.getObjectSize());
-                        message.serializeToStream(data);
+                        NativeByteBuffer data = serializeMessageChecked(message);
                         int pointer = 1;
                         state2.bindInteger(pointer++, message.id);
                         state2.bindLong(pointer++, uid);
