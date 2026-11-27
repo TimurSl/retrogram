@@ -57,6 +57,16 @@ Apply the classic top-of-profile layout: no floating pill buttons; action button
 music, rating inserted as `TextCell` / `TextDetailCell` rows in the "info" section.
 
 ### WP 3.4 — Shared media / tabs (S)
+> **Status (2026-11-27): written, parse-checked only, not compiled outside CI, not run on a device.** 13.1.1 turned the profile's media tabs into a centred
+> floating glass pill (`WRAP_CONTENT`, 50dp, `setUseMinimalWidth`, `setOpen(false)` narrowing) with the list scrolling under it (top padding 54dp).
+> In retro mode:
+> - `ScrollSlidingTextTabStrip` has a `classic` flag (taken at construction): 12.1.1 underline indicator (4dp, 3dp top corners, `tabLineColorKey`) spanning the
+>   label instead of the 15%-alpha rounded pill over the whole tab, the plain per-tab ripple, no glass background (`setBlurredBackground` is ignored),
+>   `setOpen` does not change the padding, and `clipPath` is the whole strip so `ScrollSlidingTextTabStripInner` fills its background edge to edge.
+>   This also restores the underline on the other users of the class (Data usage, Boosts, photo picker search, dialog/contact picker, channel boosts).
+> - `SharedMediaLayout`: the strip is `MATCH_PARENT` × 48dp at the top with a solid `windowBackgroundWhite` background, tabs share the width (no minimal width),
+>   a 1px `divider` line at 47dp (12.1.1 `shadowLine`, themed), the list starts at 48dp instead of 54dp, and the call/top panel has no side padding.
+> - Not done: `ProfileStoriesCollectionTabs` (stories albums, `ViewPagerFixed` type 10) and the gifts tabs keep the 13.x look.
 `SharedMediaLayout` references `ProfileActivity2`; make sure the classic profile uses the plain
 tab strip, not the 12.4 glass tab strip (`ProfileStoriesCollectionTabs` is the new stories-collections tabs; keep
 the feature, restyle).

@@ -82,6 +82,15 @@ Since 2026-11-22 all the classic switches below are on by default (fresh install
 - [ ] "Save button beside messages" on (default): a bookmark sits right of other people's messages in groups and private chats (not in channels, which keep the forward arrow, nor in Saved Messages or no-forward chats); tap forwards to Saved Messages and shows the undo bar
 - [ ] Message menu "Add to Favorites" (star) on a message; open Favorites from the three-dots menu, the message is listed. Delete or clear that chat, reopen Favorites: the text/caption copy and the chat name are still there (media file only if still cached)
 
+**Classic tab strips and header colour (retro on; added 2026-11-27, not yet seen)**
+- [ ] Chat list with folders: tabs sit on a full-width strip in the action bar colour (blue with Classic theme colors), a white 4dp line under the selected folder's name, no rounded pill; switching folders slides the line; unread counters readable
+- [ ] Chat list header (status bar, action bar, stories row) is one solid colour: blue with Classic theme colors, white with them off; icons and title readable; the "+" ring on your story avatar blends in
+- [ ] Select a chat (long press): header and tabs turn to the selection colours; cancel: back to blue, counters still readable
+- [ ] Archive: grey (archived) header with white icons (Classic theme colors on)
+- [ ] Search in the chat list: white header, Chats / Media / Links ... tabs with an underline (no pill), full width
+- [ ] Profile of a user or group, scroll down to media: Media / Files / Links / Voice ... tabs fill the width on a white strip with a thin line under it and an underline under the selected tab; no floating pill; the first row of media is not hidden under the tabs
+- [ ] Settings > Data and Storage > Data usage, and a channel's Boosts page: underline under the selected tab
+
 **Glass leftovers (retro on)**
 - [ ] Any blurred or translucent panel you can find: share sheet, attach sheet, photo viewer, profile of another user, chat action bar, top panels (pinned, translate)
 - [ ] Scrolling a long chat and the chat list feels smooth (note device and refresh rate)

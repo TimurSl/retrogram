@@ -1050,6 +1050,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             }
             rightSlidingDialogContainer.setCurrentTop(top + actionBarHeight);
             float storiesAlpha = 1f;
+            // Retrogram: paint the header (status bar, action bar, stories, folder tabs) in the action bar colour, as 12.1.1 did;
+            // 13.1.1 leaves it to the white window background, which breaks the classic blue palette (white icons on white).
+            final boolean retroHeader = app.retrogram.RetroLook.enabled() && !inPreviewMode;
+            if (retroHeader) {
+                drawRetroHeaderBackground(canvas, top, actionBarHeight);
+            }
             if (whiteActionBar) {
                 if (searchAnimationProgress == 1f) {
                     actionBarSearchPaint.setColor(getThemedColor(Theme.key_windowBackgroundWhite));
@@ -1064,7 +1070,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 }
                 if (searchAnimationProgress > 0 && searchAnimationProgress < 1f) {
                     actionBarSearchPaint.setColor(getThemedColor(Theme.key_windowBackgroundWhite));
-                    if (searchIsShowed || !searchWasFullyShowed) {
+                    if (searchIsShowed || !searchWasFullyShowed || retroHeader) {
                     } else {
                         blurBounds.set(0, top, getMeasuredWidth(), top + actionBarHeight - dp(2 * searchAnimationProgress));
                         drawBlurRect(canvas, 0, blurBounds, actionBarSearchPaint, true);
@@ -1073,7 +1079,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                         fragmentSearchField.setTranslationY(top + actionBarHeight - (actionBar.getHeight() + (filterTabsView != null && !foldersAtBottom ? filterTabsView.getMeasuredHeight() : 0)) + getSearchFieldAdditionOffset());
                     }
                 }
-            } else if (!inPreviewMode) {
+            } else if (!inPreviewMode && !retroHeader) {
                 if (progressToActionMode > 0) {
                     actionBarSearchPaint.setColor(getThemedColor(Theme.key_windowBackgroundWhite));
                     blurBounds.set(0, Math.max(0, top), getMeasuredWidth(), top + actionBarHeight - dp(2 * searchAnimationProgress));
@@ -4959,7 +4965,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
         searchTabsAndFiltersLayout = new SearchTabsAndFiltersLayout(getContext());
         searchTabsAndFiltersLayout.setPadding(0, dp(7), 0, dp(7));
-        contentView.addView(searchTabsAndFiltersLayout, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, SEARCH_TABS_HEIGHT, Gravity.TOP, 4, 0, 4, 0));
+        final int searchTabsSideMargin = searchTabsAndFiltersLayout.classic ? 0 : 4; // Retrogram: full-width classic strip
+        contentView.addView(searchTabsAndFiltersLayout, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, SEARCH_TABS_HEIGHT, Gravity.TOP, searchTabsSideMargin, 0, searchTabsSideMargin, 0));
 
         BlurredBackgroundDrawable searchTabsViewBackground = iBlur3FactoryLiquidGlass.create(searchTabsAndFiltersLayout, BlurredBackgroundProviderImpl.topPanel(resourceProvider));
         searchTabsViewBackground.setRadius(dp(18));
@@ -5426,7 +5433,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 filterTabsViewBackground.setPadding(dp(6.666f));
                 filterTabsView.setPadding(0, dp(7), 0, dp(7));
                 filterTabsView.setBlurredBackground(filterTabsViewBackground);
-                contentView.addView(filterTabsView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 36 + 7 + 7, Gravity.TOP, 4, 0, 4, 0));
+                final int filterTabsSideMargin = filterTabsView.classic ? 0 : 4; // Retrogram: full-width classic strip
+                contentView.addView(filterTabsView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 36 + 7 + 7, Gravity.TOP, filterTabsSideMargin, 0, filterTabsSideMargin, 0));
             }
         }
 
@@ -7841,7 +7849,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 searchFiltersWasShowed = true;
             }
             if (searchTabsView == null && searchViewPager != null && !onlyDialogsAdapter && communityId == 0) {
-                searchTabsView = searchViewPager.createTabsView(false, ViewPagerFixed.SELECTOR_TYPE_BUBBLE_STYLE);
+                // Retrogram: 12.1.1 used the underline selector (type 8) for the search tabs.
+                searchTabsView = searchViewPager.createTabsView(false, app.retrogram.RetroConfig.isRetroUi() ? 8 : ViewPagerFixed.SELECTOR_TYPE_BUBBLE_STYLE);
                 searchTabsAndFiltersLayout.addView(searchTabsView, 0, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.FILL));
             } else if (searchTabsAndFiltersLayout != null && onlyDialogsAdapter && communityId == 0) {
                 AndroidUtilities.removeFromParent(searchTabsView);
@@ -9444,7 +9453,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             menuDrawable.setRotation(0f, false);
         }
         if (filterTabsView != null) {
-            filterTabsView.animateColorsTo(Theme.key_actionBarTabLine, Theme.key_actionBarTabActiveText, Theme.key_actionBarTabUnactiveText, Theme.key_actionBarTabSelector, Theme.key_windowBackgroundWhite);
+            // Retrogram: the classic strip is painted in this colour, so go back to the action bar colour as 12.1.1 did.
+            filterTabsView.animateColorsTo(Theme.key_actionBarTabLine, Theme.key_actionBarTabActiveText, Theme.key_actionBarTabUnactiveText, Theme.key_actionBarTabSelector, filterTabsView.classic ? Theme.key_actionBarDefault : Theme.key_windowBackgroundWhite);
         }
         if (actionBarColorAnimator != null) {
             actionBarColorAnimator.cancel();
@@ -15214,6 +15224,24 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     }
 
     private final Paint retroHeaderPaint = new Paint();
+    private final Paint retroHeaderBackgroundPaint = new Paint();
+    private final Rect retroHeaderBounds = new Rect();
+
+    /**
+     * Retrogram: the chat list header background of 12.1.1: {@code actionBarDefault} (archive, communities: {@code actionBarDefaultArchived}),
+     * blending to the white search / selection background while search or action mode animates in. Drawn under the header children;
+     * the list is clipped below the header by the content view, so this is opaque chrome, not an overlay.
+     */
+    private void drawRetroHeaderBackground(Canvas canvas, int top, int actionBarHeight) {
+        // Same split as the action bar's icon colours (archive and communities use the "archived" set).
+        final int headerColor = getThemedColor(folderId != 0 || communityId != 0 ? Theme.key_actionBarDefaultArchived : Theme.key_actionBarDefault);
+        final float toWhite = whiteActionBar ? searchAnimationProgress : progressToActionMode;
+        retroHeaderBackgroundPaint.setColor(toWhite > 0 ? ColorUtils.blendARGB(headerColor, getThemedColor(Theme.key_windowBackgroundWhite), Math.min(1f, toWhite)) : headerColor);
+        retroHeaderBounds.set(0, Math.max(0, top), fragmentView.getMeasuredWidth(), top + actionBarHeight);
+        if (retroHeaderBounds.bottom > retroHeaderBounds.top) {
+            canvas.drawRect(retroHeaderBounds, retroHeaderBackgroundPaint);
+        }
+    }
 
     /**
      * Retrogram: the status bar, action bar and folder tabs of the main chat list sit one step lighter than the list, in

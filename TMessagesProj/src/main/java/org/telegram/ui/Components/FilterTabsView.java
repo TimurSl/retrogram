@@ -1018,15 +1018,21 @@ public class FilterTabsView extends FrameLayout {
         this.resourcesProvider = resourcesProvider;
         textCounterPaint.setTextSize(dpf2(11f));
         textCounterPaint.setTypeface(AndroidUtilities.bold());
-        textPaint.setTextSize(dpf2(14f));
+        textPaint.setTextSize(dpf2(classic ? 15f : 14f));
         textPaint.setTypeface(AndroidUtilities.bold());
         deletePaint.setStyle(Paint.Style.STROKE);
         deletePaint.setStrokeCap(Paint.Cap.ROUND);
         deletePaint.setStrokeWidth(dp(1.5f));
 
         selectorDrawable = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, null);
+        if (classic) {
+            // Retrogram: 12.1.1 indicator, a 4dp line under the selected folder with 3dp rounded top corners.
+            float rad = AndroidUtilities.dpf2(3);
+            selectorDrawable.setCornerRadii(new float[]{rad, rad, rad, rad, 0, 0, 0, 0});
+        } else {
         float rad = AndroidUtilities.dpf2(14);
         selectorDrawable.setCornerRadii(new float[]{rad, rad, rad, rad, rad, rad, rad, rad});
+        }
         selectorDrawable.setColor(Theme.getColor(tabLineColorKey, resourcesProvider));
 
         setHorizontalScrollBarEnabled(false);
@@ -1272,6 +1278,10 @@ public class FilterTabsView extends FrameLayout {
     BlurredBackgroundDrawable blurredBackgroundDrawable;
 
     public void setBlurredBackground(BlurredBackgroundDrawable drawable) {
+        if (classic) {
+            // Retrogram: no floating pill; dispatchDraw paints the strip in the action bar colour instead.
+            return;
+        }
         setBackground(blurredBackgroundDrawable = drawable);
     }
 
@@ -1627,6 +1637,20 @@ public class FilterTabsView extends FrameLayout {
                 counterVisible = tabView.tabCounterVisible;
             }
         }
+        if (classic) {
+            if (indicatorWidth != 0) {
+                selectorDrawable.setStroke(0, 0);
+                selectorDrawable.setColor(blendedColor(tabLineColorKey, aTabLineColorKey));
+                selectorDrawable.setAlpha((int) (255 * listView.getAlpha()));
+                canvas.save();
+                canvas.translate(listView.getTranslationX(), 0);
+                canvas.scale(listView.getScaleX(), 1f, listView.getPivotX() + listView.getX(), listView.getPivotY());
+                selectorDrawable.setBounds((int) indicatorX, height - AndroidUtilities.dpr(4), (int) (indicatorX + indicatorWidth), height);
+                selectorDrawable.draw(canvas);
+                canvas.restore();
+            }
+            return;
+        }
         if (NekoConfig.tabStyleStroke.Bool()) {
             selectorDrawable.setStroke(AndroidUtilities.dp(1), Theme.getColor(activeTextColorKey, resourcesProvider));
             selectorDrawable.setColor(ColorUtils.setAlphaComponent(Theme.getColor(tabLineColorKey), 50));
@@ -1662,10 +1686,33 @@ public class FilterTabsView extends FrameLayout {
 
     @Override
     protected void dispatchDraw(@NonNull Canvas canvas) {
+        if (classic) {
+            // Retrogram: a full-width solid strip in the header colour (12.1.1 tabs lived inside the action bar), no rounded clip.
+            if (retroBackgroundPaint == null) {
+                retroBackgroundPaint = new Paint();
+            }
+            retroBackgroundPaint.setColor(blendedColor(backgroundColorKey, aBackgroundColorKey));
+            canvas.drawRect(0, 0, getMeasuredWidth(), getMeasuredHeight(), retroBackgroundPaint);
+            super.dispatchDraw(canvas);
+            return;
+        }
         canvas.save();
         canvas.clipPath(clipPath);
         super.dispatchDraw(canvas);
         canvas.restore();
+    }
+
+    /** Retrogram: classic 12.1.1 folder tabs (underline, solid strip). Taken once, at construction. */
+    public final boolean classic = app.retrogram.RetroConfig.isRetroUi();
+    private Paint retroBackgroundPaint;
+
+    /** The colour of {@code key}, blended toward {@code animatingToKey} while a colour change animates. */
+    private int blendedColor(int key, int animatingToKey) {
+        final int color = Theme.getColor(key, resourcesProvider);
+        if (animatingToKey < 0) {
+            return color;
+        }
+        return ColorUtils.blendARGB(color, Theme.getColor(animatingToKey, resourcesProvider), animationValue);
     }
 
     public void updateColors() {

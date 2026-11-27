@@ -8534,11 +8534,11 @@ public class ChatActivity extends BaseFragment implements
                 }
             };
             hashtagSearchTabs.setVisibility(View.GONE);
-            hashtagSearchTabs.setTabs(searchViewPager.createTabsView(true, ViewPagerFixed.SELECTOR_TYPE_BUBBLE_STYLE));
+            hashtagSearchTabs.setTabs(searchViewPager.createTabsView(true, app.retrogram.RetroConfig.isRetroUi() ? 8 : ViewPagerFixed.SELECTOR_TYPE_BUBBLE_STYLE)); // Retrogram: 12.1.1 underline tabs
             hashtagSearchTabs.setPadding(0, dp(7.66f), 0, dp(7.66f));
             hashtagSearchTabs.setBackground(glassBackgroundDrawableFactory.create(hashtagSearchTabs)
                 .setColorProvider(BlurredBackgroundProviderImpl.topPanelChatActivity(resourceProvider))
-                .setRadius(dp(18)).setPadding(dp(7f)));
+                .setRadius(app.retrogram.RetroConfig.isClassicChatHeader() ? 0 : dp(18)).setPadding(app.retrogram.RetroConfig.isClassicChatHeader() ? 0 : dp(7f))); // Retrogram: flat full-width strip
 
             contentView.addView(hashtagSearchTabs, LayoutHelper.createFrameMarginPx(LayoutHelper.MATCH_PARENT, 50, Gravity.FILL_HORIZONTAL | Gravity.TOP, 0, -dp(5), 0, 0));
         }

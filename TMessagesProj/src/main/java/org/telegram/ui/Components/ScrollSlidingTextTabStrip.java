@@ -166,8 +166,14 @@ public class ScrollSlidingTextTabStrip extends HorizontalScrollView implements T
         this.resourcesProvider = resourcesProvider;
 
         selectorDrawable = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, null);
+        if (classic) {
+            // Retrogram: the 12.1.1 indicator, a 4dp line under the selected tab with 3dp rounded top corners.
+            float rad = AndroidUtilities.dpf2(3);
+            selectorDrawable.setCornerRadii(new float[]{rad, rad, rad, rad, 0, 0, 0, 0});
+        } else {
         float rad = AndroidUtilities.dpf2(14);
         selectorDrawable.setCornerRadii(new float[]{rad, rad, rad, rad, rad, rad, rad, rad});
+        }
 //        selectorDrawable.setCornerRadii(new float[]{rad, rad, rad, rad, 0, 0, 0, 0});
 
         setFillViewport(true);
@@ -446,8 +452,18 @@ public class ScrollSlidingTextTabStrip extends HorizontalScrollView implements T
         return views;
     }
 
+    /**
+     * Retrogram: classic 12.1.1 strip (underline indicator, plain ripple per tab, no floating pill background). Taken once, at
+     * construction, so a strip never mixes the two looks.
+     */
+    public final boolean classic = app.retrogram.RetroConfig.isRetroUi();
+
     BlurredBackgroundDrawable backgroundDrawable;
     public void setBlurredBackground(BlurredBackgroundDrawable background) {
+        if (classic) {
+            // Retrogram: no glass pill behind the tabs; the owner gives the strip a solid background instead.
+            return;
+        }
         backgroundDrawable = background;
         backgroundDrawable.setCallback(this);
     }
@@ -460,6 +476,13 @@ public class ScrollSlidingTextTabStrip extends HorizontalScrollView implements T
     private final AnimatedFloat open = new AnimatedFloat(this, 420, CubicBezierInterpolator.EASE_OUT_QUINT);
 
     private void checkBoundsAndClipping() {
+        if (classic) {
+            // Retrogram: the whole strip is the "pill"; subclasses that clip their background to clipPath fill it edge to edge.
+            rect.set(0, 0, getMeasuredWidth(), getMeasuredHeight());
+            clipPath.rewind();
+            clipPath.addRect(rect, Path.Direction.CW);
+            return;
+        }
         final float rectT = this.rectT.set(1f);
         rect.set(getPaddingLeft(), 0, getMeasuredWidth() - getPaddingRight(), getMeasuredHeight());
         rect.inset(dp(7), dp(7));
@@ -663,6 +686,10 @@ public class ScrollSlidingTextTabStrip extends HorizontalScrollView implements T
             TextView tab = (TextView) tabsContainer.getChildAt(a);
             tab.setTextColor(processColor(Theme.getColor(currentPosition == a ? activeTextColorKey : unactiveTextColorKey, resourcesProvider)));
 //            tab.setBackground(Theme.createSelectorDrawable(Theme.multAlpha(processColor(Theme.getColor(activeTextColorKey, resourcesProvider)), .15f), 3));
+            if (classic) {
+                tab.setBackground(Theme.createSelectorDrawable(Theme.multAlpha(processColor(Theme.getColor(activeTextColorKey, resourcesProvider)), .15f), Theme.RIPPLE_MASK_CIRCLE_TO_BOUND_EDGE));
+                continue;
+            }
             tab.setBackground(
                 new InsetDrawable(
                     Theme.createSelectorDrawable(Theme.multAlpha(processColor(Theme.getColor(activeTextColorKey, resourcesProvider)), .15f), Theme.RIPPLE_MASK_ROUNDRECT_6DP, dp(14)),
@@ -671,7 +698,11 @@ public class ScrollSlidingTextTabStrip extends HorizontalScrollView implements T
             );
         }
 //        selectorDrawable.setColor(processColor(Theme.getColor(tabLineColorKey, resourcesProvider)));
+        if (classic) {
+            selectorDrawable.setColor(processColor(Theme.getColor(tabLineColorKey, resourcesProvider)));
+        } else {
         selectorDrawable.setColor(Theme.multAlpha(processColor(Theme.getColor(activeTextColorKey, resourcesProvider)), .15f));
+        }
         invalidate();
     }
 
@@ -725,6 +756,10 @@ public class ScrollSlidingTextTabStrip extends HorizontalScrollView implements T
         if (open == isOpen) return;
 
         isOpen = open;
+        if (classic) {
+            // Retrogram: the "closed" state only narrows the glass pill; the classic strip stays full width.
+            return;
+        }
 
         setPadding(dp(isOpen ? 0 : 6), getPaddingTop(), dp(isOpen ? 0 : 6), getPaddingBottom());
         invalidate();
@@ -763,6 +798,13 @@ public class ScrollSlidingTextTabStrip extends HorizontalScrollView implements T
 //                (int) r,
 //                height
 //            );
+            if (classic) {
+                selectorDrawable.setBounds(getPaddingLeft() + (int) l, height - AndroidUtilities.dpr(4), getPaddingLeft() + (int) r, height);
+                selectorDrawable.setStroke(0, 0);
+                selectorDrawable.draw(canvas);
+                selectorDrawable.setAlpha(wasAlpha);
+                return result;
+            }
             selectorDrawable.setBounds(
                 getPaddingLeft() + (int) l + dp(4),
                 getPaddingTop() + dp(4),
@@ -955,6 +997,10 @@ public class ScrollSlidingTextTabStrip extends HorizontalScrollView implements T
 
     private int getChildWidth(TextView child) {
         Layout layout = child.getLayout();
+        if (classic && layout != null) {
+            // Retrogram: the 12.1.1 underline spans the label, not the whole tab.
+            return (int) Math.ceil(layout.getLineWidth(0)) + dp(2);
+        }
 //        if (layout != null) {
 //            return (int) Math.ceil(layout.getLineWidth(0)) + dp(2);
 //        } else {

@@ -57,6 +57,19 @@ The PLAN's "tab host removed from the hierarchy" is satisfied by A as long as `M
 >   action bar plus the pill appearing on tap, not yet the 12.1.1 field that expands *inside* the action bar. Closing that gap is a polish item
 >   (position the active `fragmentSearchField` over the action bar), best done with a device to compare.
 > - Left: stories header placement, `FilterTabsView` background check against 12.1.1, `topBubblesFadeView` / `DialogsActivityTopPanelLayout` glass.
+> - **Classic tab strips and header colour (2026-11-27, written, parse-checked only, not compiled outside CI, not run on a device):**
+>   - `FilterTabsView` (folder tabs), retro only (`FilterTabsView.classic`, taken at construction): the 12.1.1 4dp underline (3dp top corners, `actionBarTabLine`)
+>     under the label instead of the 28dp translucent pill; 15dp labels (13.x: 14dp); no rounded clip; the strip is painted full width in its background key
+>     (`actionBarDefault`, animating to `actionBarActionModeDefault` in selection mode) instead of the floating glass pill; `DialogsActivity` drops the 4dp side margins.
+>     After action mode the background key goes back to `actionBarDefault` as in 12.1.1 (13.1.1 used `windowBackgroundWhite`, which made the counter text white on white).
+>   - Header colour: 13.1.1 draws the chat list header in `windowBackgroundWhite` (and with stories, not at all), so with "Classic theme colors" the white icons and
+>     title sat on white. `DialogsActivity.drawRetroHeaderBackground` paints status bar + action bar + stories area in `actionBarDefault`
+>     (`actionBarDefaultArchived` in the archive and communities, the same split as the icon colours), blending to white while search or selection mode animates in,
+>     as 12.1.1 did. `DialogStoriesCell` already assumes that colour (its "+" and failure badges are ringed with `actionBarDefault`). With the 13.1.1 palette
+>     `actionBarDefault` is white, so nothing changes there except dark themes, which get their action bar colour.
+>   - Search tabs (Chats / Media / Links / ...): underline selector (`ViewPagerFixed` type 8, as 12.1.1) instead of `SELECTOR_TYPE_BUBBLE_STYLE`;
+>     `SearchTabsAndFiltersLayout` is a flat full-width white strip (no glass pill, no rounded clip). The hashtag search tabs inside a chat get the same selector,
+>     and their glass background has radius/padding 0 when "Classic chat header" is on.
 Compare against `git show 9cbf0333:…/DialogsActivity.java` (13,524 lines vs 14,483 now).
 1. Action bar: `ActionBar` menu icon (hamburger / back-arrow morph via `MenuDrawable`), title, "Connecting…/Updating…"
    status via the old `setTitle` + `actionBar.setTitleAnimated` path. Gate `dialogsActivityStatusLayout`

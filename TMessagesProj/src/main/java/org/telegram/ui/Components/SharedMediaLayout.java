@@ -715,6 +715,8 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
     private ArrayList<SharedAudioCell> audioCellCache = new ArrayList<>(10);
     private ArrayList<SharedAudioCell> audioCache = new ArrayList<>(10);
     public ScrollSlidingTextTabStripInner scrollSlidingTextTabStrip;
+    /** Retrogram: divider under the classic tab strip; null outside retro mode. */
+    private View retroTabsDivider;
     //    public UniversalRecyclerView tabsListView;
     public SearchTagsList searchTagsList;
     private ChatActionCell floatingDateView;
@@ -3716,7 +3718,8 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
 
         if (!customTabs()) {
             topPanelLayout = new DialogsActivityTopPanelLayout(context);
-            topPanelLayout.setPadding(dp(11), dp(21), dp(11), dp(21));
+            final int topPanelSidePadding = app.retrogram.RetroConfig.isRetroUi() ? 0 : dp(11); // Retrogram: flat full-width strip
+            topPanelLayout.setPadding(topPanelSidePadding, dp(21), topPanelSidePadding, dp(21));
 
             BlurredBackgroundDrawable topPanelLayoutBackground = iBlur3FactoryLiquidGlass.create(topPanelLayout, BlurredBackgroundProviderImpl.topPanel(resourcesProvider));
             topPanelLayoutBackground.setRadius(dp(24));
@@ -3767,6 +3770,10 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                 setVisibleHeight(lastVisibleHeight);
             });
 
+            if (scrollSlidingTextTabStrip.classic) {
+                // Retrogram: the 12.1.1 tab strip, full width and solid (background set in createScrollingTextTabStrip), with a divider under it.
+                addView(scrollSlidingTextTabStrip, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, Gravity.LEFT | Gravity.TOP));
+            } else {
             BlurredBackgroundDrawable filterTabsViewBackground = iBlur3FactoryLiquidGlass.create(scrollSlidingTextTabStrip, BlurredBackgroundProviderImpl.topPanel(resourcesProvider));
             filterTabsViewBackground.setRadius(dp(18));
             filterTabsViewBackground.setPadding(dp(6.666f));
@@ -3776,6 +3783,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
             scrollSlidingTextTabStrip.setBlurredBackground(filterTabsViewBackground);
             scrollSlidingTextTabStrip.setOpen(false);
             addView(scrollSlidingTextTabStrip, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 50, Gravity.CENTER_HORIZONTAL | Gravity.TOP, -2, 0, -2, 0));
+            }
             searchTagsList = new SearchTagsList(getContext(), profileActivity, profileActivity.getCurrentAccount(), includeSavedDialogs() ? 0 : dialog_id, resourcesProvider) {
                 @Override
                 protected boolean setFilter(ReactionsLayoutInBubble.VisibleReaction reaction) {
@@ -3822,6 +3830,14 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
             searchTagsList.setShown(0f);
             addView(searchTagsList, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 38, Gravity.LEFT | Gravity.TOP, 0, 4, 0, 0));
             addView(actionModeLayout, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, Gravity.LEFT | Gravity.TOP));
+            if (scrollSlidingTextTabStrip.classic) {
+                // Retrogram: the 1px divider under the tabs (12.1.1 `shadowLine`).
+                retroTabsDivider = new View(context);
+                retroTabsDivider.setBackgroundColor(getThemedColor(Theme.key_divider));
+                FrameLayout.LayoutParams dividerParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1);
+                dividerParams.topMargin = dp(48) - 1;
+                addView(retroTabsDivider, dividerParams);
+            }
         }
 
         updateTabs(false);
@@ -4439,7 +4455,12 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
         }
         scrollSlidingTextTabStrip.animationDuration = 320;
         scrollSlidingTextTabStrip.setColors(Theme.key_profile_tabSelectedLine, Theme.key_profile_tabSelectedText, Theme.key_profile_tabText, Theme.key_profile_tabSelector);
+        if (scrollSlidingTextTabStrip.classic) {
+            // Retrogram: tabs share the full width on a solid strip, as in 12.1.1.
+            scrollSlidingTextTabStrip.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
+        } else {
         scrollSlidingTextTabStrip.setUseMinimalWidth(true);
+        }
         scrollSlidingTextTabStrip.setDelegate(new ScrollSlidingTextTabStrip.ScrollSlidingTabStripDelegate() {
             @Override
             public void onPageSelected(int id, boolean forward) {
@@ -11399,6 +11420,9 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
 
         arrayList.add(new ThemeDescription(actionModeLayout, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_windowBackgroundWhite));
         arrayList.add(new ThemeDescription(scrollSlidingTextTabStrip, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_windowBackgroundWhite));
+        if (retroTabsDivider != null) {
+            arrayList.add(new ThemeDescription(retroTabsDivider, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_divider));
+        }
 
         arrayList.add(new ThemeDescription(floatingDateView, 0, null, null, null, null, Theme.key_chat_mediaTimeBackground));
         arrayList.add(new ThemeDescription(floatingDateView, 0, null, null, null, null, Theme.key_chat_mediaTimeText));
@@ -12011,7 +12035,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
 
     private int getPagePaddingTop(int type) {
         return (
-            dp(48 + 6) +
+            dp(app.retrogram.RetroConfig.isRetroUi() && !customTabs() ? 48 : 48 + 6) + // Retrogram: the list starts right under the solid strip
             topLayoutPadding +
             getStoriesTabsPadding(type) +
             (type == TAB_ARCHIVED_STORIES ? dp(64) : 0)

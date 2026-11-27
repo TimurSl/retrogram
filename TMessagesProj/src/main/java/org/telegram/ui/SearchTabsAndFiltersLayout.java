@@ -15,6 +15,8 @@ import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
 public class SearchTabsAndFiltersLayout extends FrameLayout implements Theme.Colorable {
     private final Path clipPath = new Path();
     private BlurredBackgroundDrawable blurredBackgroundDrawable;
+    /** Retrogram: a flat full-width strip on the white search header (12.1.1) instead of the rounded glass pill. */
+    public final boolean classic = app.retrogram.RetroConfig.isRetroUi();
 
     public SearchTabsAndFiltersLayout(@NonNull Context context) {
         super(context);
@@ -30,6 +32,10 @@ public class SearchTabsAndFiltersLayout extends FrameLayout implements Theme.Col
 
     @Override
     protected void dispatchDraw(@NonNull Canvas canvas) {
+        if (classic) {
+            super.dispatchDraw(canvas);
+            return;
+        }
         canvas.save();
         canvas.clipPath(clipPath);
         super.dispatchDraw(canvas);
@@ -37,11 +43,19 @@ public class SearchTabsAndFiltersLayout extends FrameLayout implements Theme.Col
     }
 
     public void setBlurredBackground(BlurredBackgroundDrawable drawable) {
+        if (classic) {
+            setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+            return;
+        }
         setBackground(blurredBackgroundDrawable = drawable);
     }
 
     @Override
     public void updateColors() {
+        if (classic) {
+            setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+            return;
+        }
         if (blurredBackgroundDrawable != null) {
             blurredBackgroundDrawable.updateColors();
         }
