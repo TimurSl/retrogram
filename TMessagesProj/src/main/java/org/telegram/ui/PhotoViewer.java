@@ -7580,7 +7580,9 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         };
         pickerViewSendButton.setCircleSize(dp(52), dp(38));
         pickerViewSendButton.newCounterPos = true;
+        if (!app.retrogram.RetroConfig.isRetroUi()) { // Retrogram: plain blue circle, no glass ring around it (12.1.1)
         pickerViewSendButton.setBlurredBackgroundDrawable(iBlur3FactoryFrostedLiquidGlass.create(pickerViewSendButton).setColorProvider(BlurredBackgroundProviderImpl.photoViewer(resourcesProvider)));
+        }
         containerView.addView(pickerViewSendButton, LayoutHelper.createFrame(120, 120, Gravity.RIGHT | Gravity.BOTTOM, 0, 0, 8, 2f));
         pickerViewSendButton.setContentDescription(getString("Send", R.string.Send));
         ScaleStateListAnimator.apply(pickerViewSendButton);
@@ -7774,12 +7776,16 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         };
         itemsLayout.setOrientation(LinearLayout.HORIZONTAL);
         itemsLayout.setPadding(dp(2), 0, dp(2), 0);
+        final boolean retroItems = app.retrogram.RetroConfig.isRetroUi();
+        if (!retroItems) {
         itemsLayout.setBackground(iBlur3FactoryFrostedLiquidGlass.create(itemsLayout)
             .setColorProvider(BlurredBackgroundProviderImpl.photoViewer(resourcesProvider))
             .setPadding(dp(2))
             .setRadius(dp(22)));
+        }
 
-        pickerView.addView(itemsLayout, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 48, Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM, 0, 3, 63, 0));
+        // Retrogram: 12.1.1 placed the bare tool row (no pill) flush with the bottom, 70dp clear of the send button.
+        pickerView.addView(itemsLayout, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 48, Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM, 0, retroItems ? 0 : 3, retroItems ? 70 : 63, 0));
 
         cropItem = new ImageView(parentActivity);
         cropItem.setScaleType(ImageView.ScaleType.CENTER);

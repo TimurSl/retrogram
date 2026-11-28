@@ -70,6 +70,11 @@ Keep this patch under ~150 lines so it survives merges. It also gives a quick wi
 become solid) before Phases 1–3 are finished.
 
 ### WP 4.2 — Sweep list (L)
+> **Progress (2026-11-28, written, parse-checked only, not compiled outside CI, not run on a device):** attach sheet caption: the caption bar is flat and full width
+> (`captionContainerBg` radius/padding 0, no rounded clip of the field) and the emoji panel under it has square top corners (`emojiViewChildBg`, 29dp before).
+> Photo viewer / editor: the tool row (crop, paint, tune, ...) has no glass pill and sits where 12.1.1 put it (bottom 0, 70dp right margin); the picker's send
+> button has no glass ring (`setBlurredBackgroundDrawable` skipped), leaving the plain blue circle. Left in the photo viewer: the poll-media back/delete buttons, the
+> video mute button, the cover editor buttons and the paint tools bar keep their (now opaque) glass shapes.
 > **Progress (2026-11-22, written, not build-verified):** `ChatAttachAlert`: in retro mode the bottom tab bar is a flat full-width strip (radius 0, no 7dp inset, no rounded outline clip) and
 > `bottomFadeView` stays hidden (also after `showLayout`). `ShareAlert`: the caption bar, the "Send"/picker bar, the timestamp bar and the emoji panel behind the caption are flat
 > (radius 0, drawable inset 0; the views keep their padding) and `bottomFadeView` is gone. Left: `PhotoViewer` (dark UI, a few blur3 pills), `ContactsActivity` / `CallLogActivity` / `TopicsFragment` search pills,

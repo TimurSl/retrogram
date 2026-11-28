@@ -19,6 +19,17 @@ For each of the four areas below, list: (a) the glass-specific code (grep `blur3
 ## Work packages
 
 ### WP 2.1 — Input panel (XL)
+> **Status (2026-11-28): icon colours and send button written, parse-checked only, not compiled outside CI, not run on a device.**
+> - **Icon colour:** since 12.2 the input bar (emoji, attach, bot, notify, gift, suggest, slow-mode, "/" ...), the round buttons, the emoji panel tabs and sticker set
+>   names are tinted with `glass_defaultIcon`: `0x991B2227` (60% near-black) in the default theme, translucent white in Night/Dark Blue/AMOLED. 12.1.1 used
+>   `chat_messagePanelIcons` (`#8e959b` grey). Themes made before 12.2 lack the glass key and already fall back to the panel key. In retro mode
+>   `Theme.getColor` (both overloads) and `ChatActivity.ThemeDelegate.getColor` read `chat_messagePanelIcons` for that key (`RetroLook.themeKey`), so every
+>   theme gets the 12.1.1 icon colour; the check is one int compare on the hot path. The theme editor still lists `glass_defaultIcon`, but editing it has no effect in retro mode.
+> - **Send button:** with "Classic input bar" on, the chat's send button uses `SendButton`'s old-design path with `ic_send`: a blue paper plane tinted
+>   `chat_messagePanelSend`, no filled background, as in 12.1.1 (13.x: white `send_plane_24` on a filled 38dp rounded rect). It still opens into the filled pill
+>   for paid messages (price) and the send preview. The edit "done" button keeps the 13.x design.
+> - **Channel / group bottom bar** (Mute, Unmute, Discuss, ...): label in `chat_fieldOverlayText` (blue, 12.1.1) instead of `glass_defaultText`, and a square press
+>   area (`ChatActivityChannelButtonsLayout` container outline radius 0) on the flat bar. The accent "Join" pill and the round side buttons (search, gift, direct) are unchanged.
 - Full-width solid bar: background `key_chat_messagePanelBackground`, top divider/shadow as drawn in the 12.1.1 `ChatActivityEnterView` (find it with `git show 9cbf0333:…/ChatActivityEnterView.java | grep -n Shadow`),
   edit-text area without pill margins/radius, attach button left, emoji left, send/voice right (12.1.1 order).
 - Keep new controls reachable: AI editor, rich-text toolbar, scheduled/silent (long-press send), paid messages,

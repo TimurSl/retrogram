@@ -9088,6 +9088,9 @@ public class Theme {
     }
 
     public static int getColor(int key, ResourcesProvider provider) {
+        if (key == key_glass_defaultIcon) {
+            key = app.retrogram.RetroLook.themeKey(key); // Retrogram: 12.1.1 icon colour, see RetroLook.themeKey
+        }
         if (provider != null) {
             return provider.getColor(key);
         }
@@ -9107,6 +9110,9 @@ public class Theme {
     }
 
     public static int getColor(int key, boolean[] isDefault, boolean ignoreAnimation) {
+        if (key == key_glass_defaultIcon) {
+            key = app.retrogram.RetroLook.themeKey(key); // Retrogram: 12.1.1 icon colour, see RetroLook.themeKey
+        }
         if (!ignoreAnimation && animatingColors != null) {
             int index = animatingColors.indexOfKey(key);
             if (index >= 0) {

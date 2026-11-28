@@ -91,6 +91,13 @@ Since 2026-11-22 all the classic switches below are on by default (fresh install
 - [ ] Profile of a user or group, scroll down to media: Media / Files / Links / Voice ... tabs fill the width on a white strip with a thin line under it and an underline under the selected tab; no floating pill; the first row of media is not hidden under the tabs
 - [ ] Settings > Data and Storage > Data usage, and a channel's Boosts page: underline under the selected tab
 
+**Input icons, send button, attach caption, photo editor (retro on; added 2026-11-28, not yet seen)**
+- [ ] Chat input bar: emoji, attach, bot, "/" and other icons are opaque grey (not a dark translucent tint) in the default theme; light grey-blue in Night; page-down/mentions button icons the same grey
+- [ ] Type a message: the send button is a blue paper plane with no filled circle/pill behind it (Classic input bar on); paid-message chats still show the price pill; long-press send still opens the preview/menu
+- [ ] Channel you are subscribed to: the bottom "Mute"/"Unmute" label is blue on the flat bar; pressing it shows a square highlight, not a pill
+- [ ] Attach sheet, pick a photo: the caption field is a flat full-width bar (no rounded floating field); open the emoji panel from it: square top edge
+- [ ] Photo editor (attach → photo → tap it): the crop/paint/tune row has no pill behind it; the send button is a plain blue circle without a lighter ring
+
 **Glass leftovers (retro on)**
 - [ ] Any blurred or translucent panel you can find: share sheet, attach sheet, photo viewer, profile of another user, chat action bar, top panels (pinned, translate)
 - [ ] Scrolling a long chat and the chat list feels smooth (note device and refresh rate)

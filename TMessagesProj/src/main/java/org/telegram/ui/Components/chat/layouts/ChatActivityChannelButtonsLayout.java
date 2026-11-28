@@ -82,7 +82,8 @@ public class ChatActivityChannelButtonsLayout extends FrameLayout implements Fac
 
         container = new FrameLayout(context);
         container.setClipToOutline(true);
-        container.setOutlineProvider(ViewOutlineProviderImpl.boundsWithPaddingRoundRect(0, dp(22)));
+        // Retrogram: square press area on the flat classic input bar instead of the 22dp pill.
+        container.setOutlineProvider(ViewOutlineProviderImpl.boundsWithPaddingRoundRect(0, app.retrogram.RetroConfig.isClassicInput() ? 0 : dp(22)));
         addView(container, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 44, Gravity.CENTER_VERTICAL));
     }
 

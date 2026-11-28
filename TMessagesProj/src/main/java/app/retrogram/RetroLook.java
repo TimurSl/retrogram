@@ -37,6 +37,20 @@ public final class RetroLook {
     }
 
     /**
+     * Theme key to read in place of {@code key}. 12.2+ draws the chat chrome icons (input bar: emoji, attach, bot, notify, gift, ...;
+     * round buttons; emoji panel tabs; sticker set names) in {@code glass_defaultIcon}, a 60% translucent near-black in the default
+     * theme; 12.1.1 drew the same icons in {@code chat_messagePanelIcons} (opaque grey). Themes that predate 12.2 never define the glass
+     * key and already fall back to the panel key, so in retro mode every theme reads the panel key. Called from {@code Theme.getColor}
+     * and {@code ChatActivity.ThemeDelegate.getColor} only when {@code key} is the glass key, so the hot path stays one int compare.
+     */
+    public static int themeKey(int key) {
+        if (key == Theme.key_glass_defaultIcon && enabled()) {
+            return Theme.key_chat_messagePanelIcons;
+        }
+        return key;
+    }
+
+    /**
      * Overlay drawn over the list background behind pinned chats. 12.1.1 drew {@code chats_pinnedOverlay}; 13.1.1
      * commented that out. On a dark background a black-based overlay (the light-theme default) would make the rows darker
      * instead of lighter, so it is replaced by a faint white one there.

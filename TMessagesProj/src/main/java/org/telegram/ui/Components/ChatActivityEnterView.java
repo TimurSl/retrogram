@@ -3705,7 +3705,10 @@ public class ChatActivityEnterView extends FrameLayout implements
             }
         });
 
-        sendButton = new SendButton(context, isInScheduleMode() ? R.drawable.input_schedule : R.drawable.send_plane_24, resourcesProvider, true) {
+        // Retrogram: with the classic input bar, the 12.1.1 send button: a blue paper plane (ic_send, chat_messagePanelSend) with no filled
+        // background; it still opens into the filled pill for paid messages and the send preview (the old-design path of SendButton).
+        final boolean classicSendButton = app.retrogram.RetroConfig.isClassicInput();
+        sendButton = new SendButton(context, isInScheduleMode() ? R.drawable.input_schedule : (classicSendButton ? R.drawable.ic_send : R.drawable.send_plane_24), resourcesProvider, !classicSendButton) {
             @Override
             public boolean isInScheduleMode() {
                 return ChatActivityEnterView.this.isInScheduleMode();

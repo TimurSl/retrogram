@@ -2211,7 +2211,8 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                     }
                 }
                 if (emojiViewChildBg != null) {
-                    emojiViewChildBg.setRadius(dp(29), dp(29), rightBottomRadius, leftBottomRadius, true);
+                    final int topRadius = app.retrogram.RetroConfig.isRetroUi() ? 0 : dp(29); // Retrogram: square top, 12.1.1 panel
+                    emojiViewChildBg.setRadius(topRadius, topRadius, rightBottomRadius, leftBottomRadius, true);
                 }
             }
         };
@@ -3096,7 +3097,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                     captionContainerBg.draw(canvas);
                 }
 
-                final float r = dp(20);
+                final float r = app.retrogram.RetroConfig.isRetroUi() ? 0 : dp(20); // Retrogram: no rounded field inside the flat bar
                 final int pt = dp(7);
                 final int pb = dp(7);
 
@@ -3131,13 +3132,14 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
 
         emojiViewChildBg = iBlur3FactoryFrostedLiquidGlass.create(sizeNotifierFrameLayout, BlurredBackgroundProviderImpl.inputFieldDialogActivity(resourcesProvider));
         emojiViewChildBg.enableInAppKeyboardOptimization();
-        emojiViewChildBg.setRadius(dp(29), dp(29), 0, 0);
+        final boolean retroCaption = app.retrogram.RetroConfig.isRetroUi(); // Retrogram: flat full-width caption bar and emoji panel (12.1.1)
+        emojiViewChildBg.setRadius(retroCaption ? 0 : dp(29), retroCaption ? 0 : dp(29), 0, 0);
         emojiViewChildBg.setThickness(dp(32));
         emojiViewChildBg.setIntensity(0.4f);
 
         captionContainerBg = iBlur3FactoryLiquidGlass.create(captionContainer, BlurredBackgroundProviderImpl.inputFieldDialogActivity(resourcesProvider));
-        captionContainerBg.setRadius(dp(22));
-        captionContainerBg.setPadding(dp(7));
+        captionContainerBg.setRadius(retroCaption ? 0 : dp(22));
+        captionContainerBg.setPadding(retroCaption ? 0 : dp(7));
         captionContainer.setPadding(dp(7), dp(5), dp(7), dp(5));
 
         frameLayout2.setWillNotDraw(false);

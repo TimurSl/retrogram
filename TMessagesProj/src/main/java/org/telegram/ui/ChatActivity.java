@@ -30339,7 +30339,8 @@ public class ChatActivity extends BaseFragment implements
 
 
 
-        bottomOverlayChatText.setTextColorKey(accentTextButton ? Theme.key_featuredStickers_buttonText : Theme.key_glass_defaultText);
+        // Retrogram: 12.1.1 drew Mute / Unmute / Discuss ... in the blue overlay text colour on the flat bar.
+        bottomOverlayChatText.setTextColorKey(accentTextButton ? Theme.key_featuredStickers_buttonText : (app.retrogram.RetroConfig.isClassicInput() ? Theme.key_chat_fieldOverlayText : Theme.key_glass_defaultText));
 
         bottomChannelButtonsLayout.setCenterAccentBackground(accentTextButton, animated);
         bottomChannelButtonsLayout.updateWrappingVisible(animated);
@@ -46860,6 +46861,9 @@ public class ChatActivity extends BaseFragment implements
 
         @Override
         public int getColor(int key) {
+            if (key == Theme.key_glass_defaultIcon) {
+                key = app.retrogram.RetroLook.themeKey(key); // Retrogram: 12.1.1 icon colour (input bar, round buttons)
+            }
             if (animatingColors != null) {
                 int index = animatingColors.indexOfKey(key);
                 if (index >= 0) {
